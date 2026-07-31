@@ -2,185 +2,407 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#0b57d0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2f6fed">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Mes cartes 2026">
-  <link rel="manifest" href="manifest.webmanifest">
-  <title>Mes cartes Adrenalyn XL 2026</title>
+  <meta name="apple-mobile-web-app-title" content="Mon Budget">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <title>Budget Familial Laetitia</title>
   <style>
-    :root{--bg:#f4f7fb;--card:#fff;--ink:#172033;--muted:#667085;--blue:#0b57d0;--green:#16803c;--red:#c62828;--line:#dfe5ee}
+    :root{
+      --blue:#2f6fed;--blue2:#eef3ff;--bg:#f3f6fb;--card:#fff;--text:#172033;
+      --muted:#6b7280;--ok:#278b57;--warn:#c17a00;--bad:#ce3f3f;--line:#e3e8f1
+    }
     *{box-sizing:border-box}
-    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
-    header{position:sticky;top:0;z-index:5;background:linear-gradient(135deg,#073b9a,#0b66e4);color:white;padding:calc(14px + env(safe-area-inset-top)) 16px 14px;box-shadow:0 2px 12px #0002}
-    h1{font-size:20px;margin:0 0 3px}.sub{font-size:13px;opacity:.9}
-    main{max-width:850px;margin:auto;padding:14px 14px calc(90px + env(safe-area-inset-bottom))}
-    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}
-    .stat,.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 2px 8px #14213d0b}
-    .stat{padding:12px;text-align:center}.stat b{display:block;font-size:21px}.stat span{font-size:12px;color:var(--muted)}
-    .progress{height:10px;background:#dbe6f7;border-radius:99px;overflow:hidden;margin:10px 0 14px}.progress>i{display:block;height:100%;background:#2f7ef3;width:0}
-    .panel{padding:12px;margin-bottom:12px}
-    input,select,button,textarea{font:inherit}
-    input,select,textarea{width:100%;border:1px solid #cbd5e1;border-radius:10px;padding:11px;background:white}
-    .toolbar{display:grid;grid-template-columns:1fr 150px;gap:8px}
-    .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-    button,.btn{border:0;border-radius:10px;padding:10px 12px;background:var(--blue);color:white;font-weight:650;cursor:pointer}
-    button.secondary{background:#e9eef7;color:#24324a}button.danger{background:#ffe8e8;color:#9a1b1b}
-    .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:9px}
-    .item{background:white;border:1px solid var(--line);border-radius:13px;padding:11px;display:flex;align-items:center;justify-content:space-between;gap:8px}
-    .item.owned{border-color:#8dd1a2;background:#f3fff6}
-    .num{font-size:18px;font-weight:750}.meta{font-size:11px;color:var(--muted)}
-    .counter{display:flex;align-items:center;gap:5px}.counter button{width:32px;height:32px;padding:0;border-radius:9px}
-    .counter .minus{background:#e8edf5;color:#25324a}.qty{min-width:19px;text-align:center;font-weight:700}
-    nav{position:fixed;bottom:0;left:0;right:0;z-index:6;background:white;border-top:1px solid var(--line);padding:7px 8px calc(7px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:5px}
-    nav button{background:white;color:#526078;padding:9px 12px}nav button.active{background:#e7f0ff;color:#0b57d0}
-    .hidden{display:none!important}.empty{text-align:center;color:var(--muted);padding:30px}
-    dialog{border:0;border-radius:16px;width:min(94vw,560px);padding:18px}dialog::backdrop{background:#0006}
-    textarea{min-height:125px}
-    small{color:var(--muted)}
-    @media(max-width:500px){.toolbar{grid-template-columns:1fr}.stats{gap:6px}.stat{padding:9px 5px}.stat b{font-size:18px}.list{grid-template-columns:repeat(2,1fr)}nav button{font-size:12px;padding:8px}}
+    html,body{margin:0;min-height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--text)}
+    button,input,select{font:inherit}
+    button{cursor:pointer}
+    header{
+      position:sticky;top:0;z-index:20;background:var(--blue);color:#fff;
+      padding:17px 16px 14px;box-shadow:0 4px 14px rgba(28,55,110,.18)
+    }
+    header h1{margin:0;font-size:22px}
+    header p{margin:3px 0 0;font-size:12px;opacity:.9}
+    main{width:min(860px,100%);margin:auto;padding:13px 13px 96px}
+    .card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 4px 16px rgba(32,50,90,.08)}
+    .hero{text-align:center;padding:20px}
+    .hero span,.hero small{display:block;color:var(--muted)}
+    .hero strong{display:block;font-size:36px;margin:6px 0}
+    .ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+    .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:12px}
+    .summary .box{background:#fff;border-radius:15px;padding:12px;box-shadow:0 3px 12px rgba(32,50,90,.07)}
+    .summary span{display:block;color:var(--muted);font-size:11px}
+    .summary b{display:block;margin-top:4px;font-size:16px}
+    h2{font-size:18px;margin:0 0 13px}
+    .row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+    .row:last-child{border-bottom:0}
+    .row small{display:block;color:var(--muted);font-size:12px;margin-top:3px}
+    .right{text-align:right}
+    .tabs{display:flex;gap:6px;overflow:auto;margin-bottom:12px}
+    .tabs button{white-space:nowrap;border:0;border-radius:999px;padding:9px 12px;background:var(--blue2);color:var(--blue);font-weight:800}
+    .tabs button.active{background:var(--blue);color:#fff}
+    .panel{display:none}.panel.active{display:block}
+    label{display:block;font-weight:700;font-size:13px;margin:11px 0 6px}
+    input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:11px;background:#fff;font-size:16px}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+    .primary,.soft,.dangerBtn{border:0;border-radius:12px;padding:12px 14px;font-weight:800}
+    .primary{width:100%;margin-top:14px;background:var(--blue);color:#fff}
+    .soft{background:var(--blue2);color:var(--blue)}
+    .dangerBtn{background:#fff0f0;color:var(--bad)}
+    .budget{margin:14px 0}
+    .budgetHead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
+    .budgetHead small{display:block;color:var(--muted);margin-top:2px}
+    .track{height:12px;background:#e8edf6;border-radius:999px;overflow:hidden}
+    .fill{height:100%;background:var(--blue)}
+    .fill.warning{background:var(--warn)}.fill.danger{background:var(--bad)}
+    .suggestion,.result{margin-top:10px;padding:11px;border-radius:11px;background:var(--blue2);color:var(--blue)}
+    .charge{width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:left;background:#fff;border:1px solid var(--line);border-radius:13px;padding:11px;margin-bottom:8px}
+    .charge.paid{opacity:.55;background:#f2f7f4}
+    .charge small{display:block;color:var(--muted);margin-top:3px}
+    .charge .right small{color:var(--ok)}
+    .expenseDelete{border:0;background:#fff0f0;color:var(--bad);border-radius:8px;padding:6px 8px;margin-top:5px}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
+    .muted{color:var(--muted)}
+    .empty{text-align:center;color:var(--muted);padding:14px}
+    nav{
+      position:fixed;left:0;right:0;bottom:0;z-index:30;background:#fff;border-top:1px solid #e0e5ef;
+      display:grid;grid-template-columns:repeat(5,1fr);padding:7px 3px calc(7px + env(safe-area-inset-bottom));
+      box-shadow:0 -4px 14px rgba(20,35,70,.08)
+    }
+    nav button{border:0;background:transparent;color:#7a8394;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;padding:5px 2px}
+    nav button.active{color:var(--blue);font-weight:800}
+    nav .ico{font-size:18px}
+    @media(max-width:650px){.summary{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:520px){.grid2{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
 <header>
-  <h1>🏆 Mes cartes Adrenalyn XL 2026</h1>
-  <div class="sub">Sans compte • données enregistrées sur cet appareil</div>
+  <h1>💙 Mon Budget</h1>
+  <p id="headerMonth">Laetitia</p>
 </header>
+
 <main>
-  <section class="stats">
-    <div class="stat"><b id="ownedStat">0</b><span>cartes différentes</span></div>
-    <div class="stat"><b id="missingStat">630</b><span>manquantes</span></div>
-    <div class="stat"><b id="doubleStat">0</b><span>doubles</span></div>
-  </section>
-  <div class="progress"><i id="bar"></i></div>
-
-  <section class="panel">
-    <div class="toolbar">
-      <input id="search" type="search" placeholder="Rechercher un numéro…">
-      <select id="filter">
-        <option value="all">Toutes les cartes</option>
-        <option value="owned">Possédées</option>
-        <option value="missing">Manquantes</option>
-        <option value="doubles">Doubles</option>
-      </select>
+  <section id="home" class="panel active">
+    <div class="card hero">
+      <span>Reste à vivre estimé</span>
+      <strong id="available">0 €</strong>
+      <small id="status">Calcul en cours</small>
     </div>
-    <div class="actions">
-      <button id="batchBtn">Ajouter un lot</button>
-      <button class="secondary" id="copyBtn">Copier la liste</button>
-      <button class="secondary" id="backupBtn">Sauvegarde</button>
+
+    <div class="summary">
+      <div class="box"><span>Solde banque</span><b id="bankBalanceView">0 €</b></div>
+      <div class="box"><span>Revenus</span><b id="incomeView">0 €</b></div>
+      <div class="box"><span>Charges fixes</span><b id="fixedView">0 €</b></div>
+      <div class="box"><span>Dépenses saisies</span><b id="expenseView">0 €</b></div>
+    </div>
+
+    <div class="card">
+      <h2>📅 Prochains prélèvements</h2>
+      <div id="nextCharges"></div>
+    </div>
+
+    <div class="card">
+      <h2>🛍️ Puis-je l’acheter ?</h2>
+      <input id="buyAmount" type="number" step="0.01" placeholder="Montant de l’achat">
+      <button id="checkPurchase" class="primary">Vérifier</button>
+      <div id="purchaseResult" class="result" hidden></div>
+    </div>
+
+    <div class="card">
+      <h2>📊 Budgets</h2>
+      <div id="budgets"></div>
     </div>
   </section>
 
-  <section id="cards" class="list"></section>
-  <div id="empty" class="empty hidden">Aucune carte dans cette sélection.</div>
+  <section id="add" class="panel">
+    <div class="card">
+      <h2>➕ Ajouter une dépense</h2>
+      <label>Montant</label>
+      <input id="amount" type="number" step="0.01" placeholder="0,00">
+      <label>Magasin ou libellé</label>
+      <input id="label" placeholder="Ex. Leclerc">
+      <div id="categorySuggestion" class="suggestion">Catégorie proposée : <b>Courses</b></div>
+      <label>Catégorie</label>
+      <select id="category"></select>
+      <label>Date</label>
+      <input id="date" type="date">
+      <button id="saveExpense" class="primary">Enregistrer</button>
+    </div>
+  </section>
+
+  <section id="charges" class="panel">
+    <div class="card">
+      <h2>📅 Prélèvements</h2>
+      <div id="chargesList"></div>
+    </div>
+  </section>
+
+  <section id="history" class="panel">
+    <div class="card">
+      <h2>🧾 Historique</h2>
+      <input id="search" placeholder="Rechercher Leclerc, Orange…">
+      <div id="historyList"></div>
+    </div>
+  </section>
+
+  <section id="settings" class="panel">
+    <div class="card">
+      <h2>⚙️ Réglages</h2>
+      <label>Solde bancaire actuel</label>
+      <input id="bankBalance" type="number" step="0.01">
+      <label>Mois affiché</label>
+      <input id="month">
+    </div>
+
+    <div class="card">
+      <h2>💶 Revenus</h2>
+      <div id="incomeSettings"></div>
+      <button id="addIncome" class="soft">+ Ajouter un revenu</button>
+    </div>
+
+    <div class="card">
+      <h2>💾 Sauvegarde</h2>
+      <div class="actions">
+        <button id="exportData" class="soft">Exporter</button>
+        <button id="resetApp" class="dangerBtn">Réinitialiser</button>
+      </div>
+      <p class="muted">Les données restent enregistrées sur cet iPhone dans Safari.</p>
+    </div>
+  </section>
 </main>
 
 <nav>
-  <button data-filter="all" class="active">📚 Toutes</button>
-  <button data-filter="missing">❌ Manquantes</button>
-  <button data-filter="doubles">🔁 Doubles</button>
+  <button data-tab="home" class="active"><span class="ico">🏠</span><span>Accueil</span></button>
+  <button data-tab="add"><span class="ico">➕</span><span>Ajouter</span></button>
+  <button data-tab="charges"><span class="ico">📅</span><span>Prélèvements</span></button>
+  <button data-tab="history"><span class="ico">🧾</span><span>Historique</span></button>
+  <button data-tab="settings"><span class="ico">⚙️</span><span>Réglages</span></button>
 </nav>
 
-<dialog id="batchDialog">
-  <h3>Ajouter plusieurs cartes</h3>
-  <p><small>Écris les numéros séparés par des espaces ou des virgules. Exemple : 2, 18, 47, 121</small></p>
-  <textarea id="batchText" placeholder="2, 18, 47, 121"></textarea>
-  <div class="actions">
-    <button id="batchAdd">Ajouter</button>
-    <button class="secondary" onclick="batchDialog.close()">Annuler</button>
-  </div>
-</dialog>
-
-<dialog id="backupDialog">
-  <h3>Sauvegarde de la collection</h3>
-  <div class="actions">
-    <button id="exportBtn">Exporter le fichier</button>
-    <label class="btn secondary" style="display:inline-block">Importer
-      <input id="importFile" type="file" accept=".json" hidden>
-    </label>
-    <button class="danger" id="resetBtn">Tout effacer</button>
-    <button class="secondary" onclick="backupDialog.close()">Fermer</button>
-  </div>
-  <p><small>La sauvegarde permet de restaurer la collection après un changement de téléphone ou un effacement du navigateur.</small></p>
-</dialog>
-
 <script>
-const TOTAL=630, KEY='adrenalyn2026_counts_v1';
-let counts=JSON.parse(localStorage.getItem(KEY)||'{}');
-let currentFilter='all';
-const cardsEl=document.getElementById('cards'), searchEl=document.getElementById('search'), filterEl=document.getElementById('filter');
+(function(){
+  "use strict";
 
-function save(){localStorage.setItem(KEY,JSON.stringify(counts)); updateStats();}
-function qty(n){return Number(counts[n]||0)}
-function setQty(n,v){v=Math.max(0,Math.min(99,v)); if(v) counts[n]=v; else delete counts[n]; save(); render();}
-function updateStats(){
-  let owned=0,doubles=0;
-  for(let i=1;i<=TOTAL;i++){let q=qty(i); if(q>0)owned++; if(q>1)doubles+=q-1}
-  ownedStat.textContent=owned; missingStat.textContent=TOTAL-owned; doubleStat.textContent=doubles;
-  bar.style.width=(owned/TOTAL*100).toFixed(1)+'%';
-}
-function matches(i){
-  const q=qty(i), s=searchEl.value.trim();
-  if(s && !String(i).includes(s)) return false;
-  if(currentFilter==='owned' && q===0)return false;
-  if(currentFilter==='missing' && q>0)return false;
-  if(currentFilter==='doubles' && q<2)return false;
-  return true;
-}
-function render(){
-  const frag=document.createDocumentFragment(); let shown=0;
-  for(let i=1;i<=TOTAL;i++){
-    if(!matches(i))continue; shown++;
-    const q=qty(i), el=document.createElement('article');
-    el.className='item'+(q?' owned':'');
-    el.innerHTML=`<div><div class="num">N° ${i}</div><div class="meta">${q===0?'Manquante':q===1?'Possédée':(q-1)+' double'+(q>2?'s':'')}</div></div>
-      <div class="counter"><button class="minus" aria-label="Retirer">−</button><span class="qty">${q}</span><button aria-label="Ajouter">+</button></div>`;
-    el.querySelector('.minus').onclick=()=>setQty(i,q-1);
-    el.querySelector('.counter button:last-child').onclick=()=>setQty(i,q+1);
-    frag.appendChild(el);
+  const STORAGE_KEY = "budget-familial-laetitia-final-v1";
+
+  const initial = {
+    month: "Août 2026",
+    bankBalance: 3346.91,
+    incomes: [
+      {id:"r1",label:"Salaire Jeff",amount:1450},
+      {id:"r2",label:"MSA invalidité",amount:867.92},
+      {id:"r3",label:"MSA prestations",amount:839.98},
+      {id:"r4",label:"CCPMA prévoyance",amount:660.08},
+      {id:"r5",label:"Participation Maëva assurance voiture",amount:130}
+    ],
+    fixedCharges: [
+      {id:"f1",day:3,label:"Eau de Garonne",amount:64,paid:false},
+      {id:"f2",day:5,label:"Prêt principal",amount:554.54,paid:false},
+      {id:"f3",day:6,label:"Orange mobile 1",amount:28.99,paid:false},
+      {id:"f4",day:6,label:"CEAPC",amount:255.46,paid:false},
+      {id:"f5",day:9,label:"BPCE Vie",amount:10.73,paid:false},
+      {id:"f6",day:10,label:"MAAF",amount:321.13,paid:false},
+      {id:"f7",day:10,label:"Auto-Journal",amount:7.20,paid:false},
+      {id:"f8",day:10,label:"Orange mobile 2",amount:28.99,paid:false},
+      {id:"f9",day:13,label:"Biba",amount:1.52,paid:false},
+      {id:"f10",day:15,label:"VW Bank",amount:424.83,paid:false},
+      {id:"f11",day:16,label:"DGFIP",amount:257,paid:false},
+      {id:"f12",day:17,label:"Orange mobile 3",amount:13.99,paid:false},
+      {id:"f13",day:20,label:"Free Mobile",amount:9.99,paid:false},
+      {id:"f14",day:20,label:"EDF",amount:174.02,paid:false},
+      {id:"f15",day:21,label:"Engie",amount:109.87,paid:false},
+      {id:"f16",day:23,label:"Orange fibre",amount:72.98,paid:false},
+      {id:"f17",day:null,label:"Ergothérapie",amount:175,paid:false},
+      {id:"f18",day:null,label:"Frais bancaires",amount:21.50,paid:false}
+    ],
+    budgets: {
+      "Courses":700,"Carburant":250,"Animaux":150,"Santé":80,
+      "Ergothérapie":175,"Amazon":100,"Maison":150,"Loisirs":100,
+      "Vêtements":100,"Autre":100
+    },
+    rules: [
+      {keyword:"leclerc",category:"Courses"},{keyword:"carrefour",category:"Courses"},
+      {keyword:"intermarche",category:"Courses"},{keyword:"intermarché",category:"Courses"},
+      {keyword:"lidl",category:"Courses"},{keyword:"aldi",category:"Courses"},
+      {keyword:"total",category:"Carburant"},{keyword:"esso",category:"Carburant"},
+      {keyword:"shell",category:"Carburant"},{keyword:"zooplus",category:"Animaux"},
+      {keyword:"maxi zoo",category:"Animaux"},{keyword:"pharmacie",category:"Santé"},
+      {keyword:"amazon",category:"Amazon"},{keyword:"ikea",category:"Maison"},
+      {keyword:"leroy merlin",category:"Maison"},{keyword:"castorama",category:"Maison"}
+    ],
+    expenses: []
+  };
+
+  const clone = obj => JSON.parse(JSON.stringify(obj));
+  let data;
+  try {
+    data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || clone(initial);
+  } catch {
+    data = clone(initial);
   }
-  cardsEl.replaceChildren(frag); empty.classList.toggle('hidden',shown>0);
-}
-function setFilter(f){
-  currentFilter=f; filterEl.value=f;
-  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.filter===f));
+
+  const $ = id => document.getElementById(id);
+  const euro = n => Number(n||0).toLocaleString("fr-FR",{style:"currency",currency:"EUR"});
+  const save = () => { localStorage.setItem(STORAGE_KEY,JSON.stringify(data)); render(); };
+
+  function totals(){
+    const income = data.incomes.reduce((s,x)=>s+Number(x.amount||0),0);
+    const fixed = data.fixedCharges.reduce((s,x)=>s+Number(x.amount||0),0);
+    const expenses = data.expenses.reduce((s,x)=>s+Number(x.amount||0),0);
+    return {income,fixed,expenses,available:income-fixed-expenses};
+  }
+
+  function guessCategory(label){
+    const text=(label||"").toLowerCase();
+    const rule=data.rules.find(r=>text.includes(r.keyword.toLowerCase()));
+    return rule ? rule.category : $("category").value || "Autre";
+  }
+
+  function render(){
+    const t=totals();
+    $("headerMonth").textContent="Laetitia · "+data.month;
+    $("available").textContent=euro(t.available);
+    $("available").className=t.available<0?"bad":t.available<300?"warn":"ok";
+    $("status").textContent=t.available<0?"Budget dépassé":t.available<300?"À surveiller":"Situation correcte";
+    $("bankBalanceView").textContent=euro(data.bankBalance);
+    $("incomeView").textContent=euro(t.income);
+    $("fixedView").textContent=euro(t.fixed);
+    $("expenseView").textContent=euro(t.expenses);
+    $("bankBalance").value=data.bankBalance;
+    $("month").value=data.month;
+
+    renderNextCharges();
+    renderBudgets();
+    renderCharges();
+    renderHistory();
+    renderSettings();
+    renderCategories();
+  }
+
+  function renderNextCharges(){
+    const items=data.fixedCharges.filter(x=>!x.paid).sort((a,b)=>(a.day??99)-(b.day??99)).slice(0,3);
+    $("nextCharges").innerHTML=items.length?items.map(x=>`
+      <div class="row"><div><b>${escapeHtml(x.label)}</b><small>${x.day?"Le "+x.day:"Date variable"}</small></div>
+      <strong>${euro(x.amount)}</strong></div>`).join(""):'<div class="empty">Aucun prélèvement à venir.</div>';
+  }
+
+  function renderBudgets(){
+    $("budgets").innerHTML=Object.entries(data.budgets).map(([cat,limit])=>{
+      const spent=data.expenses.filter(x=>x.category===cat).reduce((s,x)=>s+Number(x.amount||0),0);
+      const pct=limit?Math.min(100,spent/limit*100):0;
+      const cls=pct>=100?"fill danger":pct>=80?"fill warning":"fill";
+      return `<div class="budget">
+        <div class="budgetHead"><div><b>${escapeHtml(cat)}</b><small>${euro(Math.max(0,limit-spent))} restants</small></div>
+        <small>${euro(spent)} / ${euro(limit)}</small></div>
+        <div class="track"><div class="${cls}" style="width:${pct}%"></div></div>
+      </div>`;
+    }).join("");
+  }
+
+  function renderCategories(){
+    const current=$("category").value;
+    $("category").innerHTML=Object.keys(data.budgets).map(c=>`<option>${escapeHtml(c)}</option>`).join("");
+    if(current && data.budgets[current]!==undefined) $("category").value=current;
+  }
+
+  function renderCharges(){
+    $("chargesList").innerHTML=data.fixedCharges.map(x=>`
+      <button class="charge ${x.paid?"paid":""}" data-charge="${x.id}">
+        <div><b>${escapeHtml(x.label)}</b><small>${x.day?"Le "+x.day:"Date variable"}</small></div>
+        <div class="right"><strong>${euro(x.amount)}</strong><small>${x.paid?"Payé":"À payer"}</small></div>
+      </button>`).join("");
+  }
+
+  function renderHistory(){
+    const q=$("search").value.trim().toLowerCase();
+    const list=data.expenses.filter(x=>!q || x.label.toLowerCase().includes(q) || x.category.toLowerCase().includes(q));
+    $("historyList").innerHTML=list.length?list.map(x=>`
+      <div class="row">
+        <div><b>${escapeHtml(x.label)}</b><small>${escapeHtml(x.category)} · ${formatDate(x.date)}</small></div>
+        <div class="right"><strong>${euro(x.amount)}</strong><br><button class="expenseDelete" data-expense="${x.id}">Suppr.</button></div>
+      </div>`).join(""):'<div class="empty">Aucune dépense enregistrée.</div>';
+  }
+
+  function renderSettings(){
+    $("incomeSettings").innerHTML=data.incomes.map((x,i)=>`
+      <div class="grid2" style="margin-bottom:8px">
+        <input data-income-label="${i}" value="${escapeAttr(x.label)}">
+        <input data-income-amount="${i}" type="number" step="0.01" value="${x.amount}">
+      </div>`).join("");
+  }
+
+  function escapeHtml(v){return String(v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
+  function escapeAttr(v){return escapeHtml(v);}
+  function formatDate(v){if(!v)return"";const p=v.split("-");return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:v;}
+
+  document.querySelectorAll("nav button").forEach(btn=>btn.addEventListener("click",()=>{
+    document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));
+    btn.classList.add("active");
+    $(btn.dataset.tab).classList.add("active");
+  }));
+
+  $("label").addEventListener("input",()=>{
+    const cat=guessCategory($("label").value);
+    $("category").value=cat;
+    $("categorySuggestion").innerHTML='Catégorie proposée : <b>'+escapeHtml(cat)+'</b>';
+  });
+
+  $("saveExpense").addEventListener("click",()=>{
+    const amount=Number($("amount").value);
+    if(!amount||amount<=0){alert("Saisis un montant valide.");return;}
+    const category=guessCategory($("label").value);
+    data.expenses.unshift({
+      id:String(Date.now()),
+      amount,
+      label:$("label").value.trim()||category,
+      category,
+      date:$("date").value
+    });
+    $("amount").value="";$("label").value="";save();
+    document.querySelector('nav button[data-tab="home"]').click();
+  });
+
+  $("checkPurchase").addEventListener("click",()=>{
+    const amount=Number($("buyAmount").value), t=totals();
+    const box=$("purchaseResult");box.hidden=false;
+    if(!amount||amount<=0){box.textContent="Saisis un montant.";return;}
+    const after=t.available-amount;
+    box.textContent=after<0?`Non conseillé : il manquerait ${euro(Math.abs(after))}.`
+      :after<300?`Attention : il ne resterait que ${euro(after)}.`
+      :`Oui : il resterait ${euro(after)}.`;
+  });
+
+  $("search").addEventListener("input",renderHistory);
+  $("bankBalance").addEventListener("change",()=>{data.bankBalance=Number($("bankBalance").value)||0;save();});
+  $("month").addEventListener("change",()=>{data.month=$("month").value;save();});
+  $("addIncome").addEventListener("click",()=>{data.incomes.push({id:String(Date.now()),label:"Nouveau revenu",amount:0});save();});
+  $("exportData").addEventListener("click",()=>{
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="budget_laetitia_sauvegarde.json";a.click();
+  });
+  $("resetApp").addEventListener("click",()=>{if(confirm("Réinitialiser toute l’application ?")){data=clone(initial);save();}});
+
+  document.addEventListener("click",e=>{
+    const chargeId=e.target.closest("[data-charge]")?.dataset.charge;
+    if(chargeId){data.fixedCharges=data.fixedCharges.map(x=>x.id===chargeId?{...x,paid:!x.paid}:x);save();}
+    const expId=e.target.closest("[data-expense]")?.dataset.expense;
+    if(expId){data.expenses=data.expenses.filter(x=>x.id!==expId);save();}
+  });
+
+  document.addEventListener("change",e=>{
+    const li=e.target.dataset.incomeLabel, ai=e.target.dataset.incomeAmount;
+    if(li!==undefined){data.incomes[Number(li)].label=e.target.value;save();}
+    if(ai!==undefined){data.incomes[Number(ai)].amount=Number(e.target.value)||0;save();}
+  });
+
+  $("date").value=new Date().toISOString().slice(0,10);
   render();
-}
-searchEl.oninput=render; filterEl.onchange=e=>setFilter(e.target.value);
-document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>setFilter(b.dataset.filter));
-batchBtn.onclick=()=>batchDialog.showModal();
-batchAdd.onclick=()=>{
-  const nums=(batchText.value.match(/\d+/g)||[]).map(Number).filter(n=>n>=1&&n<=TOTAL);
-  nums.forEach(n=>counts[n]=qty(n)+1); save(); batchText.value=''; batchDialog.close(); render();
-};
-copyBtn.onclick=async()=>{
-  let arr=[];
-  for(let i=1;i<=TOTAL;i++){
-    const q=qty(i);
-    if(currentFilter==='missing'&&q===0)arr.push(i);
-    else if(currentFilter==='doubles'&&q>1)arr.push(`${i} (x${q-1})`);
-    else if(currentFilter==='owned'&&q>0)arr.push(`${i}${q>1?` (x${q})`:''}`);
-  }
-  if(currentFilter==='all') for(let i=1;i<=TOTAL;i++) if(qty(i)>0) arr.push(`${i}${qty(i)>1?` (x${qty(i)})`:''}`);
-  const title=currentFilter==='missing'?'Cartes manquantes':currentFilter==='doubles'?'Cartes en double':'Cartes possédées';
-  await navigator.clipboard.writeText(`${title} – Adrenalyn XL 2026\n${arr.join(', ')}`);
-  copyBtn.textContent='Copié ✓'; setTimeout(()=>copyBtn.textContent='Copier la liste',1400);
-};
-backupBtn.onclick=()=>backupDialog.showModal();
-exportBtn.onclick=()=>{
-  const blob=new Blob([JSON.stringify({collection:'Adrenalyn XL FIFA World Cup 2026',total:TOTAL,counts,exported:new Date().toISOString()},null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='sauvegarde-cartes-2026.json';a.click();URL.revokeObjectURL(a.href);
-};
-importFile.onchange=async e=>{
-  try{const data=JSON.parse(await e.target.files[0].text()); if(!data.counts)throw 0; counts=data.counts;save();render();backupDialog.close();alert('Sauvegarde importée.');}
-  catch{alert('Ce fichier de sauvegarde n’est pas valide.');}
-};
-resetBtn.onclick=()=>{
-  if(confirm('Effacer toute la collection ?')){counts={};save();render();backupDialog.close();}
-};
-updateStats();render();
-if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  if("serviceWorker" in navigator){navigator.serviceWorker.register("./sw.js").catch(()=>{});}
+})();
 </script>
 </body>
 </html>
