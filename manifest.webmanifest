@@ -1,10 +1,10 @@
 {
-  "name": "Budget Familial Laetitia — V2 Pro",
-  "short_name": "Mon Budget Pro",
-  "start_url": "./?v=2.0.0-pro",
+  "name": "Mon Budget — V3 Premium",
+  "short_name": "Budget Premium",
+  "start_url": "./?v=3.0.0-premium",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f3f6fb",
   "theme_color": "#2f6fed",
-  "description": "Application professionnelle de budget familial"
+  "description": "Application Premium de budget familial"
 }

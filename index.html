@@ -9,15 +9,15 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css?v=2.0.0-pro">
-  <title>Mon Budget — V2 Pro</title>
+  <link rel="stylesheet" href="./styles.css?v=3.0.0-premium">
+  <title>Mon Budget — V3 Premium</title>
 </head>
 <body>
 <header class="app-header pro-header">
   <div>
-    <div class="brand-line"><h1>💙 Mon Budget</h1><span class="pro-badge">PRO</span></div>
+    <div class="brand-line"><h1>💙 Mon Budget</h1><span class="pro-badge">PREMIUM</span></div>
     <p id="headerSubtitle">Laetitia</p>
-    <small>V2 Pro</small>
+    <small>V3 Premium</small>
   </div>
   <div class="header-actions">
     <select id="profileQuick" class="profile-quick" aria-label="Profil"></select>
@@ -25,12 +25,28 @@
   </div>
 </header>
 
+<div class="global-search-bar">
+  <input id="globalSearch" placeholder="🔎 Rechercher partout : Orange, Amazon, prêt…">
+  <button id="clearGlobalSearch" class="soft">Effacer</button>
+</div>
+
 <main class="app-main">
   <section id="home" class="screen active">
     <article class="hero card">
       <span>Disponible après dépenses engagées</span>
       <strong id="available">0 €</strong>
       <small id="budgetStatus">Calcul en cours</small>
+    </article>
+
+    <article class="card premium-decision">
+      <div class="section-title"><h2>🧭 Centre de décision</h2><span class="badge">Premium</span></div>
+      <div class="decision-grid">
+        <div><span>À dépenser aujourd’hui</span><b id="todaySafeSpend">0 €</b></div>
+        <div><span>À conserver en sécurité</span><b id="safetyReserve">300 €</b></div>
+        <div><span>Épargne suggérée</span><b id="suggestedSavings">0 €</b></div>
+        <div><span>Risque du mois</span><b id="monthRisk">Faible</b></div>
+      </div>
+      <p id="decisionText" class="muted">Analyse en cours…</p>
     </article>
 
     <article class="card daily-briefing">
@@ -149,6 +165,11 @@
     <article class="card">
       <div class="section-title"><h2>🏦 Comptes</h2></div>
       <div id="accountsSummary"></div>
+    </article>
+
+    <article class="card">
+      <div class="section-title"><h2>⚖️ Répartition des comptes</h2><span class="badge">Patrimoine</span></div>
+      <div id="accountComparison"></div>
     </article>
 
     <section class="v300-kpi-grid">
@@ -322,6 +343,10 @@
 
   <section id="calendar" class="screen">
     <article class="card">
+      <div class="section-title"><h2>📋 Résumé du mois</h2><span class="badge">Vue rapide</span></div>
+      <div id="monthOverview" class="month-overview"></div>
+    </article>
+    <article class="card">
       <div class="calendar-header">
         <button id="prevMonth" class="soft">←</button>
         <h2 id="calendarTitle">Calendrier</h2>
@@ -443,6 +468,21 @@
     </article>
   </section>
 
+  <section id="reports" class="screen">
+    <article class="card">
+      <div class="section-title"><h2>📄 Rapports Premium</h2><span class="badge">Imprimables</span></div>
+      <p class="muted">Crée des rapports clairs à conserver, imprimer ou envoyer.</p>
+      <button id="exportMonthlyReport" class="primary">Rapport mensuel complet</button>
+      <button id="exportAnnualReport" class="soft full">Rapport annuel</button>
+      <button id="exportDebtReport" class="soft full">Rapport crédits et dettes</button>
+      <button id="exportGoalsReport" class="soft full">Rapport objectifs d’épargne</button>
+    </article>
+    <article class="card">
+      <h2>📊 Synthèse disponible</h2>
+      <div id="reportsSummary"></div>
+    </article>
+  </section>
+
   <section id="settings" class="screen">
     <article class="card">
       <h2>👨‍👩‍👧‍👦 Profils familiaux</h2>
@@ -557,17 +597,18 @@
   </section>
 </main>
 
-<nav class="bottom-nav eight">
+<nav class="bottom-nav nine">
   <button data-tab="home" class="active"><span>🏠</span><small>Accueil</small></button>
   <button data-tab="add"><span>➕</span><small>Ajouter</small></button>
-  <button data-tab="calendar"><span>📅</span><small>Calendrier</small></button>
+  <button data-tab="calendar"><span>📅</span><small>Mois</small></button>
   <button data-tab="history"><span>🧾</span><small>Historique</small></button>
   <button data-tab="import"><span>📥</span><small>Importer</small></button>
-  <button data-tab="loans"><span>🏦</span><small>Crédits+</small></button>
+  <button data-tab="loans"><span>🏦</span><small>Crédits</small></button>
   <button data-tab="vault"><span>📦</span><small>Coffre</small></button>
+  <button data-tab="reports"><span>📄</span><small>Rapports</small></button>
   <button data-tab="settings"><span>⚙️</span><small>Réglages</small></button>
 </nav>
 
-<script src="./app.js?v=2.0.0-pro"></script>
+<script src="./app.js?v=3.0.0-premium"></script>
 </body>
 </html>

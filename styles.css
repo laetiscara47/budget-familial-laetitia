@@ -446,3 +446,51 @@ body.dark .savings-card,body.dark .goal-feasibility{background:#171e2b}
   .edit-row.goal-edit-pro input:first-child{grid-column:1/-1}
   .edit-row.goal-edit-pro button{grid-column:2}
 }
+
+
+/* =========================
+   V3 PREMIUM
+   ========================= */
+.global-search-bar{
+  position:sticky;top:103px;z-index:19;
+  display:grid;grid-template-columns:1fr auto;gap:8px;
+  padding:9px 14px;background:rgba(243,246,251,.94);
+  backdrop-filter:blur(14px);border-bottom:1px solid var(--line)
+}
+.global-search-bar input{margin:0}
+.premium-decision{background:linear-gradient(135deg,#ffffff,#eef5ff);border:1px solid #dce7ff}
+.decision-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.decision-grid div{padding:11px;border-radius:13px;background:rgba(255,255,255,.76);border:1px solid var(--line)}
+.decision-grid span{display:block;color:var(--muted);font-size:11px}
+.decision-grid b{display:block;margin-top:6px}
+.premium-decision p{margin:12px 0 0}
+
+.account-share{margin:12px 0}
+.account-share-head{display:flex;justify-content:space-between;gap:10px;margin-bottom:5px}
+.account-share-track{height:13px;border-radius:999px;background:#e8edf6;overflow:hidden}
+.account-share-fill{height:100%;background:linear-gradient(90deg,#2f6fed,#78a0ff)}
+
+.month-overview{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.month-overview div{border:1px solid var(--line);border-radius:13px;padding:11px;background:#f8fbff}
+.month-overview span{display:block;color:var(--muted);font-size:11px}
+.month-overview b{display:block;margin-top:5px}
+
+.report-summary-row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.report-summary-row:last-child{border-bottom:0}
+.report-summary-row span{color:var(--muted)}
+
+.bottom-nav.nine{grid-template-columns:repeat(9,1fr)}
+.bottom-nav.nine button span{font-size:15px}
+.bottom-nav.nine button small{font-size:7px}
+
+body.dark .global-search-bar{background:rgba(16,20,29,.94)}
+body.dark .premium-decision{background:linear-gradient(135deg,#1a202c,#20283a)}
+body.dark .decision-grid div,body.dark .month-overview div{background:#171e2b}
+
+@media(max-width:760px){
+  .decision-grid{grid-template-columns:1fr 1fr}
+  .month-overview{grid-template-columns:1fr 1fr}
+}
+@media(max-width:520px){
+  .global-search-bar{top:98px}
+}

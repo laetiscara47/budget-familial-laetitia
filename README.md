@@ -1,35 +1,22 @@
-# Mon Budget — V2 Pro
+# Mon Budget — V3 Premium
 
-## Nouveautés réalisées
+## Nouveautés
 
-- finition visuelle PRO ;
-- centre d’alertes consolidé ;
-- analyse des dépenses par commerçant ;
-- recommandations d’économies sur les abonnements ;
-- objectifs d’épargne avec date cible ;
-- calcul de l’effort mensuel nécessaire ;
-- import bancaire avec options professionnelles ;
-- export d’un rapport mensuel HTML lisible et imprimable ;
-- conservation de toutes les fonctions V1000.
+- recherche globale dans dépenses, revenus, prélèvements, crédits et coffre ;
+- centre de décision ;
+- répartition visuelle des comptes ;
+- résumé mensuel ;
+- nouvel écran Rapports ;
+- rapports mensuels, annuels, crédits et objectifs au format HTML imprimable ;
+- navigation Premium enrichie ;
+- conservation de toutes les fonctions de la V2 Pro.
 
-## Fonctions conservées
+## Limites
 
-- briefing quotidien ;
-- enveloppes budgétaires ;
-- scénarios d’achat ;
-- crédits et stratégie de remboursement ;
-- patrimoine net ;
-- coffre numérique ;
-- sauvegarde chiffrée ;
-- profils familiaux ;
-- calendrier, historique et import CSV.
-
-## Limites honnêtes
-
+- pas de synchronisation cloud ;
 - pas de connexion bancaire automatique ;
 - pas d’OCR automatique ;
-- pas de synchronisation cloud ;
-- pas de notifications natives iPhone.
+- pas de notifications iPhone natives.
 
 ## Fichiers GitHub à remplacer
 

@@ -1,6 +1,6 @@
 (()=>{
 "use strict";
-const STORAGE_KEY="budget-familial-laetitia-final-v1",BACKUP_KEY=STORAGE_KEY+"-backup",DATA_VERSION=2000;
+const STORAGE_KEY="budget-familial-laetitia-final-v1",BACKUP_KEY=STORAGE_KEY+"-backup",DATA_VERSION=3000;
 const $=id=>document.getElementById(id),clone=o=>JSON.parse(JSON.stringify(o));
 const euro=n=>Number(n||0).toLocaleString("fr-FR",{style:"currency",currency:"EUR"});
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
@@ -75,7 +75,7 @@ function render(){
  const t=totals(),def=pendingDeferred();
  $("headerSubtitle").textContent=`Laetitia · ${data.month}`;$("available").textContent=euro(t.available);$("available").className=t.available<0?"bad":t.available<300?"warn":"ok";$("budgetStatus").textContent=t.available<0?"Budget dépassé":t.available<300?"À surveiller":"Budget disponible";
  $("currentBalanceView").textContent=euro(current().balance);$("deferredView").textContent=euro(def);$("untilIncomeView").textContent=euro(nextIncomeAmount());$("endMonthView").textContent=euro(endMonth());$("deferredTotal").textContent=euro(def);
- renderSelects();renderProfiles();renderAccounts();renderV300Dashboard();renderV100Dashboard();renderDailyBriefing();renderProAlerts();renderEnvelopes();renderAlerts();renderSmartSummary();renderV30Insights();renderSubscriptions();renderSubscriptionSavings();renderMerchantAnalytics();renderForecast();renderChart();renderMonthlyStats();renderGoals();renderCalendar();renderHistory();renderLoans();renderVault();renderSettings();renderProfileSettings();renderCategorySettings();renderRuleSettings();renderDataQuality();applyTheme();applyDashboardPreferences();
+ renderSelects();renderProfiles();renderAccounts();renderPremiumDecision();renderAccountComparison();renderMonthOverview();renderReportsSummary();renderV300Dashboard();renderV100Dashboard();renderDailyBriefing();renderProAlerts();renderEnvelopes();renderAlerts();renderSmartSummary();renderV30Insights();renderSubscriptions();renderSubscriptionSavings();renderMerchantAnalytics();renderForecast();renderChart();renderMonthlyStats();renderGoals();renderCalendar();renderHistory();renderLoans();renderVault();renderSettings();renderProfileSettings();renderCategorySettings();renderRuleSettings();renderDataQuality();applyTheme();applyDashboardPreferences();
 }
 function renderSelects(){
  const opts=data.accounts.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("");["expenseAccount","incomeAccount","transferFrom","transferTo","importAccount"].forEach(id=>$(id).innerHTML=opts);
@@ -576,6 +576,66 @@ function generateProReport(){
  return `<!doctype html><html lang="fr"><meta charset="utf-8"><title>Rapport Mon Budget</title><style>body{font-family:Arial,sans-serif;max-width:900px;margin:30px auto;color:#172033}h1{color:#2f6fed}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.card{border:1px solid #ddd;border-radius:12px;padding:15px}table{width:100%;border-collapse:collapse;margin-top:15px}th,td{text-align:left;padding:9px;border-bottom:1px solid #ddd}.ok{color:#278b57}.bad{color:#ce3f3f}</style><h1>💙 Rapport Mon Budget — ${esc(data.month)}</h1><p>Profil : ${esc(activeProfile()?.name||"Laetitia")}</p><div class="grid"><div class="card"><b>Disponible</b><h2>${euro(t.available)}</h2></div><div class="card"><b>Fin de mois</b><h2 class="${endMonth()<0?"bad":"ok"}">${euro(endMonth())}</h2></div><div class="card"><b>Patrimoine net</b><h2>${euro(netWorthAfterDebt())}</h2></div></div><h2>Principaux commerçants</h2><table><tr><th>Commerçant</th><th>Total</th></tr>${topMerchants.map(([m,v])=>`<tr><td>${esc(m)}</td><td>${euro(v)}</td></tr>`).join("")}</table><h2>Abonnements détectés</h2><table><tr><th>Libellé</th><th>Mensuel</th><th>Annuel</th></tr>${subs.map(s=>`<tr><td>${esc(s.label)}</td><td>${euro(s.avg)}</td><td>${euro(s.avg*12)}</td></tr>`).join("")}</table></html>`;
 }
 
+
+function renderPremiumDecision(){
+ const daily=Math.max(0,totals().available/daysLeftInMonth());
+ const projected=endMonth(),suggested=possibleSavingsEstimate();
+ const risk=projected<0?"Élevé":projected<300?"Moyen":"Faible";
+ $("todaySafeSpend").textContent=euro(daily);
+ $("safetyReserve").textContent=euro(300);
+ $("suggestedSavings").textContent=euro(suggested);
+ $("monthRisk").textContent=risk;
+ $("monthRisk").className=projected<0?"bad":projected<300?"warn":"ok";
+ $("decisionText").textContent=projected<0
+  ?"La priorité est d’éviter le découvert et de réduire les dépenses variables."
+  :projected<300
+  ?"Le budget reste positif, mais la marge de sécurité est faible."
+  :`La situation permet de conserver la marge de sécurité et d’envisager ${euro(suggested)} d’épargne.`;
+}
+function renderAccountComparison(){
+ const total=Math.max(1,data.accounts.reduce((s,a)=>s+Math.max(0,Number(a.balance||0)),0));
+ $("accountComparison").innerHTML=data.accounts.map(a=>{
+  const pct=Math.max(0,Number(a.balance||0))/total*100;
+  return `<div class="account-share"><div class="account-share-head"><b>${esc(a.name)}</b><span>${euro(a.balance)} · ${Math.round(pct)} %</span></div><div class="account-share-track"><div class="account-share-fill" style="width:${pct}%"></div></div></div>`;
+ }).join("");
+}
+function renderMonthOverview(){
+ const monthKeyNow=new Date().toISOString().slice(0,7);
+ const expenses=data.expenses.filter(x=>monthKey(x.date)===monthKeyNow).reduce((s,x)=>s+x.amount,0);
+ const received=data.incomeTransactions.filter(x=>monthKey(x.date)===monthKeyNow&&!x.future).reduce((s,x)=>s+x.amount,0);
+ const pending=data.fixedCharges.filter(x=>!x.paid).reduce((s,x)=>s+x.amount,0);
+ const operations=data.expenses.filter(x=>monthKey(x.date)===monthKeyNow).length+data.incomeTransactions.filter(x=>monthKey(x.date)===monthKeyNow).length;
+ $("monthOverview").innerHTML=`<div><span>Dépenses saisies</span><b>${euro(expenses)}</b></div><div><span>Revenus reçus</span><b>${euro(received)}</b></div><div><span>Prélèvements restants</span><b>${euro(pending)}</b></div><div><span>Opérations du mois</span><b>${operations}</b></div>`;
+}
+function renderReportsSummary(){
+ $("reportsSummary").innerHTML=[
+  ["Disponible mensuel",euro(totals().available)],
+  ["Fin de mois prévue",euro(endMonth())],
+  ["Patrimoine net",euro(netWorthAfterDebt())],
+  ["Dettes restantes",euro(totalDebt())],
+  ["Objectifs d’épargne",String(data.goals.length)],
+  ["Documents dans le coffre",String(data.vaultDocuments.length)]
+ ].map(([k,v])=>`<div class="report-summary-row"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join("");
+}
+function globalSearchResults(query){
+ const q=query.trim().toLowerCase();
+ if(!q)return [];
+ return [
+  ...data.expenses.map(x=>({type:"Dépense",label:x.label,detail:`${fmtDate(x.date)} · ${euro(x.amount)} · ${x.category}`})),
+  ...data.incomeTransactions.map(x=>({type:"Revenu",label:x.label,detail:`${fmtDate(x.date)} · ${euro(x.amount)}`})),
+  ...data.fixedCharges.map(x=>({type:"Prélèvement",label:x.label,detail:`Jour ${x.day||"variable"} · ${euro(x.amount)}`})),
+  ...data.loans.map(x=>({type:"Crédit",label:x.name,detail:`Reste ${euro(x.balance)} · mensualité ${euro(x.payment)}`})),
+  ...data.vaultDocuments.map(x=>({type:"Document",label:x.name,detail:x.category}))
+ ].filter(x=>(x.label+" "+x.detail).toLowerCase().includes(q)).slice(0,30);
+}
+function reportHtml(title,sections){
+ return `<!doctype html><html lang="fr"><meta charset="utf-8"><title>${esc(title)}</title><style>body{font-family:Arial,sans-serif;max-width:900px;margin:30px auto;color:#172033}h1{color:#2f6fed}.section{border:1px solid #ddd;border-radius:12px;padding:16px;margin:12px 0}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:9px;border-bottom:1px solid #ddd}</style><h1>💙 ${esc(title)}</h1><p>${new Date().toLocaleDateString("fr-FR",{dateStyle:"long"})}</p>${sections.join("")}</html>`;
+}
+function downloadHtml(name,html){
+ const blob=new Blob([html],{type:"text/html;charset=utf-8"}),a=document.createElement("a");
+ a.href=URL.createObjectURL(blob);a.download=name;a.click();
+}
+
 function renderAccounts(){$("accountsSummary").innerHTML=data.accounts.map(x=>`<div class="account-row"><div><b>${esc(x.name)}</b><small>${x.type==="savings"?"Épargne":x.type==="cash"?"Espèces":"Compte bancaire"}</small></div><strong>${euro(x.balance)}</strong></div>`).join("")}
 function renderAlerts(){const alerts=[];Object.entries(data.budgets).forEach(([cat,limit])=>{const spent=data.expenses.filter(x=>x.category===cat).reduce((s,x)=>s+x.amount,0),pct=limit?spent/limit*100:0;if(pct>=100)alerts.push({c:"danger",t:`${cat} dépassé : ${euro(spent)} sur ${euro(limit)}`});else if(pct>=80)alerts.push({c:"warning",t:`${cat} atteint ${Math.round(pct)} %`})});if(endMonth()<0)alerts.unshift({c:"danger",t:`Fin de mois prévue négative : ${euro(endMonth())}`});$("alerts").innerHTML=alerts.length?alerts.map(a=>`<div class="alert-item ${a.c}">${esc(a.t)}</div>`).join(""):'<div class="alert-item">Aucune alerte.</div>'}
 function renderForecast(){
@@ -676,7 +736,25 @@ function renderSettings(){
 }
 function applyTheme(){document.body.classList.toggle("dark",data.settings.darkMode);$("themeQuick").textContent=data.settings.darkMode?"☀️":"🌙"}
 
-document.querySelectorAll(".bottom-nav button").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".bottom-nav button").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));b.classList.add("active");$(b.dataset.tab).classList.add("active")}));
+
+$("globalSearch").addEventListener("input",()=>{
+ const q=$("globalSearch").value;
+ if(!q.trim())return;
+ const results=globalSearchResults(q);
+ document.querySelector('[data-tab="history"]').click();
+ $("historyList").innerHTML=results.length?results.map(r=>`<div class="history-row"><div><b>${esc(r.label)}</b><small>${esc(r.type)} · ${esc(r.detail)}</small></div></div>`).join(""):'<p class="muted">Aucun résultat.</p>';
+});
+$("clearGlobalSearch").addEventListener("click",()=>{$("globalSearch").value="";renderHistory()});
+document.querySelectorAll(".bottom-nav button").forEach(b=>b.addEventListener("click",()=>{
+$("globalSearch").addEventListener("input",()=>{
+ const q=$("globalSearch").value;
+ if(!q.trim())return;
+ const results=globalSearchResults(q);
+ document.querySelector('[data-tab="history"]').click();
+ $("historyList").innerHTML=results.length?results.map(r=>`<div class="history-row"><div><b>${esc(r.label)}</b><small>${esc(r.type)} · ${esc(r.detail)}</small></div></div>`).join(""):'<p class="muted">Aucun résultat.</p>';
+});
+$("clearGlobalSearch").addEventListener("click",()=>{$("globalSearch").value="";renderHistory()});
+document.querySelectorAll(".bottom-nav button").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));b.classList.add("active");$(b.dataset.tab).classList.add("active")}));
 $("themeQuick").addEventListener("click",()=>{data.settings.darkMode=!data.settings.darkMode;save()});$("darkModeToggle").addEventListener("change",()=>{data.settings.darkMode=$("darkModeToggle").checked;save()});
 $("expenseLabel").addEventListener("input",()=>{const c=guessCategory($("expenseLabel").value);$("expenseCategory").value=c;$("categorySuggestion").innerHTML=`Catégorie proposée : <b>${esc(c)}</b>`});
 $("saveExpense").addEventListener("click",async()=>{
@@ -894,7 +972,7 @@ $("exportEncrypted").addEventListener("click",async()=>{
  const password=$("backupPassword").value;
  if(password.length<6)return alert("Choisis un mot de passe d’au moins 6 caractères.");
  try{
-  const container=await encryptPayload({app:"Budget Familial Laetitia",version:"2.0.0-pro",data},password);
+  const container=await encryptPayload({app:"Budget Familial Laetitia",version:"3.0.0-premium",data},password);
   const blob=new Blob([JSON.stringify(container,null,2)],{type:"application/json"}),a=document.createElement("a");
   a.href=URL.createObjectURL(blob);a.download="budget_laetitia_v300_chiffre.json";a.click();
  }catch{alert("La sauvegarde chiffrée n’a pas pu être créée.")}
@@ -920,12 +998,32 @@ $("calculateDebtPlan").addEventListener("click",()=>{
  const plan=calculateDebtStrategy(method,extra);
  $("debtPlanResult").innerHTML=plan.details.length?plan.details.map((l,i)=>`<div class="debt-plan-item"><span class="debt-plan-rank">${i+1}</span><b>${esc(l.name)}</b><small>Paiement simulé ${euro(l.payment)} · ${l.months} mois · intérêts estimés ${euro(l.interest)}</small></div>`).join("")+`<div class="debt-plan-summary"><b>Durée totale estimée : ${plan.totalMonths} mois</b><br><span>Intérêts estimés : ${euro(plan.totalInterest)}</span></div>`:'<p class="muted">Aucun crédit à simuler.</p>';
 });
+
+$("exportMonthlyReport").addEventListener("click",()=>{
+ const rows=data.expenses.map(x=>`<tr><td>${fmtDate(x.date)}</td><td>${esc(x.label)}</td><td>${esc(x.category)}</td><td>${euro(x.amount)}</td></tr>`).join("");
+ downloadHtml("rapport_mensuel_premium.html",reportHtml("Rapport mensuel Premium",[
+  `<div class="section"><h2>Synthèse</h2><p>Disponible : ${euro(totals().available)}</p><p>Fin de mois prévue : ${euro(endMonth())}</p><p>Patrimoine net : ${euro(netWorthAfterDebt())}</p></div>`,
+  `<div class="section"><h2>Dépenses</h2><table><tr><th>Date</th><th>Libellé</th><th>Catégorie</th><th>Montant</th></tr>${rows}</table></div>`
+ ]));
+});
+$("exportAnnualReport").addEventListener("click",()=>{
+ const rows=statsByMonth().map(x=>`<tr><td>${esc(x.label)}</td><td>${euro(x.value)}</td></tr>`).join("");
+ downloadHtml("rapport_annuel_premium.html",reportHtml("Rapport annuel Premium",[`<div class="section"><table><tr><th>Mois</th><th>Dépenses</th></tr>${rows}</table></div>`]));
+});
+$("exportDebtReport").addEventListener("click",()=>{
+ const rows=data.loans.map(x=>`<tr><td>${esc(x.name)}</td><td>${euro(x.balance)}</td><td>${euro(x.payment)}</td><td>${Number(x.rate||0).toFixed(2)} %</td></tr>`).join("");
+ downloadHtml("rapport_credits_premium.html",reportHtml("Crédits et dettes",[`<div class="section"><table><tr><th>Crédit</th><th>Reste</th><th>Mensualité</th><th>Taux</th></tr>${rows}</table></div>`]));
+});
+$("exportGoalsReport").addEventListener("click",()=>{
+ const rows=data.goals.map(x=>`<tr><td>${esc(x.name)}</td><td>${euro(x.current)}</td><td>${euro(x.target)}</td><td>${x.targetDate?fmtDate(x.targetDate):"—"}</td></tr>`).join("");
+ downloadHtml("rapport_objectifs_premium.html",reportHtml("Objectifs d’épargne",[`<div class="section"><table><tr><th>Objectif</th><th>Épargné</th><th>Cible</th><th>Date</th></tr>${rows}</table></div>`]));
+});
 $("exportProReport").addEventListener("click",()=>{
  const blob=new Blob([generateProReport()],{type:"text/html;charset=utf-8"}),a=document.createElement("a");
  a.href=URL.createObjectURL(blob);a.download="rapport_budget_familial.html";a.click();
 });
 $("exportCsv").addEventListener("click",()=>{const rows=[["Date","Type","Libellé","Catégorie","Montant","Compte","Paiement"]];data.expenses.forEach(x=>rows.push([x.date,"Dépense",x.label,x.category,-x.amount,account(x.accountId)?.name||"",paymentLabel(x)]));data.incomeTransactions.forEach(x=>rows.push([x.date,"Revenu",x.label,"Revenu",x.amount,account(x.accountId)?.name||"",x.future?"Prévu":"Reçu"]));const csv="\ufeff"+rows.map(r=>r.map(csvEscape).join(";")).join("\n"),blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="budget_laetitia_operations.csv";a.click()});
-$("exportData").addEventListener("click",()=>{const blob=new Blob([JSON.stringify({app:"Budget Familial Laetitia",version:"2.0.0-pro",data},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="budget_laetitia_v2_pro.json";a.click()});
+$("exportData").addEventListener("click",()=>{const blob=new Blob([JSON.stringify({app:"Budget Familial Laetitia",version:"3.0.0-premium",data},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="budget_laetitia_v3_premium.json";a.click()});
 $("importDataBtn").addEventListener("click",()=>$("importDataFile").click());$("importDataFile").addEventListener("change",e=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const p=JSON.parse(String(r.result));data=migrate(p.data||p);save();alert("Sauvegarde restaurée.")}catch{alert("Fichier invalide.")}};r.readAsText(f)});
 $("restoreAutoBackup").addEventListener("click",()=>{try{const raw=localStorage.getItem(BACKUP_KEY);data=migrate(JSON.parse(raw).data);save();alert("Sauvegarde récupérée.")}catch{alert("Aucune sauvegarde.")}});
 $("removeDuplicates").addEventListener("click",()=>{
