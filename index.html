@@ -9,15 +9,15 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css?v=3.0.0-premium">
-  <title>Mon Budget — V3 Premium</title>
+  <link rel="stylesheet" href="./styles.css?v=5.0.0-ultimate">
+  <title>Mon Budget — V5 Ultimate</title>
 </head>
 <body>
 <header class="app-header pro-header">
   <div>
-    <div class="brand-line"><h1>💙 Mon Budget</h1><span class="pro-badge">PREMIUM</span></div>
+    <div class="brand-line"><h1>💙 Mon Budget</h1><span class="pro-badge ultimate">ULTIMATE</span></div>
     <p id="headerSubtitle">Laetitia</p>
-    <small>V3 Premium</small>
+    <small>V5 Ultimate</small>
   </div>
   <div class="header-actions">
     <select id="profileQuick" class="profile-quick" aria-label="Profil"></select>
@@ -39,7 +39,7 @@
     </article>
 
     <article class="card premium-decision">
-      <div class="section-title"><h2>🧭 Centre de décision</h2><span class="badge">Premium</span></div>
+      <div class="section-title"><h2>🧭 Centre de décision</h2><span class="badge">Ultimate</span></div>
       <div class="decision-grid">
         <div><span>À dépenser aujourd’hui</span><b id="todaySafeSpend">0 €</b></div>
         <div><span>À conserver en sécurité</span><b id="safetyReserve">300 €</b></div>
@@ -47,6 +47,18 @@
         <div><span>Risque du mois</span><b id="monthRisk">Faible</b></div>
       </div>
       <p id="decisionText" class="muted">Analyse en cours…</p>
+    </article>
+
+    <article class="card">
+      <div class="section-title"><h2>⚡ Vue instantanée</h2><span class="badge">Aujourd’hui</span></div>
+      <div class="ultimate-snapshot">
+        <div><span>Solde disponible</span><b id="ultimateAvailable">0 €</b></div>
+        <div><span>Patrimoine net</span><b id="ultimateNetWorth">0 €</b></div>
+        <div><span>Dettes restantes</span><b id="ultimateDebt">0 €</b></div>
+        <div><span>Épargne engagée</span><b id="ultimateGoals">0 €</b></div>
+        <div><span>Opérations à venir</span><b id="ultimateUpcoming">0</b></div>
+        <div><span>Score financier</span><b id="ultimateScore">0/100</b></div>
+      </div>
     </article>
 
     <article class="card daily-briefing">
@@ -451,6 +463,11 @@
     </article>
     <article class="card">
       <h2>Crédits enregistrés</h2>
+      <div class="loan-summary-grid">
+        <div><span>Capital restant</span><b id="loanCapitalTotal">0 €</b></div>
+        <div><span>Mensualités</span><b id="loanPaymentsTotal">0 €</b></div>
+        <div><span>Coût annuel</span><b id="loanAnnualCost">0 €</b></div>
+      </div>
       <div id="loansList"></div>
     </article>
 
@@ -468,6 +485,38 @@
     </article>
   </section>
 
+  <section id="patrimony" class="screen">
+    <article class="card">
+      <div class="section-title"><h2>💎 Patrimoine familial</h2><span class="badge">Ultimate</span></div>
+      <div class="patrimony-hero">
+        <span>Patrimoine net</span>
+        <strong id="patrimonyNet">0 €</strong>
+        <small id="patrimonyTrend">Calcul en cours…</small>
+      </div>
+      <div class="patrimony-grid">
+        <div><span>Comptes et épargne</span><b id="patrimonyAssets">0 €</b></div>
+        <div><span>Crédits et dettes</span><b id="patrimonyLiabilities">0 €</b></div>
+        <div><span>Épargne disponible</span><b id="patrimonySavings">0 €</b></div>
+        <div><span>Ratio dette/patrimoine</span><b id="patrimonyDebtRatio">0 %</b></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="section-title"><h2>📈 Projection patrimoniale</h2><span class="badge">12 mois</span></div>
+      <div id="patrimonyProjection" class="patrimony-projection"></div>
+    </article>
+
+    <article class="card">
+      <div class="section-title"><h2>🏦 Répartition des actifs</h2></div>
+      <div id="assetBreakdown"></div>
+    </article>
+
+    <article class="card">
+      <div class="section-title"><h2>🎯 Progression des objectifs</h2></div>
+      <div id="patrimonyGoals"></div>
+    </article>
+  </section>
+
   <section id="reports" class="screen">
     <article class="card">
       <div class="section-title"><h2>📄 Rapports Premium</h2><span class="badge">Imprimables</span></div>
@@ -476,10 +525,30 @@
       <button id="exportAnnualReport" class="soft full">Rapport annuel</button>
       <button id="exportDebtReport" class="soft full">Rapport crédits et dettes</button>
       <button id="exportGoalsReport" class="soft full">Rapport objectifs d’épargne</button>
+      <button id="exportPatrimonyReport" class="soft full">Rapport patrimonial</button>
+      <button id="exportUltimateDashboard" class="soft full">Tableau de bord complet</button>
     </article>
     <article class="card">
       <h2>📊 Synthèse disponible</h2>
       <div id="reportsSummary"></div>
+    </article>
+  </section>
+
+  <section id="notifications" class="screen">
+    <article class="card">
+      <div class="section-title"><h2>🔔 Notifications locales</h2><span class="badge">Ultimate</span></div>
+      <p class="muted">Configure les alertes visibles dans l’application. Les notifications système iPhone ne sont pas disponibles depuis GitHub Pages.</p>
+      <label class="checkline"><input id="notifyCharges" type="checkbox"> Prélèvements proches</label>
+      <label class="checkline"><input id="notifyDeferredCard" type="checkbox"> Débit de la carte différée</label>
+      <label class="checkline"><input id="notifyBudgets" type="checkbox"> Budgets presque atteints</label>
+      <label class="checkline"><input id="notifyLowBalance" type="checkbox"> Fin de mois sous la marge de sécurité</label>
+      <label>Nombre de jours d’anticipation</label>
+      <input id="notificationDays" type="number" min="1" max="30">
+      <button id="saveNotificationSettings" class="primary">Enregistrer les alertes</button>
+    </article>
+    <article class="card">
+      <h2>Alertes programmées</h2>
+      <div id="scheduledNotifications"></div>
     </article>
   </section>
 
@@ -597,18 +666,20 @@
   </section>
 </main>
 
-<nav class="bottom-nav nine">
+<nav class="bottom-nav ultimate-nav">
   <button data-tab="home" class="active"><span>🏠</span><small>Accueil</small></button>
   <button data-tab="add"><span>➕</span><small>Ajouter</small></button>
   <button data-tab="calendar"><span>📅</span><small>Mois</small></button>
   <button data-tab="history"><span>🧾</span><small>Historique</small></button>
   <button data-tab="import"><span>📥</span><small>Importer</small></button>
   <button data-tab="loans"><span>🏦</span><small>Crédits</small></button>
+  <button data-tab="patrimony"><span>💎</span><small>Patrimoine</small></button>
   <button data-tab="vault"><span>📦</span><small>Coffre</small></button>
   <button data-tab="reports"><span>📄</span><small>Rapports</small></button>
+  <button data-tab="notifications"><span>🔔</span><small>Alertes</small></button>
   <button data-tab="settings"><span>⚙️</span><small>Réglages</small></button>
 </nav>
 
-<script src="./app.js?v=3.0.0-premium"></script>
+<script src="./app.js?v=5.0.0-ultimate"></script>
 </body>
 </html>
