@@ -2,805 +2,181 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#2f6fed">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Mon Budget">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <title>Budget Familial Laetitia V2.6</title>
-  <style>
-    :root{
-      --blue:#2f6fed;--blue2:#eef3ff;--bg:#f3f6fb;--card:#fff;--text:#172033;
-      --muted:#6b7280;--ok:#278b57;--warn:#c17a00;--bad:#ce3f3f;--line:#e3e8f1
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;min-height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--text)}
-    button,input,select{font:inherit}
-    button{cursor:pointer}
-    header{position:sticky;top:0;z-index:20;background:var(--blue);color:#fff;padding:17px 16px 14px;box-shadow:0 4px 14px rgba(28,55,110,.18)}
-    header h1{margin:0;font-size:22px}
-    header p{margin:3px 0 0;font-size:12px;opacity:.9}
-    main{width:min(860px,100%);margin:auto;padding:13px 13px 96px}
-    .card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 4px 16px rgba(32,50,90,.08)}
-    .hero{text-align:center;padding:20px}
-    .hero span,.hero small{display:block;color:var(--muted)}
-    .hero strong{display:block;font-size:36px;margin:6px 0}
-    .ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
-    .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}
-    .summary .box{background:#fff;border-radius:15px;padding:12px;box-shadow:0 3px 12px rgba(32,50,90,.07)}
-    .summary span{display:block;color:var(--muted);font-size:11px}
-    .summary b{display:block;margin-top:4px;font-size:16px}
-    h2{font-size:18px;margin:0 0 13px}
-    .row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
-    .row:last-child{border-bottom:0}
-    .row small{display:block;color:var(--muted);font-size:12px;margin-top:3px}
-    .right{text-align:right}
-    .panel{display:none}.panel.active{display:block}
-    label{display:block;font-weight:700;font-size:13px;margin:11px 0 6px}
-    input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:11px;background:#fff;font-size:16px}
-    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-    .primary,.soft,.dangerBtn{border:0;border-radius:12px;padding:12px 14px;font-weight:800}
-    .primary{width:100%;margin-top:14px;background:var(--blue);color:#fff}
-    .soft{background:var(--blue2);color:var(--blue)}
-    .dangerBtn{background:#fff0f0;color:var(--bad)}
-    .budget{margin:14px 0}
-    .budgetHead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
-    .budgetHead small{display:block;color:var(--muted);margin-top:2px}
-    .track{height:12px;background:#e8edf6;border-radius:999px;overflow:hidden}
-    .fill{height:100%;background:var(--blue)}
-    .fill.warning{background:var(--warn)}.fill.danger{background:var(--bad)}
-    .suggestion,.result{margin-top:10px;padding:11px;border-radius:11px;background:var(--blue2);color:var(--blue)}
-    .charge{width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:left;background:#fff;border:1px solid var(--line);border-radius:13px;padding:11px;margin-bottom:8px}
-    .charge.paid{opacity:.55;background:#f2f7f4}
-    .charge small{display:block;color:var(--muted);margin-top:3px}
-    .charge .right small{color:var(--ok)}
-    .expenseDelete{border:0;background:#fff0f0;color:var(--bad);border-radius:8px;padding:6px 8px;margin-top:5px}
-    .actions{display:flex;gap:8px;flex-wrap:wrap}
-    .editCharge{display:grid;grid-template-columns:.55fr 1.5fr .8fr auto;gap:7px;align-items:center;margin-bottom:8px}
-    .editCharge input{padding:9px;font-size:14px}
-    .editBudget{display:grid;grid-template-columns:1.4fr .8fr;gap:8px;align-items:center;margin-bottom:8px}
-    .forecast{background:#f8fbff;border:1px solid #dfe8fb;border-radius:14px;padding:14px;margin-top:10px}
-    .timelineItem{display:grid;grid-template-columns:76px minmax(0,1fr) 108px;gap:12px;align-items:center;padding:13px 0;border-bottom:1px solid var(--line)}
-    .timelineItem:last-child{border-bottom:0}
-    .timelineDate{font-weight:800;color:var(--blue);font-size:14px;line-height:1.15;white-space:normal}
-    .timelineMain{min-width:0}
-    .timelineMain b{display:block;line-height:1.2;overflow-wrap:anywhere}
-    .timelineItem small{display:block;color:var(--muted);margin-top:3px;line-height:1.25}
-    .timelineBalance{text-align:right;font-weight:800;white-space:nowrap;font-size:15px}
-    .timelineBalance.negative{color:var(--bad)}
-    .timelineBalance.warning{color:var(--warn)}
-    @media(max-width:520px){
-      .timelineItem{grid-template-columns:72px minmax(0,1fr);gap:10px;align-items:start}
-      .timelineBalance{grid-column:2;text-align:left;margin-top:3px;font-size:17px}
-    }
-    @media(max-width:600px){.editCharge{grid-template-columns:.6fr 1.4fr}.editCharge .amountField{grid-column:1/2}.editCharge button{grid-column:2/3}}
-    .muted{color:var(--muted)}
-    .empty{text-align:center;color:var(--muted);padding:14px}
-    .balance-note{padding:10px;border-radius:11px;background:#eaf8f0;color:var(--ok);font-size:13px;margin-top:10px}
-    nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#fff;border-top:1px solid #e0e5ef;display:grid;grid-template-columns:repeat(5,1fr);padding:7px 3px calc(7px + env(safe-area-inset-bottom));box-shadow:0 -4px 14px rgba(20,35,70,.08)}
-    nav button{border:0;background:transparent;color:#7a8394;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;padding:5px 2px}
-    nav button.active{color:var(--blue);font-weight:800}
-    nav .ico{font-size:18px}
-    @media(max-width:650px){.summary{grid-template-columns:repeat(2,1fr)}}
-    @media(max-width:520px){.grid2{grid-template-columns:1fr}}
-  </style>
+  <link rel="stylesheet" href="./styles.css?v=3.0.0">
+  <title>Mon Budget — V3</title>
 </head>
 <body>
-<header>
-  <h1>💙 Mon Budget</h1>
-  <p id="headerMonth">Laetitia</p><p style="font-size:10px;opacity:.75;margin-top:2px">Version 2.6</p>
-</header>
+  <header class="app-header">
+    <div>
+      <h1>💙 Mon Budget</h1>
+      <p id="headerSubtitle">Laetitia</p>
+      <small>Version 3.0</small>
+    </div>
+  </header>
 
-<main>
-  <section id="home" class="panel active">
-    <div class="card hero">
-      <span>Disponible après dépenses engagées</span>
-      <strong id="available">0 €</strong>
-      <small id="status">Calcul en cours</small>
-    </div>
-    <div class="summary">
-      <div class="box"><span>Solde banque actuel</span><b id="bankBalanceView">0 €</b></div>
-      <div class="box"><span>Revenus</span><b id="incomeView">0 €</b></div>
-      <div class="box"><span>Charges fixes</span><b id="fixedView">0 €</b></div>
-      <div class="box"><span>Dépenses saisies</span><b id="expenseView">0 €</b></div>
-      <div class="box"><span>Reste théorique</span><b id="theoreticalView">0 €</b></div>
-      <div class="box"><span>Solde après débit CB</span><b id="projectedBalanceView">0 €</b></div>
-      <div class="box"><span>Prélèvements restants</span><b id="remainingChargesView">0 €</b></div>
-      <div class="box"><span>Fin de mois prévue</span><b id="endMonthView">0 €</b></div>
-    </div>
-    <div class="card">
-      <h2>💳 Carte bancaire à débit différé</h2>
-      <div class="row"><div><b>CB en attente</b><small>Débit global prévu le 4</small></div><strong id="deferredTotal">0 €</strong></div>
-      <button id="applyDeferredDebit" class="primary">Débit CB effectué</button>
-      <p class="muted">Ce bouton retire le total CB du solde bancaire en une seule fois et remet le compteur à zéro.</p>
-    </div>
-    <div class="card">
-      <h2>ℹ️ Comprendre les montants</h2>
-      <div class="row"><div><b>Reste théorique</b><small>Revenus moins charges fixes</small></div><strong id="theoreticalExplain">0 €</strong></div>
-      <div class="row"><div><b>Disponible réel</b><small>Reste théorique moins toutes les dépenses saisies</small></div><strong id="availableExplain">0 €</strong></div>
-      <div class="row"><div><b>Solde prévu après CB</b><small>Solde bancaire moins la carte en attente</small></div><strong id="projectedExplain">0 €</strong></div>
-      <div class="row"><div><b>Fin de mois prévue</b><small>Solde moins CB en attente et prélèvements non payés</small></div><strong id="endMonthExplain">0 €</strong></div>
-    </div>
-    
-    <div class="card">
-      <h2>🗓️ Prévision jour par jour</h2>
-      <p class="muted">Chaque ligne montre le solde estimé après l’opération indiquée.</p>
-      
-      <div class="forecast">
-        <div class="row">
-          <div><b>Solde de départ</b><small>Solde bancaire actuel</small></div>
-          <strong id="forecastStart">0 €</strong>
+  <main class="app-main">
+    <section id="home" class="screen active">
+      <article class="hero card">
+        <span>Disponible après dépenses engagées</span>
+        <strong id="available">0 €</strong>
+        <small id="budgetStatus">Calcul en cours</small>
+      </article>
+
+      <section class="summary-grid">
+        <article class="metric card"><span>Solde banque</span><b id="bankBalanceView">0 €</b></article>
+        <article class="metric card"><span>CB en attente</span><b id="deferredView">0 €</b></article>
+        <article class="metric card"><span>Reste théorique</span><b id="theoreticalView">0 €</b></article>
+        <article class="metric card"><span>Fin de mois prévue</span><b id="endMonthView">0 €</b></article>
+      </section>
+
+      <article class="card">
+        <div class="section-title">
+          <h2>💳 Carte à débit différé</h2>
+          <span class="badge">Débit le 4</span>
         </div>
-        <div class="row">
-          <div><b>Solde final estimé</b><small>Après CB et prélèvements restants</small></div>
-          <strong id="forecastEnd">0 €</strong>
+        <div class="key-row">
+          <div>
+            <b>Total en attente</b>
+            <small>Achats non encore débités</small>
+          </div>
+          <strong id="deferredTotal">0 €</strong>
         </div>
-      </div>
-      <div id="forecastTimeline"></div>
-    </div>
+        <button id="applyDeferredDebit" class="primary">Débit CB effectué</button>
+      </article>
 
-    <div class="card"><h2>📅 Prochains prélèvements</h2><div id="nextCharges"></div></div>
-    <div class="card">
-      <h2>🛍️ Puis-je l’acheter ?</h2>
-      <input id="buyAmount" type="number" step="0.01" placeholder="Montant de l’achat">
-      <button id="checkPurchase" class="primary">Vérifier</button>
-      <div id="purchaseResult" class="result" hidden></div>
-    </div>
-    <div class="card"><h2>📊 Budgets</h2><div id="budgets"></div></div>
-  </section>
-
-  <section id="add" class="panel">
-    <div class="card">
-      <h2>➕ Ajouter une dépense</h2>
-      <label>Montant</label><input id="amount" type="number" step="0.01" placeholder="0,00">
-      <label>Magasin ou libellé</label><input id="label" placeholder="Ex. Leclerc">
-      <div id="categorySuggestion" class="suggestion">Catégorie proposée : <b>Courses</b></div>
-      <label>Catégorie</label><select id="category"></select>
-      <label>Mode de paiement</label><select id="paymentMethod"><option value="deferred_card">Carte bancaire — débit différé le 4</option><option value="immediate_card">Carte bancaire — débit immédiat</option><option value="direct_debit">Prélèvement</option><option value="transfer">Virement</option><option value="cash">Espèces</option></select><label>Date</label><input id="date" type="date">
-      <button id="saveExpense" class="primary">Enregistrer</button>
-      <div class="balance-note">Les achats par carte sont ajoutés à « CB en attente » et débités en une seule fois le 4.</div>
-    </div>
-  </section>
-
-  <section id="charges" class="panel"><div class="card"><h2>📅 Prélèvements</h2><p class="muted">Appuie sur un prélèvement lorsqu’il est réellement passé : son montant sera retiré du solde bancaire.</p><div id="chargesList"></div></div></section>
-
-  <section id="history" class="panel">
-    <div class="card">
-      <h2>🧾 Historique</h2>
-      <input id="search" placeholder="Rechercher Leclerc, Orange…">
-      <div id="historyList"></div>
-    </div>
-  </section>
-
-  <section id="settings" class="panel">
-    <div class="card">
-      <h2>⚙️ Réglages</h2>
-      <label>Solde bancaire actuel</label>
-      <input id="bankBalance" type="number" step="0.01">
-      <p class="muted">Ce solde diminue automatiquement à chaque dépense saisie.</p>
-      <label>Mois affiché</label>
-      <input id="month">
-    </div>
-    <div class="card">
-      <h2>💶 Revenus</h2>
-      <div id="incomeSettings"></div>
-      <button id="addIncome" class="soft">+ Ajouter un revenu</button>
-    </div>
-    
-    <div class="card">
-      <h2>➕ Revenu ponctuel</h2>
-      <label>Montant</label>
-      <input id="oneOffIncomeAmount" type="number" step="0.01" placeholder="0,00">
-      <label>Libellé</label>
-      <input id="oneOffIncomeLabel" placeholder="Ex. remboursement, prime...">
-      <label style="display:flex;gap:8px;align-items:center;font-weight:600"><input id="futureIncome" type="checkbox" style="width:auto"> Revenu prévu plus tard</label>
-<label id="futureIncomeDateLabel" style="display:none">Date prévue</label>
-<input id="futureIncomeDate" type="date" style="display:none">
-<button id="addOneOffIncome" class="primary">Ajouter le revenu</button>
-      <p class="muted">Le montant est ajouté immédiatement au solde bancaire et à l’historique.</p>
-    </div>
-
-    <div class="card">
-      <h2>🛠️ Modifier les prélèvements</h2>
-      <div id="chargeSettings"></div>
-      <button id="addCharge" class="soft">+ Ajouter un prélèvement</button>
-    </div>
-
-    
-    
-    <div class="card">
-      <h2>📊 Modifier les budgets</h2>
-      <div id="budgetSettings"></div>
-    </div>
-
-    <div class="card">
-      <h2>🛟 Récupération</h2>
-      <button id="restoreAutoBackup" class="soft">Récupérer la sauvegarde automatique</button>
-      <p class="muted">Utilise ce bouton seulement si une mise à jour a remplacé tes données.</p>
-    </div>
-
-    <div class="card">
-      <h2>💾 Sauvegarde</h2>
-      <div class="actions">
-        <button id="exportData" class="soft">Exporter</button>
-        <button id="importDataBtn" class="soft">Restaurer</button>
-        <input id="importDataFile" type="file" accept=".json,application/json" hidden>
-        <button id="resetApp" class="dangerBtn">Réinitialiser</button>
-      </div>
-      <p class="muted">Les données restent enregistrées sur cet iPhone.</p>
-      <div id="migrationStatus" class="result">Données sécurisées — version 2.3</div>
-    </div>
-  </section>
-</main>
-
-<nav>
-  <button data-tab="home" class="active"><span class="ico">🏠</span><span>Accueil</span></button>
-  <button data-tab="add"><span class="ico">➕</span><span>Ajouter</span></button>
-  <button data-tab="charges"><span class="ico">📅</span><span>Prélèvements</span></button>
-  <button data-tab="history"><span class="ico">🧾</span><span>Historique</span></button>
-  <button data-tab="settings"><span class="ico">⚙️</span><span>Réglages</span></button>
-</nav>
-
-<script>
-(function(){
-  "use strict";
-  const STORAGE_KEY="budget-familial-laetitia-final-v1";
-  const DATA_VERSION=3;
-  const initial={
-    month:"Août 2026",bankBalance:3346.91,
-    incomes:[
-      {id:"r1",label:"Salaire Jeff",amount:1450},
-      {id:"r2",label:"MSA invalidité",amount:867.92},
-      {id:"r3",label:"MSA prestations",amount:839.98},
-      {id:"r4",label:"CCPMA prévoyance",amount:660.08},
-      {id:"r5",label:"Participation Maëva assurance voiture",amount:130}
-    ],
-    fixedCharges:[
-      {id:"f1",day:3,label:"Eau de Garonne",amount:64,paid:false},
-      {id:"f2",day:5,label:"Prêt principal",amount:554.54,paid:false},
-      {id:"f3",day:6,label:"Orange mobile 1",amount:28.99,paid:false},
-      {id:"f4",day:6,label:"CEAPC",amount:255.46,paid:false},
-      {id:"f5",day:9,label:"BPCE Vie",amount:10.73,paid:false},
-      {id:"f6",day:10,label:"MAAF",amount:321.13,paid:false},
-      {id:"f7",day:10,label:"Auto-Journal",amount:7.20,paid:false},
-      {id:"f8",day:10,label:"Orange mobile 2",amount:28.99,paid:false},
-      {id:"f9",day:13,label:"Biba",amount:1.52,paid:false},
-      {id:"f10",day:15,label:"VW Bank",amount:424.83,paid:false},
-      {id:"f11",day:16,label:"DGFIP",amount:257,paid:false},
-      {id:"f12",day:17,label:"Orange mobile 3",amount:13.99,paid:false},
-      {id:"f13",day:20,label:"Free Mobile",amount:9.99,paid:false},
-      {id:"f14",day:20,label:"EDF",amount:174.02,paid:false},
-      {id:"f15",day:21,label:"Engie",amount:109.87,paid:false},
-      {id:"f16",day:23,label:"Orange fibre",amount:72.98,paid:false},
-      {id:"f17",day:null,label:"Ergothérapie",amount:175,paid:false},
-      {id:"f18",day:null,label:"Frais bancaires",amount:21.50,paid:false}
-    ],
-    budgets:{"Courses":700,"Carburant":250,"Animaux":150,"Santé":80,"Ergothérapie":175,"Amazon":100,"Maison":150,"Loisirs":100,"Vêtements":100,"Autre":100},
-    rules:[
-      {keyword:"leclerc",category:"Courses"},{keyword:"carrefour",category:"Courses"},
-      {keyword:"intermarche",category:"Courses"},{keyword:"intermarché",category:"Courses"},
-      {keyword:"lidl",category:"Courses"},{keyword:"aldi",category:"Courses"},
-      {keyword:"total",category:"Carburant"},{keyword:"esso",category:"Carburant"},
-      {keyword:"shell",category:"Carburant"},{keyword:"zooplus",category:"Animaux"},
-      {keyword:"maxi zoo",category:"Animaux"},{keyword:"pharmacie",category:"Santé"},
-      {keyword:"amazon",category:"Amazon"},{keyword:"ikea",category:"Maison"},
-      {keyword:"leroy merlin",category:"Maison"},{keyword:"castorama",category:"Maison"}
-    ],
-    expenses:[], deferredCardBatches:[], incomeTransactions:[]
-  };
-
-  const clone=o=>JSON.parse(JSON.stringify(o));
-  let data;
-  try{
-    data=JSON.parse(localStorage.getItem(STORAGE_KEY))||clone(initial);
-  }catch{
-    data=clone(initial);
-  }
-
-  function migrateData(saved){
-    const next={...clone(initial),...saved};
-    if(!Array.isArray(next.incomes)) next.incomes=clone(initial.incomes);
-    if(!Array.isArray(next.fixedCharges)) next.fixedCharges=clone(initial.fixedCharges);
-    next.fixedCharges=next.fixedCharges.map(x=>({...x,paid:Boolean(x.paid),debited:x.debited===true}));
-    if(!Array.isArray(next.expenses)) next.expenses=[];
-    if(!Array.isArray(next.deferredCardBatches)) next.deferredCardBatches=[];
-    if(!Array.isArray(next.incomeTransactions)) next.incomeTransactions=[];
-    next.incomeTransactions=next.incomeTransactions.map(x=>({...x,future:Boolean(x.future)}));
-    if(!Array.isArray(next.rules)) next.rules=clone(initial.rules);
-    if(!next.budgets || typeof next.budgets!=="object") next.budgets=clone(initial.budgets);
-    next.expenses=next.expenses.map(x=>({
-      id:x.id||String(Date.now()+Math.random()),
-      amount:Number(x.amount||0),
-      label:x.label||"Dépense",
-      category:x.category||"Autre",
-      date:x.date||new Date().toISOString().slice(0,10),
-      paymentMethod:x.paymentMethod||"immediate_card",
-      debited:x.debited!==false
-    }));
-    next.dataVersion=DATA_VERSION;
-    return next;
-  }
-
-  data=migrateData(data);
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
-  
-  const $=id=>document.getElementById(id);
-  const euro=n=>Number(n||0).toLocaleString("fr-FR",{style:"currency",currency:"EUR"});
-  const save=()=>{
-    data.dataVersion=DATA_VERSION;
-    localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
-    localStorage.setItem(STORAGE_KEY+"-backup",JSON.stringify({
-      savedAt:new Date().toISOString(),
-      data
-    }));
-    render();
-  };
-
-  function totals(){
-    const income=data.incomes.reduce((s,x)=>s+Number(x.amount||0),0);
-    const fixed=data.fixedCharges.reduce((s,x)=>s+Number(x.amount||0),0);
-    const expenses=data.expenses.reduce((s,x)=>s+Number(x.amount||0),0);
-    return {income,fixed,expenses,theoretical:income-fixed,available:income-fixed-expenses};
-  }
-  function remainingFixedCharges(){
-    return data.fixedCharges.filter(x=>!x.paid).reduce((s,x)=>s+Number(x.amount||0),0);
-  }
-  function projectedEndMonth(){
-    return Number(data.bankBalance)-deferredPending()-remainingFixedCharges();
-  }
-  function deferredPending(){
-    return data.expenses.filter(x=>x.paymentMethod==="deferred_card" && x.debited===false)
-      .reduce((s,x)=>s+Number(x.amount||0),0);
-  }
-  function guessCategory(label){
-    const text=(label||"").toLowerCase();
-    const rule=data.rules.find(r=>text.includes(r.keyword.toLowerCase()));
-    return rule?rule.category:($("category").value||"Autre");
-  }
-  function render(){
-    const t=totals();
-    $("headerMonth").textContent="Laetitia · "+data.month;
-    $("available").textContent=euro(t.available);
-    $("available").className=t.available<0?"bad":t.available<300?"warn":"ok";
-    $("status").textContent=t.available<0?"Budget dépassé":t.available<300?"À surveiller":"Budget disponible";
-    $("bankBalanceView").textContent=euro(data.bankBalance);
-    $("incomeView").textContent=euro(t.income);
-    $("fixedView").textContent=euro(t.fixed);
-    $("expenseView").textContent=euro(t.expenses);
-    $("theoreticalView").textContent=euro(t.theoretical);
-    $("projectedBalanceView").textContent=euro(Number(data.bankBalance)-deferredPending());
-    $("remainingChargesView").textContent=euro(remainingFixedCharges());
-    $("endMonthView").textContent=euro(projectedEndMonth());
-    $("deferredTotal").textContent=euro(deferredPending());
-    $("theoreticalExplain").textContent=euro(t.theoretical);
-    $("availableExplain").textContent=euro(t.available);
-    $("projectedExplain").textContent=euro(Number(data.bankBalance)-deferredPending());
-    $("endMonthExplain").textContent=euro(projectedEndMonth());
-    if(document.activeElement!==$("bankBalance")) $("bankBalance").value=data.bankBalance;
-    if(document.activeElement!==$("month")) $("month").value=data.month;
-    renderNextCharges();renderBudgets();renderCharges();renderHistory();renderSettings();renderChargeSettings();renderBudgetSettings();renderForecastTimeline();renderCategories();
-    $("migrationStatus").textContent="Données sécurisées — sauvegarde automatique active";
-  }
-  
-  function currentMonthParts(){
-    const now=new Date();
-    return {year:now.getFullYear(),month:now.getMonth()};
-  }
-
-  function forecastEvents(){
-    const {year,month}=currentMonthParts();
-    const today=new Date();
-    const currentDay=today.getDate();
-    const events=[];
-
-    const pendingCard=deferredPending();
-    if(pendingCard>0){
-      let cardDate=new Date(year,month,4);
-      if(currentDay>4) cardDate=new Date(year,month+1,4);
-      events.push({
-        date:cardDate,
-        label:"Débit global carte bancaire",
-        amount:-pendingCard,
-        type:"CB différée"
-      });
-    }
-
-    data.fixedCharges
-      .filter(x=>!x.paid)
-      .forEach(x=>{
-        let day=x.day||28;
-        let d=new Date(year,month,day);
-        if(day<currentDay) d=new Date(year,month+1,day);
-        events.push({
-          date:d,
-          label:x.label,
-          amount:-Number(x.amount||0),
-          type:"Prélèvement"
-        });
-      });
-
-    (data.incomeTransactions||[])
-      .filter(x=>x.future===true)
-      .forEach(x=>{
-        const d=new Date(x.date+"T12:00:00");
-        if(d>=today){
-          events.push({
-            date:d,
-            label:x.label,
-            amount:Number(x.amount||0),
-            type:"Revenu"
-          });
-        }
-      });
-
-    return events.sort((a,b)=>a.date-b.date);
-  }
-
-  function renderForecastTimeline(){
-    const events=forecastEvents();
-    let running=Number(data.bankBalance||0);
-    const rows=[{
-      date:new Date(),
-      label:"Solde actuel",
-      amount:0,
-      balance:running,
-      type:"Départ"
-    }];
-
-    events.forEach(event=>{
-      running=Number((running+event.amount).toFixed(2));
-      rows.push({...event,balance:running});
-    });
-
-    $("forecastStart").textContent=euro(Number(data.bankBalance||0));
-    $("forecastEnd").textContent=euro(running);
-    $("forecastEnd").className=running<0?"bad":running<300?"warn":"ok";
-
-    $("forecastTimeline").innerHTML=rows.map((row,index)=>{
-      const balanceClass=row.balance<0?"negative":row.balance<300?"warning":"";
-      const dateLabel=index===0?"Aujourd’hui":row.date.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"});
-      const amountText=row.amount===0?"":`${row.amount>0?"+":""}${euro(row.amount)}`;
-      return `<div class="timelineItem">
-        <div class="timelineDate">${dateLabel}</div>
-        <div class="timelineMain">
-          <b>${esc(row.label)}</b>
-          <small>${esc(row.type)}${amountText?" · "+amountText:""}</small>
+      <article class="card">
+        <div class="section-title"><h2>🗓️ Prévision du compte</h2></div>
+        <div class="forecast-summary">
+          <div><span>Départ</span><b id="forecastStart">0 €</b></div>
+          <div><span>Fin estimée</span><b id="forecastEnd">0 €</b></div>
         </div>
-        <div class="timelineBalance ${balanceClass}">${euro(row.balance)}</div>
-      </div>`;
-    }).join("");
-  }
-  function renderNextCharges(){
-    const items=data.fixedCharges.filter(x=>!x.paid).sort((a,b)=>(a.day??99)-(b.day??99)).slice(0,3);
-    $("nextCharges").innerHTML=items.length?items.map(x=>`<div class="row"><div><b>${esc(x.label)}</b><small>${x.day?"Le "+x.day:"Date variable"}</small></div><strong>${euro(x.amount)}</strong></div>`).join(""):'<div class="empty">Aucun prélèvement à venir.</div>';
-  }
-  function renderBudgets(){
-    $("budgets").innerHTML=Object.entries(data.budgets).map(([cat,limit])=>{
-      const spent=data.expenses.filter(x=>x.category===cat).reduce((s,x)=>s+Number(x.amount||0),0);
-      const pct=limit?Math.min(100,spent/limit*100):0;
-      const cls=pct>=100?"fill danger":pct>=80?"fill warning":"fill";
-      return `<div class="budget"><div class="budgetHead"><div><b>${esc(cat)}</b><small>${euro(Math.max(0,limit-spent))} restants</small></div><small>${euro(spent)} / ${euro(limit)}</small></div><div class="track"><div class="${cls}" style="width:${pct}%"></div></div></div>`;
-    }).join("");
-  }
-  function renderCategories(){
-    const current=$("category").value;
-    $("category").innerHTML=Object.keys(data.budgets).map(c=>`<option>${esc(c)}</option>`).join("");
-    if(current&&data.budgets[current]!==undefined)$("category").value=current;
-  }
-  function renderCharges(){
-    $("chargesList").innerHTML=data.fixedCharges.map(x=>`<button class="charge ${x.paid?"paid":""}" data-charge="${x.id}"><div><b>${esc(x.label)}</b><small>${x.day?"Le "+x.day:"Date variable"}</small></div><div class="right"><strong>${euro(x.amount)}</strong><small>${x.paid?"Payé":"À payer"}</small></div></button>`).join("");
-  }
-  function renderHistory(){
-    const q=$("search").value.trim().toLowerCase();
-    const expenses=data.expenses.map(x=>({...x,type:"expense"}));
-    const incomes=data.incomeTransactions.map(x=>({...x,type:"income",category:"Revenu"}));
-    const list=[...expenses,...incomes]
-      .filter(x=>!q||x.label.toLowerCase().includes(q)||String(x.category||"").toLowerCase().includes(q))
-      .sort((a,b)=>String(b.date).localeCompare(String(a.date)));
-    $("historyList").innerHTML=list.length?list.map(x=>`
-      <div class="row">
-        <div>
-          <b>${x.type==="income"?"➕ ":""}${esc(x.label)}</b>
-          <small>${esc(x.category||"")} · ${formatDate(x.date)}${x.type==="income"&&x.future?" · À venir":""}${x.type==="expense"?" · "+paymentLabel(x.paymentMethod,x.debited):""}</small>
+        <div id="forecastTimeline" class="timeline"></div>
+      </article>
+
+      <article class="card">
+        <div class="section-title"><h2>📊 Budgets</h2></div>
+        <div id="budgets"></div>
+      </article>
+    </section>
+
+    <section id="add" class="screen">
+      <article class="card">
+        <h2>➕ Ajouter une dépense</h2>
+        <label>Montant</label>
+        <input id="expenseAmount" type="number" step="0.01" placeholder="0,00">
+
+        <label>Magasin ou libellé</label>
+        <input id="expenseLabel" placeholder="Ex. Leclerc">
+
+        <div id="categorySuggestion" class="info-box">Catégorie proposée : <b>Courses</b></div>
+
+        <label>Catégorie</label>
+        <select id="expenseCategory"></select>
+
+        <label>Mode de paiement</label>
+        <select id="paymentMethod">
+          <option value="deferred_card">Carte — débit différé le 4</option>
+          <option value="immediate_card">Carte — débit immédiat</option>
+          <option value="direct_debit">Prélèvement</option>
+          <option value="transfer">Virement</option>
+          <option value="cash">Espèces</option>
+        </select>
+
+        <label>Date</label>
+        <input id="expenseDate" type="date">
+
+        <button id="saveExpense" class="primary">Enregistrer</button>
+      </article>
+
+      <article class="card">
+        <h2>➕ Ajouter un revenu</h2>
+        <label>Montant</label>
+        <input id="incomeAmount" type="number" step="0.01" placeholder="0,00">
+        <label>Libellé</label>
+        <input id="incomeLabel" placeholder="Ex. remboursement, prime">
+        <label class="checkline">
+          <input id="futureIncome" type="checkbox">
+          Revenu prévu plus tard
+        </label>
+        <div id="futureDateBlock" hidden>
+          <label>Date prévue</label>
+          <input id="futureIncomeDate" type="date">
         </div>
-        <div class="right">
-          <strong class="${x.type==="income"?"ok":""}">${x.type==="income"?(x.future?"Prévu ":"+"):""}${euro(x.amount)}</strong><br>
-          <button class="expenseDelete" data-${x.type}="${x.id}">Suppr.</button>
+        <button id="saveIncome" class="primary">Ajouter le revenu</button>
+      </article>
+    </section>
+
+    <section id="charges" class="screen">
+      <article class="card">
+        <h2>📅 Prélèvements</h2>
+        <p class="muted">Appuie sur un prélèvement lorsqu’il est réellement passé.</p>
+        <div id="chargesList"></div>
+      </article>
+    </section>
+
+    <section id="history" class="screen">
+      <article class="card">
+        <h2>🧾 Historique</h2>
+        <input id="search" placeholder="Rechercher une opération">
+        <div id="historyList"></div>
+      </article>
+    </section>
+
+    <section id="settings" class="screen">
+      <article class="card">
+        <h2>⚙️ Réglages généraux</h2>
+        <label>Solde bancaire actuel</label>
+        <input id="bankBalance" type="number" step="0.01">
+        <label>Mois affiché</label>
+        <input id="monthLabel">
+      </article>
+
+      <article class="card">
+        <h2>💶 Revenus mensuels</h2>
+        <div id="incomeSettings"></div>
+        <button id="addMonthlyIncome" class="soft">+ Ajouter</button>
+      </article>
+
+      <article class="card">
+        <h2>🛠️ Prélèvements</h2>
+        <div id="chargeSettings"></div>
+        <button id="addCharge" class="soft">+ Ajouter</button>
+      </article>
+
+      <article class="card">
+        <h2>📊 Budgets</h2>
+        <div id="budgetSettings"></div>
+      </article>
+
+      <article class="card">
+        <h2>💾 Sauvegarde</h2>
+        <div class="button-row">
+          <button id="exportData" class="soft">Exporter</button>
+          <button id="importDataBtn" class="soft">Restaurer</button>
+          <input id="importDataFile" type="file" accept=".json,application/json" hidden>
         </div>
-      </div>`).join(""):'<div class="empty">Aucune opération enregistrée.</div>';
-  }
-  
-  
-  function renderBudgetSettings(){
-    $("budgetSettings").innerHTML=Object.entries(data.budgets).map(([cat,amount])=>`
-      <div class="editBudget">
-        <input value="${escAttr(cat)}" readonly>
-        <input data-budget-amount="${escAttr(cat)}" type="number" step="0.01" value="${amount}">
-      </div>`).join("");
-  }
+        <button id="restoreAutoBackup" class="soft full">Récupérer la sauvegarde automatique</button>
+        <button id="resetApp" class="danger full">Réinitialiser l’application</button>
+        <p id="storageStatus" class="muted">Sauvegarde automatique active.</p>
+      </article>
+    </section>
+  </main>
 
-  function renderChargeSettings(){
-    $("chargeSettings").innerHTML=data.fixedCharges.map((x,i)=>`
-      <div class="editCharge">
-        <input data-charge-day="${i}" type="number" min="1" max="31" value="${x.day??""}" placeholder="Jour">
-        <input data-charge-label="${i}" value="${escAttr(x.label)}">
-        <input class="amountField" data-charge-amount="${i}" type="number" step="0.01" value="${x.amount}">
-        <button class="dangerBtn" data-charge-delete="${i}">Suppr.</button>
-      </div>`).join("");
-  }
+  <nav class="bottom-nav">
+    <button data-tab="home" class="active"><span>🏠</span><small>Accueil</small></button>
+    <button data-tab="add"><span>➕</span><small>Ajouter</small></button>
+    <button data-tab="charges"><span>📅</span><small>Prélèvements</small></button>
+    <button data-tab="history"><span>🧾</span><small>Historique</small></button>
+    <button data-tab="settings"><span>⚙️</span><small>Réglages</small></button>
+  </nav>
 
-  function renderSettings(){
-    $("incomeSettings").innerHTML=data.incomes.map((x,i)=>`<div class="grid2" style="margin-bottom:8px"><input data-income-label="${i}" value="${escAttr(x.label)}"><input data-income-amount="${i}" type="number" step="0.01" value="${x.amount}"></div>`).join("");
-  }
-  function esc(v){return String(v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
-  const escAttr=esc;
-  function formatDate(v){if(!v)return"";const p=v.split("-");return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:v}
-  function paymentLabel(method,debited){
-    if(method==="deferred_card") return debited?"CB débitée":"CB en attente";
-    if(method==="immediate_card") return "Carte immédiate";
-    if(method==="direct_debit") return "Prélèvement";
-    if(method==="transfer") return "Virement";
-    if(method==="cash") return "Espèces";
-    return "Paiement";
-  }
-
-  document.querySelectorAll("nav button").forEach(btn=>btn.addEventListener("click",()=>{
-    document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
-    document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));
-    btn.classList.add("active");$(btn.dataset.tab).classList.add("active");
-  }));
-
-  $("label").addEventListener("input",()=>{
-    const cat=guessCategory($("label").value);
-    $("category").value=cat;
-    $("categorySuggestion").innerHTML='Catégorie proposée : <b>'+esc(cat)+'</b>';
-  });
-
-  // V2 : gestion des modes de paiement et de la CB à débit différé
-  $("saveExpense").addEventListener("click",()=>{
-    const amount=Number($("amount").value);
-    if(!amount||amount<=0){alert("Saisis un montant valide.");return;}
-    const category=guessCategory($("label").value);
-    const paymentMethod=$("paymentMethod").value;
-    const isDeferred=paymentMethod==="deferred_card";
-    data.expenses.unshift({
-      id:String(Date.now()),
-      amount,
-      label:$("label").value.trim()||category,
-      category,
-      date:$("date").value,
-      paymentMethod,
-      debited:!isDeferred
-    });
-    if(!isDeferred && paymentMethod!=="cash"){
-      data.bankBalance=Number((Number(data.bankBalance)-amount).toFixed(2));
-    }
-    $("amount").value="";
-    $("label").value="";
-    save();
-    document.querySelector('nav button[data-tab="home"]').click();
-  });
-
-  $("checkPurchase").addEventListener("click",()=>{
-    const amount=Number($("buyAmount").value),t=totals(),box=$("purchaseResult");
-    box.hidden=false;
-    if(!amount||amount<=0){box.textContent="Saisis un montant.";return;}
-    const after=t.available-amount;
-    box.textContent=after<0?`Non conseillé : il manquerait ${euro(Math.abs(after))}.`:after<300?`Attention : il ne resterait que ${euro(after)}.`:`Oui : il resterait ${euro(after)} de disponible après dépenses.`;
-  });
-
-  $("search").addEventListener("input",renderHistory);
-  $("bankBalance").addEventListener("input",()=>{
-    data.bankBalance=Number($("bankBalance").value)||0;
-    localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
-    $("bankBalanceView").textContent=euro(data.bankBalance);
-  });
-  $("bankBalance").addEventListener("change",save);
-  $("month").addEventListener("input",()=>{
-    data.month=$("month").value;
-    localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
-    $("headerMonth").textContent="Laetitia · "+data.month;
-  });
-  $("month").addEventListener("change",save);
-
-  $("addIncome").addEventListener("click",()=>{data.incomes.push({id:String(Date.now()),label:"Nouveau revenu",amount:0});save();});
-  $("applyDeferredDebit").addEventListener("click",()=>{
-    const total=deferredPending();
-    if(total<=0){alert("Aucune dépense CB en attente.");return;}
-    if(!confirm(`Débiter ${euro(total)} du compte bancaire ?`)) return;
-    data.bankBalance=Number((Number(data.bankBalance)-total).toFixed(2));
-    data.expenses=data.expenses.map(x=>x.paymentMethod==="deferred_card"&&x.debited===false?{...x,debited:true}:x);
-    data.deferredCardBatches.push({id:String(Date.now()),date:new Date().toISOString().slice(0,10),amount:total});
-    save();
-  });
-
-
-  $("futureIncome").addEventListener("change",()=>{
-    const show=$("futureIncome").checked;
-    $("futureIncomeDateLabel").style.display=show?"block":"none";
-    $("futureIncomeDate").style.display=show?"block":"none";
-    if(show && !$("futureIncomeDate").value) $("futureIncomeDate").value=new Date().toISOString().slice(0,10);
-  });
-
-$("addOneOffIncome").addEventListener("click",()=>{
-    const amount=Number($("oneOffIncomeAmount").value);
-    const label=$("oneOffIncomeLabel").value.trim()||"Revenu ponctuel";
-    const future=$("futureIncome").checked;
-    const date=future?$("futureIncomeDate").value:new Date().toISOString().slice(0,10);
-    if(!amount||amount<=0){alert("Saisis un montant valide.");return;}
-    if(future && !date){alert("Choisis une date prévue.");return;}
-
-    data.incomeTransactions.unshift({
-      id:String(Date.now()),
-      amount,
-      label,
-      date,
-      future
-    });
-
-    if(!future){
-      data.bankBalance=Number((Number(data.bankBalance)+amount).toFixed(2));
-    }
-
-    $("oneOffIncomeAmount").value="";
-    $("oneOffIncomeLabel").value="";
-    $("futureIncome").checked=false;
-    $("futureIncomeDate").style.display="none";
-    $("futureIncomeDateLabel").style.display="none";
-    save();
-  });
-
-  $("addCharge").addEventListener("click",()=>{
-    data.fixedCharges.push({
-      id:"f"+Date.now(),
-      day:null,
-      label:"Nouveau prélèvement",
-      amount:0,
-      paid:false
-    });
-    save();
-  });
-
-  $("exportData").addEventListener("click",()=>{
-    const blob=new Blob([JSON.stringify({app:"Budget Familial Laetitia",version:"2.3.0",exportedAt:new Date().toISOString(),data},null,2)],{type:"application/json"});
-    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="budget_laetitia_sauvegarde.json";a.click();
-  });
-  
-  $("restoreAutoBackup").addEventListener("click",()=>{
-    try{
-      const raw=localStorage.getItem(STORAGE_KEY+"-backup");
-      if(!raw){alert("Aucune sauvegarde automatique disponible.");return;}
-      const backup=JSON.parse(raw);
-      data=migrateData(backup.data||backup);
-      save();
-      alert("Sauvegarde automatique récupérée.");
-    }catch{
-      alert("Impossible de récupérer la sauvegarde automatique.");
-    }
-  });
-
-  $("importDataBtn").addEventListener("click",()=>$("importDataFile").click());
-
-  $("importDataFile").addEventListener("change",event=>{
-    const file=event.target.files?.[0];
-    if(!file) return;
-    const reader=new FileReader();
-    reader.onload=()=>{
-      try{
-        const parsed=JSON.parse(String(reader.result));
-        const restored=parsed.data?parsed.data:parsed;
-        data=migrateData(restored);
-        save();
-        alert("Sauvegarde restaurée avec succès.");
-      }catch{
-        alert("Le fichier de sauvegarde n’est pas valide.");
-      }
-      event.target.value="";
-    };
-    reader.readAsText(file);
-  });
-
-  $("resetApp").addEventListener("click",()=>{if(confirm("Réinitialiser toute l’application ?")){data=clone(initial);save();}});
-
-  document.addEventListener("click",e=>{
-    const chargeId=e.target.closest("[data-charge]")?.dataset.charge;
-    if(chargeId){
-      data.fixedCharges=data.fixedCharges.map(x=>{
-        if(x.id!==chargeId) return x;
-        if(!x.paid){
-          data.bankBalance=Number((Number(data.bankBalance)-Number(x.amount)).toFixed(2));
-          return {...x,paid:true,debited:true};
-        }else{
-          if(x.debited){
-            data.bankBalance=Number((Number(data.bankBalance)+Number(x.amount)).toFixed(2));
-          }
-          return {...x,paid:false,debited:false};
-        }
-      });
-      save();
-    }
-    const incomeId=e.target.closest("[data-income]")?.dataset.income;
-    if(incomeId){
-      const income=data.incomeTransactions.find(x=>x.id===incomeId);
-      if(income && !income.future) data.bankBalance=Number((Number(data.bankBalance)-Number(income.amount)).toFixed(2));
-      data.incomeTransactions=data.incomeTransactions.filter(x=>x.id!==incomeId);
-      save();
-    }
-    const chargeDelete=e.target.closest("[data-charge-delete]")?.dataset.chargeDelete;
-    if(chargeDelete!==undefined){
-      data.fixedCharges.splice(Number(chargeDelete),1);
-      save();
-    }
-    const expId=e.target.closest("[data-expense]")?.dataset.expense;
-    if(expId){
-      const expense=data.expenses.find(x=>x.id===expId);
-      if(expense && expense.debited===true && expense.paymentMethod!=="cash"){
-        data.bankBalance=Number((Number(data.bankBalance)+Number(expense.amount)).toFixed(2));
-      }
-      data.expenses=data.expenses.filter(x=>x.id!==expId);
-      save();
-    }
-  });
-
-  document.addEventListener("input",e=>{
-    const cd=e.target.dataset.chargeDay, cl=e.target.dataset.chargeLabel, ca=e.target.dataset.chargeAmount, ba=e.target.dataset.budgetAmount;
-    if(cd!==undefined){data.fixedCharges[Number(cd)].day=e.target.value===""?null:Number(e.target.value);localStorage.setItem(STORAGE_KEY,JSON.stringify(data));}
-    if(cl!==undefined){data.fixedCharges[Number(cl)].label=e.target.value;localStorage.setItem(STORAGE_KEY,JSON.stringify(data));}
-    if(ca!==undefined){data.fixedCharges[Number(ca)].amount=Number(e.target.value)||0;localStorage.setItem(STORAGE_KEY,JSON.stringify(data));const t=totals();$("fixedView").textContent=euro(t.fixed);$("theoreticalView").textContent=euro(t.theoretical);$("available").textContent=euro(t.available);}
-    if(ba!==undefined){data.budgets[ba]=Number(e.target.value)||0;localStorage.setItem(STORAGE_KEY,JSON.stringify(data));renderBudgets();}
-
-    const li=e.target.dataset.incomeLabel, ai=e.target.dataset.incomeAmount;
-    if(li!==undefined){
-      data.incomes[Number(li)].label=e.target.value;
-      localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
-    }
-    if(ai!==undefined){
-      data.incomes[Number(ai)].amount=Number(e.target.value)||0;
-      localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
-      const t=totals();
-      $("incomeView").textContent=euro(t.income);
-      $("available").textContent=euro(t.available);
-      $("available").className=t.available<0?"bad":t.available<300?"warn":"ok";
-      $("status").textContent=t.available<0?"Budget dépassé":t.available<300?"À surveiller":"Budget disponible";
-    }
-  });
-  document.addEventListener("change",e=>{
-    const li=e.target.dataset.incomeLabel, ai=e.target.dataset.incomeAmount;
-    const cd=e.target.dataset.chargeDay, cl=e.target.dataset.chargeLabel, ca=e.target.dataset.chargeAmount, ba=e.target.dataset.budgetAmount;
-    if(li!==undefined||ai!==undefined||cd!==undefined||cl!==undefined||ca!==undefined)save();
-  });
-
-  $("date").value=new Date().toISOString().slice(0,10);
-  render();
-  if("serviceWorker" in navigator){
-    navigator.serviceWorker.getRegistrations().then(registrations=>{
-      registrations.forEach(reg=>reg.unregister());
-    }).catch(()=>{});
-  }
-
-  if("caches" in window){
-    caches.keys().then(keys=>Promise.all(keys.map(key=>caches.delete(key)))).catch(()=>{});
-  }
-
-  const APP_VERSION="2.6.0";
-  fetch("./version.json?t="+Date.now(),{cache:"no-store"})
-    .then(r=>r.json())
-    .then(v=>{
-      const current=localStorage.getItem("budget-app-version");
-      if(current!==v.version){
-        localStorage.setItem("budget-app-version",v.version);
-        const clean=location.pathname+"?v="+encodeURIComponent(v.version);
-        if(location.search!=="?v="+encodeURIComponent(v.version)){
-          location.replace(clean);
-        }
-      }
-    }).catch(()=>{});
-})();
-</script>
+  <script src="./app.js?v=3.0.0"></script>
 </body>
 </html>
