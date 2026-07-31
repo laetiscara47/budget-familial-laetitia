@@ -9,15 +9,15 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css?v=40.0.0">
-  <title>Mon Budget — V40</title>
+  <link rel="stylesheet" href="./styles.css?v=100.0.0">
+  <title>Mon Budget — V100</title>
 </head>
 <body>
 <header class="app-header">
   <div>
     <h1>💙 Mon Budget</h1>
     <p id="headerSubtitle">Laetitia</p>
-    <small>Version 40.0</small>
+    <small>Version 100.0</small>
   </div>
   <div class="header-actions">
     <select id="profileQuick" class="profile-quick" aria-label="Profil"></select>
@@ -112,6 +112,29 @@
       <div id="accountsSummary"></div>
     </article>
 
+    <section class="v100-kpi-grid">
+      <article class="card v100-kpi">
+        <span>Patrimoine total</span>
+        <b id="netWorthView">0 €</b>
+        <small>Somme de tous les comptes</small>
+      </article>
+      <article class="card v100-kpi">
+        <span>Épargne mensuelle possible</span>
+        <b id="monthlySavingPotential">0 €</b>
+        <small>Estimation prudente</small>
+      </article>
+      <article class="card v100-kpi">
+        <span>Abonnements annuels</span>
+        <b id="annualSubscriptionsView">0 €</b>
+        <small>Dépenses récurrentes estimées</small>
+      </article>
+    </section>
+
+    <article class="card">
+      <div class="section-title"><h2>🗓️ Prévision sur 12 mois</h2><span class="badge">Projection</span></div>
+      <div id="yearForecast" class="year-forecast"></div>
+    </article>
+
     <article class="card">
       <div class="section-title">
         <h2>💳 Carte à débit différé</h2>
@@ -188,7 +211,28 @@
         <option value="cash">Espèces</option>
       </select>
       <label>Date</label><input id="expenseDate" type="date">
+      <label>Ticket ou facture</label>
+      <input id="expenseAttachment" type="file" accept="image/*,.pdf,application/pdf">
+      <div id="attachmentInfo" class="muted">La pièce jointe sera conservée localement sur cet appareil.</div>
       <button id="saveExpense" class="primary">Enregistrer</button>
+    </article>
+
+    <article class="card">
+      <h2>📷 Scanner un ticket</h2>
+      <p class="muted">Prends une photo. L’application conserve l’image localement et préremplit la dépense avec les informations que tu saisis.</p>
+      <input id="receiptPhoto" type="file" accept="image/*" capture="environment">
+      <div id="receiptPreview" class="receipt-preview" hidden>
+        <img id="receiptImage" alt="Aperçu du ticket">
+        <div>
+          <label>Magasin détecté/saisi</label>
+          <input id="receiptMerchant" placeholder="Ex. Leclerc">
+          <label>Montant</label>
+          <input id="receiptAmount" type="number" step="0.01" placeholder="0,00">
+          <label>Date</label>
+          <input id="receiptDate" type="date">
+          <button id="useReceipt" class="soft full">Utiliser pour créer une dépense</button>
+        </div>
+      </div>
     </article>
 
     <article class="card">
@@ -262,6 +306,37 @@
       <h2>Opérations détectées</h2>
       <div id="importPreview"></div>
       <button id="confirmImport" class="primary">Importer les opérations cochées</button>
+    </article>
+  </section>
+
+  <section id="vault" class="screen">
+    <article class="card">
+      <div class="section-title"><h2>📦 Coffre numérique local</h2><span class="badge">Sur cet appareil</span></div>
+      <p class="muted">Conserve localement des factures, contrats, assurances, documents CAF, impôts ou bulletins de salaire.</p>
+      <label>Nom du document</label>
+      <input id="vaultName" placeholder="Ex. Contrat assurance voiture">
+      <label>Catégorie</label>
+      <select id="vaultCategory">
+        <option>Assurance</option>
+        <option>Banque</option>
+        <option>CAF / MSA</option>
+        <option>Impôts</option>
+        <option>Salaire</option>
+        <option>Santé</option>
+        <option>Maison</option>
+        <option>Voiture</option>
+        <option>Autre</option>
+      </select>
+      <label>Fichier</label>
+      <input id="vaultFile" type="file" accept="image/*,.pdf,application/pdf">
+      <button id="addVaultDocument" class="primary">Ajouter au coffre</button>
+      <div id="vaultUsage" class="muted"></div>
+    </article>
+
+    <article class="card">
+      <h2>Documents enregistrés</h2>
+      <input id="vaultSearch" placeholder="Rechercher un document">
+      <div id="vaultList"></div>
     </article>
   </section>
 
@@ -357,15 +432,16 @@
   </section>
 </main>
 
-<nav class="bottom-nav six">
+<nav class="bottom-nav seven">
   <button data-tab="home" class="active"><span>🏠</span><small>Accueil</small></button>
   <button data-tab="add"><span>➕</span><small>Ajouter</small></button>
   <button data-tab="calendar"><span>📅</span><small>Calendrier</small></button>
   <button data-tab="history"><span>🧾</span><small>Historique</small></button>
   <button data-tab="import"><span>📥</span><small>Importer</small></button>
+  <button data-tab="vault"><span>📦</span><small>Coffre</small></button>
   <button data-tab="settings"><span>⚙️</span><small>Réglages</small></button>
 </nav>
 
-<script src="./app.js?v=40.0.0"></script>
+<script src="./app.js?v=100.0.0"></script>
 </body>
 </html>
