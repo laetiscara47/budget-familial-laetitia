@@ -349,3 +349,43 @@ body.dark .family-member,body.dark .forecast-year-summary div{background:#171e2b
 @media(max-width:520px){
   .family-dashboard{grid-template-columns:1fr}
 }
+
+
+/* =========================
+   V1000 — Centre de pilotage familial
+   ========================= */
+textarea{width:100%;padding:12px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--text);font:inherit;resize:vertical}
+.daily-briefing{background:linear-gradient(135deg,#fffdf6,#f2f7ff);border:1px solid #e5e2cf}
+.daily-briefing p{margin:0;color:var(--muted);line-height:1.5}
+.briefing-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.briefing-chip{padding:7px 9px;border-radius:999px;background:var(--blue-soft);color:var(--blue);font-size:12px;font-weight:800}
+.envelope-row{margin:13px 0}
+.envelope-top{display:flex;justify-content:space-between;gap:10px;margin-bottom:6px}
+.envelope-top small{display:block;color:var(--muted);margin-top:2px}
+.envelope-track{height:13px;border-radius:999px;background:#e8edf6;overflow:hidden}
+.envelope-fill{height:100%;background:var(--blue)}
+.envelope-fill.warning{background:var(--warn)}
+.envelope-fill.danger{background:var(--bad)}
+
+.scenario-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.scenario-result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.scenario-result-grid div{border:1px solid var(--line);border-radius:12px;padding:10px;background:#f8fbff}
+.scenario-result-grid span{display:block;color:var(--muted);font-size:11px}
+.scenario-result-grid b{display:block;margin-top:5px}
+
+.debt-plan-item{padding:11px 0;border-bottom:1px solid var(--line)}
+.debt-plan-item:last-child{border-bottom:0}
+.debt-plan-item small{display:block;color:var(--muted);margin-top:3px}
+.debt-plan-rank{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--blue-soft);color:var(--blue);font-weight:800;margin-right:8px}
+.debt-plan-summary{margin-top:12px;padding:12px;border-radius:12px;background:#f8fbff;border:1px solid var(--line)}
+
+.note-badge{display:inline-flex;margin-top:5px;padding:3px 7px;border-radius:999px;background:#fff5d9;color:#8b5900;font-size:11px;font-weight:800}
+
+body.dark textarea{background:#151b25;color:var(--text);border-color:var(--line)}
+body.dark .daily-briefing{background:linear-gradient(135deg,#202015,#182234)}
+body.dark .scenario-result-grid div,body.dark .debt-plan-summary{background:#171e2b}
+
+@media(max-width:680px){
+  .scenario-grid{grid-template-columns:1fr}
+  .scenario-result-grid{grid-template-columns:1fr}
+}

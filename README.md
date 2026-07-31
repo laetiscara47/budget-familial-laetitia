@@ -1,36 +1,39 @@
-# Budget Familial Laetitia — V300.0
+# Budget Familial Laetitia — V1000.0
 
 ## Nouveautés réalisées
 
-- suivi des crédits et dettes ;
-- calcul du patrimoine brut et net ;
-- taux d’endettement ;
-- tableau de bord familial consolidé ;
-- projection sur 12 mois enrichie ;
-- paiement progressif des mensualités ;
-- sauvegarde JSON chiffrée par mot de passe avec AES-GCM ;
-- restauration chiffrée ;
-- coffre numérique local et pièces jointes conservés.
+- briefing quotidien automatique ;
+- enveloppes budgétaires mensuelles ;
+- laboratoire de scénarios d’achat ;
+- stratégie de remboursement des dettes :
+  - boule de neige ;
+  - avalanche ;
+- calcul approximatif de la durée et des intérêts ;
+- notes personnelles sur les dépenses ;
+- personnalisation des blocs du tableau de bord ;
+- centre de pilotage familial renforcé.
 
 ## Fonctions conservées
 
-- profils familiaux ;
-- comptes et virements ;
+- comptes, profils et virements ;
 - carte à débit différé ;
-- assistant budgétaire ;
-- score financier ;
+- calendrier financier ;
+- patrimoine brut et net ;
+- crédits et taux d’endettement ;
+- assistant budgétaire et score financier ;
 - abonnements récurrents ;
-- simulateur d’achat ;
-- calendrier, graphiques et objectifs ;
-- import CSV et détection des doublons ;
-- export CSV et sauvegardes classiques.
+- coffre numérique local ;
+- pièces jointes et photo de ticket ;
+- sauvegarde classique et sauvegarde chiffrée ;
+- import CSV, doublons et recherche avancée.
 
 ## Limites honnêtes
 
-- aucune connexion automatique à une banque ;
-- aucun Face ID natif ;
+- aucune connexion bancaire automatique ;
+- aucune reconnaissance OCR automatique ;
 - aucune synchronisation cloud ;
-- le coffre reste stocké uniquement sur l’appareil.
+- aucune notification native iPhone ;
+- les simulations restent indicatives et dépendent des données saisies.
 
 ## Fichiers GitHub à remplacer
 

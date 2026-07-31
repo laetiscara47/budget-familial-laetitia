@@ -9,15 +9,15 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css?v=300.0.0">
-  <title>Mon Budget — V300</title>
+  <link rel="stylesheet" href="./styles.css?v=1000.0.0">
+  <title>Mon Budget — V1000</title>
 </head>
 <body>
 <header class="app-header">
   <div>
     <h1>💙 Mon Budget</h1>
     <p id="headerSubtitle">Laetitia</p>
-    <small>Version 300.0</small>
+    <small>Version 1000.0</small>
   </div>
   <div class="header-actions">
     <select id="profileQuick" class="profile-quick" aria-label="Profil"></select>
@@ -31,6 +31,12 @@
       <span>Disponible après dépenses engagées</span>
       <strong id="available">0 €</strong>
       <small id="budgetStatus">Calcul en cours</small>
+    </article>
+
+    <article class="card daily-briefing">
+      <div class="section-title"><h2>☀️ Briefing du jour</h2><span class="badge" id="briefingDate">Aujourd’hui</span></div>
+      <p id="dailyBriefingText">Analyse en cours…</p>
+      <div id="dailyBriefingActions" class="briefing-actions"></div>
     </article>
 
     <section class="summary-grid">
@@ -76,12 +82,30 @@
     </article>
 
     <article class="card">
-      <div class="section-title"><h2>🛒 Simuler un achat</h2></div>
-      <div class="simulator-grid">
-        <input id="purchaseSimulationAmount" type="number" step="0.01" placeholder="Montant de l’achat">
-        <button id="simulatePurchase" class="soft">Calculer</button>
+      <div class="section-title"><h2>🧪 Laboratoire de scénarios</h2><span class="badge">V1000</span></div>
+      <div class="scenario-grid">
+        <div>
+          <label>Montant de l’achat</label>
+          <input id="purchaseSimulationAmount" type="number" step="0.01" placeholder="0,00">
+        </div>
+        <div>
+          <label>Date de l’achat</label>
+          <input id="purchaseSimulationDate" type="date">
+        </div>
+        <div>
+          <label>Catégorie</label>
+          <select id="purchaseSimulationCategory"></select>
+        </div>
+        <div>
+          <label>Paiement</label>
+          <select id="purchaseSimulationMethod">
+            <option value="immediate">Immédiat</option>
+            <option value="deferred">CB différée</option>
+          </select>
+        </div>
       </div>
-      <div id="purchaseSimulationResult" class="simulation-result muted">Saisis un montant pour voir l’impact sur la fin du mois.</div>
+      <button id="simulatePurchase" class="primary">Simuler l’impact</button>
+      <div id="purchaseSimulationResult" class="simulation-result muted">Saisis un achat pour voir son impact.</div>
     </article>
 
     <section class="quick-grid">
@@ -105,6 +129,11 @@
     <article class="card">
       <div class="section-title"><h2>🔔 À surveiller</h2></div>
       <div id="alerts"></div>
+    </article>
+
+    <article class="card">
+      <div class="section-title"><h2>💼 Enveloppes du mois</h2><span class="badge">Pilotage</span></div>
+      <div id="envelopesSummary"></div>
     </article>
 
     <article class="card">
@@ -232,6 +261,7 @@
         <option value="cash">Espèces</option>
       </select>
       <label>Date</label><input id="expenseDate" type="date">
+      <label>Note</label><textarea id="expenseNote" rows="3" placeholder="Ex. Achat pour Diego, remboursement attendu…"></textarea>
       <label>Ticket ou facture</label>
       <input id="expenseAttachment" type="file" accept="image/*,.pdf,application/pdf">
       <div id="attachmentInfo" class="muted">La pièce jointe sera conservée localement sur cet appareil.</div>
@@ -381,6 +411,19 @@
       <h2>Crédits enregistrés</h2>
       <div id="loansList"></div>
     </article>
+
+    <article class="card">
+      <div class="section-title"><h2>🎯 Stratégie de remboursement</h2><span class="badge">Optimisation</span></div>
+      <label>Méthode</label>
+      <select id="debtStrategy">
+        <option value="snowball">Boule de neige — plus petite dette d’abord</option>
+        <option value="avalanche">Avalanche — taux le plus élevé d’abord</option>
+      </select>
+      <label>Budget supplémentaire mensuel</label>
+      <input id="extraDebtPayment" type="number" step="0.01" placeholder="0,00">
+      <button id="calculateDebtPlan" class="primary">Calculer le plan</button>
+      <div id="debtPlanResult"></div>
+    </article>
   </section>
 
   <section id="settings" class="screen">
@@ -440,8 +483,11 @@
     </article>
 
     <article class="card">
-      <h2>🌙 Apparence</h2>
+      <h2>🎛️ Tableau de bord</h2>
       <label class="checkline"><input id="darkModeToggle" type="checkbox"> Mode sombre</label>
+      <label class="checkline"><input id="showBriefingToggle" type="checkbox"> Afficher le briefing quotidien</label>
+      <label class="checkline"><input id="showEnvelopesToggle" type="checkbox"> Afficher les enveloppes</label>
+      <label class="checkline"><input id="showYearForecastToggle" type="checkbox"> Afficher la prévision annuelle</label>
     </article>
 
     <article class="card">
@@ -493,11 +539,11 @@
   <button data-tab="calendar"><span>📅</span><small>Calendrier</small></button>
   <button data-tab="history"><span>🧾</span><small>Historique</small></button>
   <button data-tab="import"><span>📥</span><small>Importer</small></button>
-  <button data-tab="loans"><span>🏦</span><small>Crédits</small></button>
+  <button data-tab="loans"><span>🏦</span><small>Crédits+</small></button>
   <button data-tab="vault"><span>📦</span><small>Coffre</small></button>
   <button data-tab="settings"><span>⚙️</span><small>Réglages</small></button>
 </nav>
 
-<script src="./app.js?v=300.0.0"></script>
+<script src="./app.js?v=1000.0.0"></script>
 </body>
 </html>
