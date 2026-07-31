@@ -1,37 +1,21 @@
-# Budget Familial Laetitia — V30.0
+# Budget Familial Laetitia — V40.0
 
 ## Nouveautés réalisées
 
-- score de santé financière sur 100 ;
-- dépense quotidienne conseillée ;
-- assistant budgétaire local basé sur les données enregistrées ;
-- comparaison automatique avec le mois précédent ;
-- détection des catégories au-dessus de leur moyenne ;
-- estimation prudente de l’épargne possible ;
-- analyse charges fixes / dépenses variables ;
-- contrôle de qualité des données ;
-- détection et suppression des doublons ;
-- import CSV avec doublons potentiels décochés automatiquement.
-
-## Fonctions conservées
-
-- comptes multiples et virements ;
-- carte à débit différé le 4 ;
-- calendrier financier ;
-- prévision du solde ;
-- graphique circulaire et courbe de trésorerie ;
-- budgets et alertes ;
-- objectifs d’épargne ;
-- recherche et filtres ;
-- statistiques sur 12 mois ;
-- archives mensuelles ;
-- mode sombre ;
-- export CSV et sauvegarde JSON.
+- profils familiaux locaux ;
+- changement rapide de profil depuis l’en-tête ;
+- catégories personnalisables ;
+- règles de classement personnalisables ;
+- détection locale des abonnements et dépenses récurrentes ;
+- simulateur d’achat avec impact sur le disponible et la fin de mois ;
+- recherche avancée par type et montant ;
+- import CSV toujours protégé contre les doublons ;
+- assistant budgétaire, score financier et contrôle qualité conservés.
 
 ## Important
 
-L’assistant fonctionne localement avec des règles de calcul. Aucune donnée bancaire n’est envoyée vers un service extérieur.
-Cette version ne simule pas Face ID, la synchronisation cloud ou une connexion bancaire automatique.
+Les profils et données restent stockés sur l’appareil utilisé.
+La synchronisation automatique entre plusieurs appareils nécessite un serveur sécurisé et n’est pas simulée dans cette version GitHub Pages.
 
 ## Fichiers GitHub à remplacer
 

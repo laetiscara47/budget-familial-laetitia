@@ -9,17 +9,20 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css?v=30.0.0">
-  <title>Mon Budget — V30</title>
+  <link rel="stylesheet" href="./styles.css?v=40.0.0">
+  <title>Mon Budget — V40</title>
 </head>
 <body>
 <header class="app-header">
   <div>
     <h1>💙 Mon Budget</h1>
     <p id="headerSubtitle">Laetitia</p>
-    <small>Version 30.0</small>
+    <small>Version 40.0</small>
   </div>
-  <button id="themeQuick" class="header-button" aria-label="Changer le thème">🌙</button>
+  <div class="header-actions">
+    <select id="profileQuick" class="profile-quick" aria-label="Profil"></select>
+    <button id="themeQuick" class="header-button" aria-label="Changer le thème">🌙</button>
+  </div>
 </header>
 
 <main class="app-main">
@@ -65,6 +68,20 @@
     <article class="card">
       <div class="section-title"><h2>🤖 Assistant budgétaire</h2><span class="badge">Local</span></div>
       <div id="assistantAdvice"></div>
+    </article>
+
+    <article class="card">
+      <div class="section-title"><h2>🔁 Abonnements détectés</h2><span class="badge">Automatique</span></div>
+      <div id="subscriptionsList"></div>
+    </article>
+
+    <article class="card">
+      <div class="section-title"><h2>🛒 Simuler un achat</h2></div>
+      <div class="simulator-grid">
+        <input id="purchaseSimulationAmount" type="number" step="0.01" placeholder="Montant de l’achat">
+        <button id="simulatePurchase" class="soft">Calculer</button>
+      </div>
+      <div id="purchaseSimulationResult" class="simulation-result muted">Saisis un montant pour voir l’impact sur la fin du mois.</div>
     </article>
 
     <section class="quick-grid">
@@ -214,10 +231,18 @@
   <section id="history" class="screen">
     <article class="card">
       <h2>🧾 Historique</h2>
-      <div class="filter-grid">
+      <div class="filter-grid advanced">
         <input id="search" placeholder="Rechercher">
         <select id="historyAccount"></select>
         <select id="historyCategory"></select>
+        <select id="historyType">
+          <option value="">Tous les types</option>
+          <option value="expense">Dépenses</option>
+          <option value="income">Revenus</option>
+          <option value="transfer">Virements</option>
+        </select>
+        <input id="historyMin" type="number" step="0.01" placeholder="Montant min.">
+        <input id="historyMax" type="number" step="0.01" placeholder="Montant max.">
       </div>
       <div id="historyList"></div>
     </article>
@@ -241,6 +266,32 @@
   </section>
 
   <section id="settings" class="screen">
+    <article class="card">
+      <h2>👨‍👩‍👧‍👦 Profils familiaux</h2>
+      <div id="profileSettings"></div>
+      <button id="addProfile" class="soft">+ Ajouter un profil</button>
+      <p class="muted">Les profils sont enregistrés uniquement sur cet appareil.</p>
+    </article>
+
+    <article class="card">
+      <h2>🏷️ Catégories personnalisées</h2>
+      <div id="categorySettings"></div>
+      <div class="inline-add">
+        <input id="newCategoryName" placeholder="Nouvelle catégorie">
+        <button id="addCategory" class="soft">Ajouter</button>
+      </div>
+    </article>
+
+    <article class="card">
+      <h2>🔁 Règles de classement</h2>
+      <div id="ruleSettings"></div>
+      <div class="rule-add">
+        <input id="newRuleKeyword" placeholder="Mot-clé, ex. boulangerie">
+        <select id="newRuleCategory"></select>
+        <button id="addRule" class="soft">Ajouter la règle</button>
+      </div>
+    </article>
+
     <article class="card">
       <h2>🏦 Comptes</h2>
       <div id="accountSettings"></div>
@@ -315,6 +366,6 @@
   <button data-tab="settings"><span>⚙️</span><small>Réglages</small></button>
 </nav>
 
-<script src="./app.js?v=30.0.0"></script>
+<script src="./app.js?v=40.0.0"></script>
 </body>
 </html>
