@@ -1,21 +1,20 @@
-# Budget Familial Laetitia — version finale statique
+# Budget Familial Laetitia — V1.2
 
-Cette version fonctionne sans React, sans compilation et peut être publiée directement sur GitHub Pages.
+Corrections réalisées :
 
-## Fichiers à mettre dans le dépôt
+- le solde bancaire s’actualise immédiatement pendant la saisie ;
+- le nouveau solde est sauvegardé automatiquement ;
+- les revenus actualisent immédiatement le reste à vivre ;
+- le mois affiché se met à jour en direct ;
+- le cache de l’ancienne application est automatiquement remplacé ;
+- le service worker vérifie les nouvelles versions au démarrage.
 
+## Mise à jour GitHub Pages
+
+Remplacer dans le dépôt :
 - `index.html`
 - `manifest.webmanifest`
 - `sw.js`
 - `icon.svg`
 
-## Publication
-
-1. Remplacer les anciens fichiers du dépôt par ces quatre fichiers.
-2. Dans GitHub : **Settings > Pages**.
-3. Choisir **Deploy from a branch**.
-4. Branche `main`, dossier `/(root)`.
-5. Ouvrir l’adresse GitHub Pages dans Safari.
-6. Safari : **Partager > Sur l’écran d’accueil**.
-
-Les données saisies restent stockées localement sur l’iPhone.
+Puis attendre la nouvelle publication GitHub Pages.
