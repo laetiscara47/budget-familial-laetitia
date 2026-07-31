@@ -9,27 +9,17 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css?v=9.0.0">
-  <title>Mon Budget — V9</title>
+  <link rel="stylesheet" href="./styles.css?v=12.0.0">
+  <title>Mon Budget — V12</title>
 </head>
 <body>
-<div id="lockScreen" class="lock-screen" hidden>
-  <div class="lock-card">
-    <div class="lock-logo">💙</div>
-    <h2>Mon Budget</h2>
-    <p>Entre ton code PIN</p>
-    <input id="pinInput" type="password" inputmode="numeric" maxlength="6" placeholder="••••">
-    <button id="unlockApp" class="primary">Déverrouiller</button>
-    <button id="forgotPin" class="soft full">Code oublié</button>
-    <p id="pinMessage" class="muted"></p>
-  </div>
-</div>
 <header class="app-header">
   <div>
     <h1>💙 Mon Budget</h1>
     <p id="headerSubtitle">Laetitia</p>
-    <small>Version 9.0</small>
+    <small>Version 12.0</small>
   </div>
+  <button id="themeQuick" class="header-button" aria-label="Changer le thème">🌙</button>
 </header>
 
 <main class="app-main">
@@ -43,9 +33,14 @@
     <section class="summary-grid">
       <article class="metric card"><span>Compte courant</span><b id="currentBalanceView">0 €</b></article>
       <article class="metric card"><span>CB en attente</span><b id="deferredView">0 €</b></article>
-      <article class="metric card"><span>Épargne</span><b id="savingsBalanceView">0 €</b></article>
+      <article class="metric card"><span>Jusqu’au prochain revenu</span><b id="untilIncomeView">0 €</b></article>
       <article class="metric card"><span>Fin de mois prévue</span><b id="endMonthView">0 €</b></article>
     </section>
+
+    <article class="card">
+      <div class="section-title"><h2>🔔 À surveiller</h2></div>
+      <div id="alerts"></div>
+    </article>
 
     <article class="card">
       <div class="section-title"><h2>🏦 Comptes</h2></div>
@@ -65,7 +60,7 @@
     </article>
 
     <article class="card">
-      <div class="section-title"><h2>🗓️ Prévision du compte</h2></div>
+      <div class="section-title"><h2>📈 Prévision du compte</h2></div>
       <div class="forecast-summary">
         <div><span>Départ</span><b id="forecastStart">0 €</b></div>
         <div><span>Fin estimée</span><b id="forecastEnd">0 €</b></div>
@@ -74,17 +69,12 @@
     </article>
 
     <article class="card">
-      <div class="section-title"><h2>🔔 Alertes budget</h2></div>
-      <div id="budgetAlerts"></div>
-    </article>
-
-    <article class="card">
-      <div class="section-title"><h2>📊 Répartition du mois</h2></div>
+      <div class="section-title"><h2>📊 Dépenses par catégorie</h2></div>
       <div id="categoryChart"></div>
     </article>
 
     <article class="card">
-      <div class="section-title"><h2>📈 Évolution sur 12 mois</h2></div>
+      <div class="section-title"><h2>📅 12 derniers mois</h2></div>
       <div id="monthlyStats"></div>
     </article>
 
@@ -133,11 +123,21 @@
     </article>
   </section>
 
-  <section id="charges" class="screen">
+  <section id="calendar" class="screen">
     <article class="card">
-      <h2>📅 Prélèvements</h2>
-      <p class="muted">Appuie lorsqu’un prélèvement est réellement passé.</p>
-      <div id="chargesList"></div>
+      <div class="calendar-header">
+        <button id="prevMonth" class="soft">←</button>
+        <h2 id="calendarTitle">Calendrier</h2>
+        <button id="nextMonth" class="soft">→</button>
+      </div>
+      <div class="calendar-week">
+        <span>Lun</span><span>Mar</span><span>Mer</span><span>Jeu</span><span>Ven</span><span>Sam</span><span>Dim</span>
+      </div>
+      <div id="calendarGrid" class="calendar-grid"></div>
+    </article>
+    <article class="card">
+      <h2>Détails du jour</h2>
+      <div id="calendarDetails" class="muted">Choisis une date.</div>
     </article>
   </section>
 
@@ -156,7 +156,7 @@
   <section id="import" class="screen">
     <article class="card">
       <h2>📥 Import bancaire CSV</h2>
-      <p class="muted">Choisis un fichier CSV exporté par ta banque. L’application reconnaît automatiquement les montants et propose les catégories.</p>
+      <p class="muted">Importe un CSV de ta banque. Vérifie l’aperçu avant validation.</p>
       <label>Compte concerné</label><select id="importAccount"></select>
       <input id="csvFile" type="file" accept=".csv,text/csv">
       <button id="parseCsv" class="primary">Analyser le fichier</button>
@@ -200,17 +200,8 @@
     </article>
 
     <article class="card">
-      <h2>🔐 Sécurité</h2>
-      <label>Code PIN</label>
-      <input id="pinSetting" type="password" inputmode="numeric" maxlength="6" placeholder="4 à 6 chiffres">
-      <button id="savePin" class="soft full">Enregistrer le code PIN</button>
-      <button id="removePin" class="danger full">Supprimer le code PIN</button>
-      <p id="pinStatus" class="muted">Aucun code PIN actif.</p>
-    </article>
-
-    <article class="card">
       <h2>🌙 Apparence</h2>
-      <label class="checkline"><input id="darkModeToggle" type="checkbox"> Activer le mode sombre</label>
+      <label class="checkline"><input id="darkModeToggle" type="checkbox"> Mode sombre</label>
     </article>
 
     <article class="card">
@@ -233,7 +224,7 @@
       </div>
       <button id="restoreAutoBackup" class="soft full">Récupérer la sauvegarde automatique</button>
       <button id="resetApp" class="danger full">Réinitialiser l’application</button>
-      <p id="storageStatus" class="muted">Sauvegarde automatique active.</p>
+      <p class="muted">Les données restent sur cet iPhone.</p>
     </article>
   </section>
 </main>
@@ -241,12 +232,12 @@
 <nav class="bottom-nav six">
   <button data-tab="home" class="active"><span>🏠</span><small>Accueil</small></button>
   <button data-tab="add"><span>➕</span><small>Ajouter</small></button>
-  <button data-tab="charges"><span>📅</span><small>Prélèv.</small></button>
+  <button data-tab="calendar"><span>📅</span><small>Calendrier</small></button>
   <button data-tab="history"><span>🧾</span><small>Historique</small></button>
   <button data-tab="import"><span>📥</span><small>Importer</small></button>
   <button data-tab="settings"><span>⚙️</span><small>Réglages</small></button>
 </nav>
 
-<script src="./app.js?v=9.0.0"></script>
+<script src="./app.js?v=12.0.0"></script>
 </body>
 </html>

@@ -1,25 +1,28 @@
-# Budget Familial Laetitia — V9.0
+# Budget Familial Laetitia — V12.0
 
-## Correction principale
+## Réalisé
 
-- aucun code PIN demandé au premier lancement ;
-- le verrouillage ne s’active qu’après création d’un code dans Réglages ;
-- seuls les codes de 4 à 6 chiffres sont acceptés ;
-- bouton « Code oublié » pour supprimer le PIN et retrouver l’accès ;
-- statut du code PIN visible dans Réglages.
-
-## Fonctions conservées
-
+- tableau de bord complet ;
 - plusieurs comptes et virements ;
 - carte à débit différé le 4 ;
+- calendrier financier mensuel ;
 - prévision du compte ;
-- import bancaire CSV ;
-- graphiques et statistiques sur 12 mois ;
-- alertes de budget ;
-- archives mensuelles ;
+- disponible jusqu’au prochain revenu ;
+- catégories intelligentes ;
+- budgets avec alertes ;
+- statistiques sur 12 mois ;
 - objectifs d’épargne ;
+- import bancaire CSV avec aperçu ;
+- recherche et filtres ;
+- archives mensuelles ;
 - mode sombre ;
-- export CSV et sauvegarde JSON.
+- export CSV et sauvegarde JSON ;
+- migration automatique des données précédentes.
+
+## Important
+
+Cette version ne comporte aucun écran PIN afin d’éviter tout blocage.
+Face ID, widgets iPhone et synchronisation cloud nécessiteraient une application native et ne sont pas simulés ici.
 
 ## Fichiers GitHub
 
