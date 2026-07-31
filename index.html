@@ -4,12 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#2f6fed">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Mon Budget">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <title>Budget Familial Laetitia</title>
+  <title>Budget Familial Laetitia V1.4</title>
   <style>
     :root{
       --blue:#2f6fed;--blue2:#eef3ff;--bg:#f3f6fb;--card:#fff;--text:#172033;
@@ -72,7 +75,7 @@
 <body>
 <header>
   <h1>💙 Mon Budget</h1>
-  <p id="headerMonth">Laetitia</p>
+  <p id="headerMonth">Laetitia</p><p style="font-size:10px;opacity:.75;margin-top:2px">Version 1.4</p>
 </header>
 
 <main>
@@ -366,8 +369,28 @@
   $("date").value=new Date().toISOString().slice(0,10);
   render();
   if("serviceWorker" in navigator){
-    navigator.serviceWorker.register("./sw.js").then(reg=>reg.update()).catch(()=>{});
+    navigator.serviceWorker.getRegistrations().then(registrations=>{
+      registrations.forEach(reg=>reg.unregister());
+    }).catch(()=>{});
   }
+
+  if("caches" in window){
+    caches.keys().then(keys=>Promise.all(keys.map(key=>caches.delete(key)))).catch(()=>{});
+  }
+
+  const APP_VERSION="1.4.0";
+  fetch("./version.json?t="+Date.now(),{cache:"no-store"})
+    .then(r=>r.json())
+    .then(v=>{
+      const current=localStorage.getItem("budget-app-version");
+      if(current!==v.version){
+        localStorage.setItem("budget-app-version",v.version);
+        const clean=location.pathname+"?v="+encodeURIComponent(v.version);
+        if(location.search!=="?v="+encodeURIComponent(v.version)){
+          location.replace(clean);
+        }
+      }
+    }).catch(()=>{});
 })();
 </script>
 </body>
