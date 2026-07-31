@@ -1,23 +1,16 @@
-# Budget Familial Laetitia — V2.0
+# Budget Familial Laetitia — V2.1
 
-## Fonctionnement de la carte à débit différé
+## Réalisé
 
-- Une dépense saisie avec **Carte bancaire — débit différé le 4** ne diminue pas immédiatement le solde bancaire.
-- Elle augmente le compteur **CB en attente**.
-- Le bouton **Débit CB effectué** retire tout le total CB du solde bancaire en une seule fois.
-- Après validation, les opérations restent dans l’historique avec la mention **CB débitée**.
-- Supprimer une dépense CB encore en attente ne touche pas au solde.
-- Supprimer une dépense déjà débitée recrédite son montant.
+- séparation entre **Reste théorique** et **Disponible après dépenses engagées** ;
+- affichage du **Solde prévu après débit CB** ;
+- conservation du compteur **CB en attente** ;
+- meilleure explication des trois montants sur l’écran d’accueil ;
+- maintien du débit différé le 4 ;
+- mise à jour automatique vers la version 2.1.
 
-## Autres modes
+### Définitions
 
-- Carte immédiate, prélèvement et virement : débit immédiat du solde.
-- Espèces : ne modifie pas le solde bancaire.
-
-## Fichiers à remplacer sur GitHub
-
-- `index.html`
-- `manifest.webmanifest`
-- `sw.js`
-- `icon.svg`
-- `version.json`
+- Reste théorique = revenus − charges fixes.
+- Disponible réel = reste théorique − toutes les dépenses saisies.
+- Solde prévu après CB = solde bancaire − CB en attente.

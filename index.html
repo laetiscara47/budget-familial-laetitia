@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-title" content="Mon Budget">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <title>Budget Familial Laetitia V2.0</title>
+  <title>Budget Familial Laetitia V2.1</title>
   <style>
     :root{
       --blue:#2f6fed;--blue2:#eef3ff;--bg:#f3f6fb;--card:#fff;--text:#172033;
@@ -31,7 +31,7 @@
     .hero span,.hero small{display:block;color:var(--muted)}
     .hero strong{display:block;font-size:36px;margin:6px 0}
     .ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
-    .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:12px}
+    .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}
     .summary .box{background:#fff;border-radius:15px;padding:12px;box-shadow:0 3px 12px rgba(32,50,90,.07)}
     .summary span{display:block;color:var(--muted);font-size:11px}
     .summary b{display:block;margin-top:4px;font-size:16px}
@@ -75,13 +75,13 @@
 <body>
 <header>
   <h1>💙 Mon Budget</h1>
-  <p id="headerMonth">Laetitia</p><p style="font-size:10px;opacity:.75;margin-top:2px">Version 2.0</p>
+  <p id="headerMonth">Laetitia</p><p style="font-size:10px;opacity:.75;margin-top:2px">Version 2.1</p>
 </header>
 
 <main>
   <section id="home" class="panel active">
     <div class="card hero">
-      <span>Reste à vivre estimé</span>
+      <span>Disponible après dépenses engagées</span>
       <strong id="available">0 €</strong>
       <small id="status">Calcul en cours</small>
     </div>
@@ -90,12 +90,20 @@
       <div class="box"><span>Revenus</span><b id="incomeView">0 €</b></div>
       <div class="box"><span>Charges fixes</span><b id="fixedView">0 €</b></div>
       <div class="box"><span>Dépenses saisies</span><b id="expenseView">0 €</b></div>
+      <div class="box"><span>Reste théorique</span><b id="theoreticalView">0 €</b></div>
+      <div class="box"><span>Solde après débit CB</span><b id="projectedBalanceView">0 €</b></div>
     </div>
     <div class="card">
       <h2>💳 Carte bancaire à débit différé</h2>
       <div class="row"><div><b>CB en attente</b><small>Débit global prévu le 4</small></div><strong id="deferredTotal">0 €</strong></div>
       <button id="applyDeferredDebit" class="primary">Débit CB effectué</button>
       <p class="muted">Ce bouton retire le total CB du solde bancaire en une seule fois et remet le compteur à zéro.</p>
+    </div>
+    <div class="card">
+      <h2>ℹ️ Comprendre les montants</h2>
+      <div class="row"><div><b>Reste théorique</b><small>Revenus moins charges fixes</small></div><strong id="theoreticalExplain">0 €</strong></div>
+      <div class="row"><div><b>Disponible réel</b><small>Reste théorique moins toutes les dépenses saisies</small></div><strong id="availableExplain">0 €</strong></div>
+      <div class="row"><div><b>Solde prévu après CB</b><small>Solde bancaire moins la carte en attente</small></div><strong id="projectedExplain">0 €</strong></div>
     </div>
     <div class="card"><h2>📅 Prochains prélèvements</h2><div id="nextCharges"></div></div>
     <div class="card">
@@ -223,7 +231,7 @@
     const income=data.incomes.reduce((s,x)=>s+Number(x.amount||0),0);
     const fixed=data.fixedCharges.reduce((s,x)=>s+Number(x.amount||0),0);
     const expenses=data.expenses.reduce((s,x)=>s+Number(x.amount||0),0);
-    return {income,fixed,expenses,available:income-fixed-expenses};
+    return {income,fixed,expenses,theoretical:income-fixed,available:income-fixed-expenses};
   }
   function deferredPending(){
     return data.expenses.filter(x=>x.paymentMethod==="deferred_card" && x.debited===false)
@@ -239,12 +247,17 @@
     $("headerMonth").textContent="Laetitia · "+data.month;
     $("available").textContent=euro(t.available);
     $("available").className=t.available<0?"bad":t.available<300?"warn":"ok";
-    $("status").textContent=t.available<0?"Budget dépassé":t.available<300?"À surveiller":"Situation correcte";
+    $("status").textContent=t.available<0?"Budget dépassé":t.available<300?"À surveiller":"Budget disponible";
     $("bankBalanceView").textContent=euro(data.bankBalance);
     $("incomeView").textContent=euro(t.income);
     $("fixedView").textContent=euro(t.fixed);
     $("expenseView").textContent=euro(t.expenses);
+    $("theoreticalView").textContent=euro(t.theoretical);
+    $("projectedBalanceView").textContent=euro(Number(data.bankBalance)-deferredPending());
     $("deferredTotal").textContent=euro(deferredPending());
+    $("theoreticalExplain").textContent=euro(t.theoretical);
+    $("availableExplain").textContent=euro(t.available);
+    $("projectedExplain").textContent=euro(Number(data.bankBalance)-deferredPending());
     if(document.activeElement!==$("bankBalance")) $("bankBalance").value=data.bankBalance;
     if(document.activeElement!==$("month")) $("month").value=data.month;
     renderNextCharges();renderBudgets();renderCharges();renderHistory();renderSettings();renderCategories();
@@ -331,7 +344,7 @@
     box.hidden=false;
     if(!amount||amount<=0){box.textContent="Saisis un montant.";return;}
     const after=t.available-amount;
-    box.textContent=after<0?`Non conseillé : il manquerait ${euro(Math.abs(after))}.`:after<300?`Attention : il ne resterait que ${euro(after)}.`:`Oui : il resterait ${euro(after)}.`;
+    box.textContent=after<0?`Non conseillé : il manquerait ${euro(Math.abs(after))}.`:after<300?`Attention : il ne resterait que ${euro(after)}.`:`Oui : il resterait ${euro(after)} de disponible après dépenses.`;
   });
 
   $("search").addEventListener("input",renderHistory);
@@ -395,7 +408,7 @@ $("exportData").addEventListener("click",()=>{
       $("incomeView").textContent=euro(t.income);
       $("available").textContent=euro(t.available);
       $("available").className=t.available<0?"bad":t.available<300?"warn":"ok";
-      $("status").textContent=t.available<0?"Budget dépassé":t.available<300?"À surveiller":"Situation correcte";
+      $("status").textContent=t.available<0?"Budget dépassé":t.available<300?"À surveiller":"Budget disponible";
     }
   });
   document.addEventListener("change",e=>{
@@ -415,7 +428,7 @@ $("exportData").addEventListener("click",()=>{
     caches.keys().then(keys=>Promise.all(keys.map(key=>caches.delete(key)))).catch(()=>{});
   }
 
-  const APP_VERSION="2.0.0";
+  const APP_VERSION="2.1.0";
   fetch("./version.json?t="+Date.now(),{cache:"no-store"})
     .then(r=>r.json())
     .then(v=>{
