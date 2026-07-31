@@ -1,6 +1,6 @@
 (()=>{
 "use strict";
-const STORAGE_KEY="budget-familial-laetitia-final-v1",BACKUP_KEY=STORAGE_KEY+"-backup",DATA_VERSION=15;
+const STORAGE_KEY="budget-familial-laetitia-final-v1",BACKUP_KEY=STORAGE_KEY+"-backup",DATA_VERSION=30;
 const $=id=>document.getElementById(id),clone=o=>JSON.parse(JSON.stringify(o));
 const euro=n=>Number(n||0).toLocaleString("fr-FR",{style:"currency",currency:"EUR"});
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
@@ -75,7 +75,7 @@ function render(){
  const t=totals(),def=pendingDeferred();
  $("headerSubtitle").textContent=`Laetitia · ${data.month}`;$("available").textContent=euro(t.available);$("available").className=t.available<0?"bad":t.available<300?"warn":"ok";$("budgetStatus").textContent=t.available<0?"Budget dépassé":t.available<300?"À surveiller":"Budget disponible";
  $("currentBalanceView").textContent=euro(current().balance);$("deferredView").textContent=euro(def);$("untilIncomeView").textContent=euro(nextIncomeAmount());$("endMonthView").textContent=euro(endMonth());$("deferredTotal").textContent=euro(def);
- renderSelects();renderAccounts();renderAlerts();renderSmartSummary();renderForecast();renderChart();renderMonthlyStats();renderGoals();renderCalendar();renderHistory();renderSettings();applyTheme();
+ renderSelects();renderAccounts();renderAlerts();renderSmartSummary();renderV30Insights();renderForecast();renderChart();renderMonthlyStats();renderGoals();renderCalendar();renderHistory();renderSettings();renderDataQuality();applyTheme();
 }
 function renderSelects(){
  const opts=data.accounts.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("");["expenseAccount","incomeAccount","transferFrom","transferTo","importAccount"].forEach(id=>$(id).innerHTML=opts);
@@ -142,6 +142,125 @@ function renderSmartSummary(){
  $("smartInsightIcon").textContent=icon;
  $("smartInsightTitle").textContent=title;
  $("smartInsightText").textContent=text;
+}
+
+
+function currentMonthExpenseTotal(){
+ const key=new Date().toISOString().slice(0,7);
+ return data.expenses.filter(x=>monthKey(x.date)===key).reduce((s,x)=>s+Number(x.amount||0),0);
+}
+function previousMonthExpenseTotal(){
+ const now=new Date();
+ const d=new Date(now.getFullYear(),now.getMonth()-1,1);
+ const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+ const direct=data.expenses.filter(x=>monthKey(x.date)===key).reduce((s,x)=>s+Number(x.amount||0),0);
+ const archived=data.archives.find(a=>a.month===key)?.expensesTotal||0;
+ return direct||archived;
+}
+function categoryMonthlyAverages(){
+ const byMonth={};
+ data.expenses.forEach(x=>{
+   const key=monthKey(x.date);
+   byMonth[key]=byMonth[key]||{};
+   byMonth[key][x.category]=(byMonth[key][x.category]||0)+Number(x.amount||0);
+ });
+ const months=Object.keys(byMonth);
+ const result={};
+ Object.keys(data.budgets).forEach(cat=>{
+   const values=months.map(m=>byMonth[m][cat]||0);
+   result[cat]=values.length?values.reduce((s,v)=>s+v,0)/values.length:0;
+ });
+ return result;
+}
+function duplicateGroups(){
+ const map={};
+ data.expenses.forEach(x=>{
+   const key=`${String(x.date)}|${String(x.label).trim().toLowerCase()}|${Number(x.amount).toFixed(2)}|${x.accountId||""}`;
+   map[key]=map[key]||[];
+   map[key].push(x);
+ });
+ return Object.values(map).filter(group=>group.length>1);
+}
+function financialHealthScore(){
+ const t=totals();
+ const projected=endMonth();
+ const fixedRatio=t.inc?Math.min(1,t.fixed/t.inc):1;
+ const variableRatio=t.theoretical>0?Math.min(1,t.exp/t.theoretical):1;
+ const safetyRatio=Math.max(0,Math.min(1,projected/1000));
+ const overdueRisk=data.fixedCharges.some(x=>!x.paid&&(x.day||28)<new Date().getDate())?1:0;
+ const duplicates=Math.min(1,duplicateGroups().length/3);
+
+ let score=100;
+ score-=fixedRatio*28;
+ score-=variableRatio*25;
+ score-=(1-safetyRatio)*27;
+ score-=overdueRisk*12;
+ score-=duplicates*8;
+ if(projected<0)score-=18;
+ return Math.max(0,Math.min(100,Math.round(score)));
+}
+function possibleSavingsEstimate(){
+ const projected=Math.max(0,endMonth());
+ return Math.max(0,Math.floor((projected-300)/10)*10);
+}
+function renderV30Insights(){
+ const score=financialHealthScore();
+ const ring=$("healthScoreRing");
+ let color="#278b57",text="Situation saine";
+ if(score<70){color="#bf7700";text="Quelques points à surveiller";}
+ if(score<45){color="#ce3f3f";text="Budget à sécuriser rapidement";}
+ ring.style.setProperty("--score-angle",`${score*3.6}deg`);
+ ring.style.setProperty("--score-color",color);
+ $("healthScore").textContent=score;
+ $("healthScoreText").textContent=text;
+
+ const daily=Math.max(0,totals().available/daysLeftInMonth());
+ $("dailyBudgetView").textContent=euro(daily);
+ $("dailyBudgetInfo").textContent=`sur ${daysLeftInMonth()} jour${daysLeftInMonth()>1?"s":""}`;
+
+ const t=totals();
+ const fixedPct=t.inc?t.fixed/t.inc*100:0;
+ const variablePct=t.theoretical>0?t.exp/t.theoretical*100:0;
+ $("fixedAnalysis").textContent=euro(t.fixed);
+ $("fixedShare").textContent=`${Math.round(fixedPct)} % des revenus`;
+ $("variableAnalysis").textContent=euro(t.exp);
+ $("variableShare").textContent=`${Math.round(variablePct)} % du disponible`;
+ $("possibleSavings").textContent=euro(possibleSavingsEstimate());
+
+ const advice=[];
+ const currentTotal=currentMonthExpenseTotal();
+ const previousTotal=previousMonthExpenseTotal();
+ if(previousTotal>0){
+   const diff=(currentTotal-previousTotal)/previousTotal*100;
+   if(diff>15)advice.push({icon:"📈",level:"warning",title:"Dépenses en hausse",text:`Les dépenses du mois sont supérieures de ${Math.round(diff)} % au mois précédent.`});
+   else if(diff<-10)advice.push({icon:"👏",level:"",title:"Bonne amélioration",text:`Les dépenses sont inférieures de ${Math.abs(Math.round(diff))} % au mois précédent.`});
+ }
+ const averages=categoryMonthlyAverages();
+ Object.entries(data.budgets).forEach(([cat,limit])=>{
+   const spent=data.expenses.filter(x=>x.category===cat&&monthKey(x.date)===new Date().toISOString().slice(0,7)).reduce((s,x)=>s+x.amount,0);
+   const avg=averages[cat]||0;
+   if(avg>0&&spent>avg*1.2)advice.push({icon:"🔎",level:"warning",title:`${cat} au-dessus de l’habitude`,text:`${euro(spent)} ce mois-ci contre une moyenne de ${euro(avg)}.`});
+   if(limit>0&&spent>limit)advice.push({icon:"🚨",level:"danger",title:`Budget ${cat} dépassé`,text:`Dépassement de ${euro(spent-limit)}.`});
+ });
+ const dupCount=duplicateGroups().reduce((s,g)=>s+g.length-1,0);
+ if(dupCount)advice.push({icon:"🧹",level:"warning",title:"Doublons possibles",text:`${dupCount} opération${dupCount>1?"s":""} semble${dupCount>1?"nt":""} enregistrée${dupCount>1?"s":""} plusieurs fois.`});
+ const savings=possibleSavingsEstimate();
+ if(savings>0)advice.push({icon:"🎯",level:"",title:"Épargne possible",text:`Une mise de côté prudente d’environ ${euro(savings)} semble possible ce mois-ci.`});
+ if(!advice.length)advice.push({icon:"✅",level:"",title:"Aucune anomalie détectée",text:"Les dépenses et prévisions restent cohérentes avec les données enregistrées."});
+ $("assistantAdvice").innerHTML=advice.slice(0,6).map(a=>`<div class="advice-row ${a.level}"><div class="advice-icon">${a.icon}</div><div><b>${esc(a.title)}</b><p>${esc(a.text)}</p></div></div>`).join("");
+}
+function renderDataQuality(){
+ const groups=duplicateGroups();
+ const duplicateCount=groups.reduce((s,g)=>s+g.length-1,0);
+ const missingCategory=data.expenses.filter(x=>!x.category||x.category==="Autre").length;
+ const invalidAmounts=data.expenses.filter(x=>!Number.isFinite(Number(x.amount))||Number(x.amount)<=0).length;
+ const futureOld=data.incomeTransactions.filter(x=>x.future&&new Date(x.date+"T23:59:59")<new Date()).length;
+ const row=(label,value,status)=>`<div class="quality-row"><span>${label}</span><span class="quality-pill ${status}">${value}</span></div>`;
+ $("dataQuality").innerHTML=
+   row("Doublons possibles",duplicateCount,duplicateCount?"warn":"ok")+
+   row("Catégorie « Autre »",missingCategory,missingCategory>5?"warn":"ok")+
+   row("Montants invalides",invalidAmounts,invalidAmounts?"bad":"ok")+
+   row("Revenus prévus dépassés",futureOld,futureOld?"warn":"ok");
 }
 
 function renderAccounts(){$("accountsSummary").innerHTML=data.accounts.map(x=>`<div class="account-row"><div><b>${esc(x.name)}</b><small>${x.type==="savings"?"Épargne":x.type==="cash"?"Espèces":"Compte bancaire"}</small></div><strong>${euro(x.balance)}</strong></div>`).join("")}
@@ -253,8 +372,21 @@ $("prevMonth").addEventListener("click",()=>{calendarDate=new Date(calendarDate.
 ["search","historyAccount","historyCategory"].forEach(id=>$(id).addEventListener("input",renderHistory));
 
 $("parseCsv").addEventListener("click",()=>{const file=$("csvFile").files?.[0];if(!file)return alert("Choisis un fichier CSV.");const reader=new FileReader();reader.onload=()=>{importRows=parseCsvText(String(reader.result));renderImportPreview()};reader.readAsText(file,"utf-8")});
-function parseCsvText(text){const lines=text.split(/\r?\n/).filter(Boolean),rows=[];for(const line of lines.slice(1)){const cells=line.split(/[;,]/).map(x=>x.replace(/^"|"$/g,"").trim()),date=cells.find(x=>/^\d{2}[\/-]\d{2}[\/-]\d{2,4}$/.test(x))||today(),nums=cells.map(x=>Number(x.replace(/\s/g,"").replace(",", "."))).filter(x=>!Number.isNaN(x)),amount=nums.length?nums[nums.length-1]:0,label=cells.find(x=>x.length>3&&!/^\d/.test(x))||"Opération";if(amount)rows.push({id:crypto.randomUUID(),selected:true,date:date.includes("/")?date.split("/").reverse().join("-"):date,label,amount:Math.abs(amount),direction:amount<0?"expense":"income",category:guessCategory(label)})}return rows}
-function renderImportPreview(){if(!importRows.length){$("importStatus").hidden=false;$("importStatus").textContent="Aucune opération reconnue.";return}$("importPreviewCard").hidden=false;$("importPreview").innerHTML=importRows.map((r,i)=>`<div class="import-row"><div class="import-row-top"><label class="checkline"><input data-import-select="${i}" type="checkbox" ${r.selected?"checked":""}> ${esc(r.label)}</label><b>${euro(r.amount)}</b></div><small>${fmtDate(r.date)} · ${r.direction==="expense"?"Dépense":"Revenu"}</small><select data-import-category="${i}">${Object.keys(data.budgets).map(c=>`<option ${c===r.category?"selected":""}>${esc(c)}</option>`).join("")}</select></div>`).join("")}
+function parseCsvText(text){const lines=text.split(/\r?\n/).filter(Boolean),rows=[];for(const line of lines.slice(1)){const cells=line.split(/[;,]/).map(x=>x.replace(/^"|"$/g,"").trim()),date=cells.find(x=>/^\d{2}[\/-]\d{2}[\/-]\d{2,4}$/.test(x))||today(),nums=cells.map(x=>Number(x.replace(/\s/g,"").replace(",", "."))).filter(x=>!Number.isNaN(x)),amount=nums.length?nums[nums.length-1]:0,label=cells.find(x=>x.length>3&&!/^\d/.test(x))||"Opération";if(amount){
+ const normalizedDate=date.includes("/")?date.split("/").reverse().join("-"):date;
+ const absAmount=Math.abs(amount);
+ const direction=amount<0?"expense":"income";
+ const isDuplicate=direction==="expense"
+   ?data.expenses.some(x=>x.date===normalizedDate&&x.label.trim().toLowerCase()===label.trim().toLowerCase()&&Math.abs(Number(x.amount)-absAmount)<0.01)
+   :data.incomeTransactions.some(x=>x.date===normalizedDate&&x.label.trim().toLowerCase()===label.trim().toLowerCase()&&Math.abs(Number(x.amount)-absAmount)<0.01);
+ rows.push({id:crypto.randomUUID(),selected:!isDuplicate,date:normalizedDate,label,amount:absAmount,direction,category:guessCategory(label),isDuplicate});
+}}return rows}
+function renderImportPreview(){
+ if(!importRows.length){$("importStatus").hidden=false;$("importStatus").textContent="Aucune opération reconnue.";return}
+ const duplicateCount=importRows.filter(x=>x.isDuplicate).length;
+ $("duplicateImportWarning").hidden=duplicateCount===0;
+ $("duplicateImportWarning").textContent=duplicateCount?`${duplicateCount} doublon${duplicateCount>1?"s":""} potentiel${duplicateCount>1?"s":""} décoché${duplicateCount>1?"s":""} automatiquement.`:"";
+$("importPreviewCard").hidden=false;$("importPreview").innerHTML=importRows.map((r,i)=>`<div class="import-row"><div class="import-row-top"><label class="checkline"><input data-import-select="${i}" type="checkbox" ${r.selected?"checked":""}> ${esc(r.label)}</label><b>${euro(r.amount)}</b></div><small>${fmtDate(r.date)} · ${r.direction==="expense"?"Dépense":"Revenu"}${r.isDuplicate?" · Doublon possible":""}</small><select data-import-category="${i}">${Object.keys(data.budgets).map(c=>`<option ${c===r.category?"selected":""}>${esc(c)}</option>`).join("")}</select></div>`).join("")}
 $("confirmImport").addEventListener("click",()=>{const accountId=$("importAccount").value;importRows.filter(x=>x.selected).forEach(r=>{if(r.direction==="expense"){data.expenses.unshift({id:r.id,amount:r.amount,label:r.label,category:r.category,date:r.date,paymentMethod:"immediate_card",debited:true,accountId});account(accountId).balance-=r.amount}else{data.incomeTransactions.unshift({id:r.id,amount:r.amount,label:r.label,date:r.date,future:false,accountId});account(accountId).balance+=r.amount}});importRows=[];$("importPreviewCard").hidden=true;save();alert("Import terminé.")});
 
 document.addEventListener("click",e=>{
@@ -276,9 +408,19 @@ $("addAccount").addEventListener("click",()=>{data.accounts.push({id:crypto.rand
 $("archiveMonth").addEventListener("click",()=>{const key=new Date().toISOString().slice(0,7),expensesTotal=data.expenses.filter(x=>monthKey(x.date)===key).reduce((s,x)=>s+x.amount,0),archive={id:crypto.randomUUID(),month:key,label:new Date().toLocaleDateString("fr-FR",{month:"long",year:"numeric"}),expensesTotal,closingBalance:current().balance};data.archives=data.archives.filter(x=>x.month!==key);data.archives.push(archive);save();alert("Mois archivé.")});
 function csvEscape(v){const s=String(v??"");return /[;"\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s}
 $("exportCsv").addEventListener("click",()=>{const rows=[["Date","Type","Libellé","Catégorie","Montant","Compte","Paiement"]];data.expenses.forEach(x=>rows.push([x.date,"Dépense",x.label,x.category,-x.amount,account(x.accountId)?.name||"",paymentLabel(x)]));data.incomeTransactions.forEach(x=>rows.push([x.date,"Revenu",x.label,"Revenu",x.amount,account(x.accountId)?.name||"",x.future?"Prévu":"Reçu"]));const csv="\ufeff"+rows.map(r=>r.map(csvEscape).join(";")).join("\n"),blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="budget_laetitia_operations.csv";a.click()});
-$("exportData").addEventListener("click",()=>{const blob=new Blob([JSON.stringify({app:"Budget Familial Laetitia",version:"15.0.0",data},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="budget_laetitia_v15.json";a.click()});
+$("exportData").addEventListener("click",()=>{const blob=new Blob([JSON.stringify({app:"Budget Familial Laetitia",version:"30.0.0",data},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="budget_laetitia_v30.json";a.click()});
 $("importDataBtn").addEventListener("click",()=>$("importDataFile").click());$("importDataFile").addEventListener("change",e=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const p=JSON.parse(String(r.result));data=migrate(p.data||p);save();alert("Sauvegarde restaurée.")}catch{alert("Fichier invalide.")}};r.readAsText(f)});
 $("restoreAutoBackup").addEventListener("click",()=>{try{const raw=localStorage.getItem(BACKUP_KEY);data=migrate(JSON.parse(raw).data);save();alert("Sauvegarde récupérée.")}catch{alert("Aucune sauvegarde.")}});
+$("removeDuplicates").addEventListener("click",()=>{
+ const groups=duplicateGroups();
+ const idsToRemove=new Set();
+ groups.forEach(group=>group.slice(1).forEach(x=>idsToRemove.add(x.id)));
+ if(!idsToRemove.size)return alert("Aucun doublon détecté.");
+ if(!confirm(`Supprimer ${idsToRemove.size} doublon${idsToRemove.size>1?"s":""} ?`))return;
+ data.expenses=data.expenses.filter(x=>!idsToRemove.has(x.id));
+ save();
+ alert("Doublons supprimés.");
+});
 $("resetApp").addEventListener("click",()=>{if(confirm("Réinitialiser ?")){data=migrate(initial);save()}});
 
 $("expenseDate").value=today();$("futureIncomeDate").value=today();save();

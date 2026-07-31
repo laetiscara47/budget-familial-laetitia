@@ -9,15 +9,15 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css?v=15.0.0">
-  <title>Mon Budget — V15</title>
+  <link rel="stylesheet" href="./styles.css?v=30.0.0">
+  <title>Mon Budget — V30</title>
 </head>
 <body>
 <header class="app-header">
   <div>
     <h1>💙 Mon Budget</h1>
     <p id="headerSubtitle">Laetitia</p>
-    <small>Version 15.0</small>
+    <small>Version 30.0</small>
   </div>
   <button id="themeQuick" class="header-button" aria-label="Changer le thème">🌙</button>
 </header>
@@ -43,6 +43,28 @@
         <h2 id="smartInsightTitle">Analyse du mois</h2>
         <p id="smartInsightText">Calcul en cours…</p>
       </div>
+    </article>
+
+    <section class="v30-score-grid">
+      <article class="card score-card">
+        <div class="score-ring" id="healthScoreRing">
+          <div><b id="healthScore">0</b><span>/100</span></div>
+        </div>
+        <div>
+          <h2>Score financier</h2>
+          <p id="healthScoreText" class="muted">Analyse en cours…</p>
+        </div>
+      </article>
+      <article class="card pace-card">
+        <span>Dépense conseillée par jour</span>
+        <b id="dailyBudgetView">0 €</b>
+        <small id="dailyBudgetInfo">jusqu’à la fin du mois</small>
+      </article>
+    </section>
+
+    <article class="card">
+      <div class="section-title"><h2>🤖 Assistant budgétaire</h2><span class="badge">Local</span></div>
+      <div id="assistantAdvice"></div>
     </article>
 
     <section class="quick-grid">
@@ -115,6 +137,15 @@
       <div class="section-title"><h2>📅 12 derniers mois</h2></div>
       <div id="monthComparison" class="comparison-grid"></div>
       <div id="monthlyStats"></div>
+    </article>
+
+    <article class="card">
+      <div class="section-title"><h2>🧮 Fixe et variable</h2></div>
+      <div class="split-analysis">
+        <div class="split-box"><span>Charges fixes</span><b id="fixedAnalysis">0 €</b><small id="fixedShare">0 % des revenus</small></div>
+        <div class="split-box"><span>Dépenses variables</span><b id="variableAnalysis">0 €</b><small id="variableShare">0 % du disponible</small></div>
+        <div class="split-box"><span>Épargne possible</span><b id="possibleSavings">0 €</b><small>estimation prudente</small></div>
+      </div>
     </article>
 
     <article class="card">
@@ -200,6 +231,7 @@
       <input id="csvFile" type="file" accept=".csv,text/csv">
       <button id="parseCsv" class="primary">Analyser le fichier</button>
       <div id="importStatus" class="info-box" hidden></div>
+      <div id="duplicateImportWarning" class="alert-item warning" hidden></div>
     </article>
     <article class="card" id="importPreviewCard" hidden>
       <h2>Opérations détectées</h2>
@@ -255,6 +287,12 @@
     </article>
 
     <article class="card">
+      <h2>🧹 Qualité des données</h2>
+      <div id="dataQuality"></div>
+      <button id="removeDuplicates" class="soft full">Supprimer les doublons détectés</button>
+    </article>
+
+    <article class="card">
       <h2>💾 Sauvegarde</h2>
       <div class="button-row">
         <button id="exportData" class="soft">Exporter</button>
@@ -277,6 +315,6 @@
   <button data-tab="settings"><span>⚙️</span><small>Réglages</small></button>
 </nav>
 
-<script src="./app.js?v=15.0.0"></script>
+<script src="./app.js?v=30.0.0"></script>
 </body>
 </html>
