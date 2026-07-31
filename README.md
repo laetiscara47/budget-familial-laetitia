@@ -1,38 +1,21 @@
-# Mon Budget — V5 Ultimate
+# Mon Budget — V6 Ultimate
 
 ## Nouveautés réalisées
 
-- vue instantanée du budget familial ;
-- écran Patrimoine complet ;
-- actifs, dettes et patrimoine net ;
-- projection patrimoniale sur 12 mois ;
-- répartition visuelle des actifs ;
-- synthèse renforcée des crédits ;
-- centre d’alertes locales configurable ;
-- navigation horizontale adaptée aux nombreux écrans ;
-- rapport patrimonial ;
-- export du tableau de bord Ultimate.
+- refonte visuelle avec effet verre ;
+- carte principale enrichie ;
+- tendance immédiate du mois ;
+- présentation moderne des comptes familiaux ;
+- agenda financier intelligent sur 30 jours ;
+- objectifs d’épargne sous forme de cartes visuelles ;
+- navigation et rapports conservés ;
+- patrimoine, crédits, coffre et alertes locales conservés.
 
-## Fonctions conservées
+## Limites honnêtes
 
-- recherche globale ;
-- centre de décision ;
-- briefing quotidien ;
-- enveloppes ;
-- import CSV ;
-- crédits et stratégie de remboursement ;
-- coffre numérique ;
-- objectifs ;
-- rapports imprimables ;
-- sauvegarde chiffrée ;
-- profils familiaux.
-
-## Limites
-
-- alertes visibles dans l’application uniquement ;
-- pas de notifications système iPhone ;
-- pas de connexion bancaire automatique ;
 - pas d’OCR automatique ;
+- pas de connexion bancaire automatique ;
+- pas de notifications système iPhone ;
 - pas de synchronisation cloud.
 
 ## Fichiers GitHub à remplacer

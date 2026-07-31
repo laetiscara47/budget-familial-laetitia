@@ -1,10 +1,10 @@
 {
-  "name": "Mon Budget — V5 Ultimate",
+  "name": "Mon Budget — V6 Ultimate",
   "short_name": "Budget Ultimate",
-  "start_url": "./?v=5.0.0-ultimate",
+  "start_url": "./?v=6.0.0-ultimate",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f3f6fb",
   "theme_color": "#2f6fed",
-  "description": "Application Ultimate de budget familial"
+  "description": "Application Ultimate de budget familial V6"
 }

@@ -1,6 +1,6 @@
 (()=>{
 "use strict";
-const STORAGE_KEY="budget-familial-laetitia-final-v1",BACKUP_KEY=STORAGE_KEY+"-backup",DATA_VERSION=5000;
+const STORAGE_KEY="budget-familial-laetitia-final-v1",BACKUP_KEY=STORAGE_KEY+"-backup",DATA_VERSION=6000;
 const $=id=>document.getElementById(id),clone=o=>JSON.parse(JSON.stringify(o));
 const euro=n=>Number(n||0).toLocaleString("fr-FR",{style:"currency",currency:"EUR"});
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
@@ -75,7 +75,7 @@ function render(){
  const t=totals(),def=pendingDeferred();
  $("headerSubtitle").textContent=`Laetitia · ${data.month}`;$("available").textContent=euro(t.available);$("available").className=t.available<0?"bad":t.available<300?"warn":"ok";$("budgetStatus").textContent=t.available<0?"Budget dépassé":t.available<300?"À surveiller":"Budget disponible";
  $("currentBalanceView").textContent=euro(current().balance);$("deferredView").textContent=euro(def);$("untilIncomeView").textContent=euro(nextIncomeAmount());$("endMonthView").textContent=euro(endMonth());$("deferredTotal").textContent=euro(def);
- renderSelects();renderProfiles();renderAccounts();renderUltimateSnapshot();renderPatrimony();renderNotificationCenter();renderPremiumDecision();renderAccountComparison();renderMonthOverview();renderReportsSummary();renderV300Dashboard();renderV100Dashboard();renderDailyBriefing();renderProAlerts();renderEnvelopes();renderAlerts();renderSmartSummary();renderV30Insights();renderSubscriptions();renderSubscriptionSavings();renderMerchantAnalytics();renderForecast();renderChart();renderMonthlyStats();renderGoals();renderCalendar();renderHistory();renderLoans();renderVault();renderSettings();renderProfileSettings();renderCategorySettings();renderRuleSettings();renderDataQuality();applyTheme();applyDashboardPreferences();
+ renderSelects();renderProfiles();renderAccountsV6();renderHeroV6();renderSmartAgenda();renderGoalsV6();renderUltimateSnapshot();renderPatrimony();renderNotificationCenter();renderPremiumDecision();renderAccountComparison();renderMonthOverview();renderReportsSummary();renderV300Dashboard();renderV100Dashboard();renderDailyBriefing();renderProAlerts();renderEnvelopes();renderAlerts();renderSmartSummary();renderV30Insights();renderSubscriptions();renderSubscriptionSavings();renderMerchantAnalytics();renderForecast();renderChart();renderMonthlyStats();renderGoals();renderCalendar();renderHistory();renderLoans();renderVault();renderSettings();renderProfileSettings();renderCategorySettings();renderRuleSettings();renderDataQuality();applyTheme();applyDashboardPreferences();
 }
 function renderSelects(){
  const opts=data.accounts.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("");["expenseAccount","incomeAccount","transferFrom","transferTo","importAccount"].forEach(id=>$(id).innerHTML=opts);
@@ -715,6 +715,49 @@ function renderNotificationCenter(){
  $("scheduledNotifications").innerHTML=items.length?items.map(x=>`<div class="notification-row"><div class="notification-icon">${x.icon}</div><div><b>${esc(x.title)}</b><small>${esc(x.detail)}</small></div><span class="notification-time">${esc(x.time)}</span></div>`).join(""):'<p class="muted">Aucune alerte programmée selon les réglages actuels.</p>';
 }
 
+
+function accountIcon(type,name){
+ const text=(name||"").toLowerCase();
+ if(type==="savings"||text.includes("livret")||text.includes("épargne"))return "🐷";
+ if(type==="cash"||text.includes("espèces"))return "💶";
+ if(text.includes("carte"))return "💳";
+ if(text.includes("enfant")||text.includes("diego")||text.includes("maëva")||text.includes("maeva"))return "👤";
+ return "🏦";
+}
+function renderAccountsV6(){
+ $("accountsSummary").innerHTML=data.accounts.map(a=>`<div class="family-account-card"><div class="top"><div><strong>${esc(a.name)}</strong><small>${a.type==="savings"?"Épargne":a.type==="cash"?"Espèces":"Compte bancaire"}</small></div><div class="icon">${accountIcon(a.type,a.name)}</div></div><b>${euro(a.balance)}</b></div>`).join("");
+}
+function renderHeroV6(){
+ const t=totals(),daily=Math.max(0,t.available/daysLeftInMonth()),projected=endMonth(),def=pendingDeferred();
+ $("heroDaily").textContent=euro(daily);
+ $("heroEndMonth").textContent=euro(projected);
+ $("heroDeferred").textContent=euro(def);
+ const trend=$("heroTrend");
+ trend.className="trend-pill";
+ if(projected<0){trend.textContent="Risque";trend.classList.add("negative")}
+ else if(projected<300){trend.textContent="À surveiller";trend.classList.add("warning")}
+ else{trend.textContent="Situation saine";trend.classList.add("positive")}
+}
+function renderSmartAgenda(){
+ const now=new Date(),events=forecastEvents().filter(e=>e.date>=now).slice(0,12);
+ $("smartAgenda").innerHTML=events.length?events.map(e=>`<div class="agenda-item"><div class="agenda-date">${e.date.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"})}</div><div><b>${esc(e.label)}</b><small>${esc(e.type)}</small></div><div class="agenda-amount ${e.amount>=0?"positive":"negative"}">${e.amount>=0?"+":""}${euro(e.amount)}</div></div>`).join(""):'<p class="muted">Aucune opération future enregistrée.</p>';
+}
+function goalIcon(name){
+ const n=(name||"").toLowerCase();
+ if(n.includes("vacance"))return "✈️";
+ if(n.includes("voiture"))return "🚗";
+ if(n.includes("noël")||n.includes("noel"))return "🎄";
+ if(n.includes("travaux")||n.includes("maison"))return "🏠";
+ if(n.includes("imprévu")||n.includes("imprevu"))return "🛟";
+ return "🎯";
+}
+function renderGoalsV6(){
+ $("goalsSummary").innerHTML=data.goals.length?data.goals.map(g=>{
+  const pct=g.target?Math.min(100,g.current/g.target*100):0;
+  return `<div class="goal-card-visual"><div class="goal-icon">${goalIcon(g.name)}</div><h3>${esc(g.name)}</h3><p>${euro(g.current)} sur ${euro(g.target)}${g.targetDate?` · cible ${fmtDate(g.targetDate)}`:""}</p><div class="goal-progress"><div class="chart-track"><div class="chart-fill" style="width:${pct}%"></div></div></div><p>${Math.round(pct)} % atteint</p></div>`;
+ }).join(""):'<p class="muted">Aucun objectif d’épargne.</p>';
+}
+
 function renderAccounts(){$("accountsSummary").innerHTML=data.accounts.map(x=>`<div class="account-row"><div><b>${esc(x.name)}</b><small>${x.type==="savings"?"Épargne":x.type==="cash"?"Espèces":"Compte bancaire"}</small></div><strong>${euro(x.balance)}</strong></div>`).join("")}
 function renderAlerts(){const alerts=[];Object.entries(data.budgets).forEach(([cat,limit])=>{const spent=data.expenses.filter(x=>x.category===cat).reduce((s,x)=>s+x.amount,0),pct=limit?spent/limit*100:0;if(pct>=100)alerts.push({c:"danger",t:`${cat} dépassé : ${euro(spent)} sur ${euro(limit)}`});else if(pct>=80)alerts.push({c:"warning",t:`${cat} atteint ${Math.round(pct)} %`})});if(endMonth()<0)alerts.unshift({c:"danger",t:`Fin de mois prévue négative : ${euro(endMonth())}`});$("alerts").innerHTML=alerts.length?alerts.map(a=>`<div class="alert-item ${a.c}">${esc(a.t)}</div>`).join(""):'<div class="alert-item">Aucune alerte.</div>'}
 function renderForecast(){
@@ -1051,7 +1094,7 @@ $("exportEncrypted").addEventListener("click",async()=>{
  const password=$("backupPassword").value;
  if(password.length<6)return alert("Choisis un mot de passe d’au moins 6 caractères.");
  try{
-  const container=await encryptPayload({app:"Budget Familial Laetitia",version:"5.0.0-ultimate",data},password);
+  const container=await encryptPayload({app:"Budget Familial Laetitia",version:"6.0.0-ultimate",data},password);
   const blob=new Blob([JSON.stringify(container,null,2)],{type:"application/json"}),a=document.createElement("a");
   a.href=URL.createObjectURL(blob);a.download="budget_laetitia_v300_chiffre.json";a.click();
  }catch{alert("La sauvegarde chiffrée n’a pas pu être créée.")}
@@ -1127,7 +1170,7 @@ $("exportUltimateDashboard").addEventListener("click",()=>{
  ]));
 });
 $("exportCsv").addEventListener("click",()=>{const rows=[["Date","Type","Libellé","Catégorie","Montant","Compte","Paiement"]];data.expenses.forEach(x=>rows.push([x.date,"Dépense",x.label,x.category,-x.amount,account(x.accountId)?.name||"",paymentLabel(x)]));data.incomeTransactions.forEach(x=>rows.push([x.date,"Revenu",x.label,"Revenu",x.amount,account(x.accountId)?.name||"",x.future?"Prévu":"Reçu"]));const csv="\ufeff"+rows.map(r=>r.map(csvEscape).join(";")).join("\n"),blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="budget_laetitia_operations.csv";a.click()});
-$("exportData").addEventListener("click",()=>{const blob=new Blob([JSON.stringify({app:"Budget Familial Laetitia",version:"5.0.0-ultimate",data},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="budget_laetitia_v5_ultimate.json";a.click()});
+$("exportData").addEventListener("click",()=>{const blob=new Blob([JSON.stringify({app:"Budget Familial Laetitia",version:"6.0.0-ultimate",data},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="budget_laetitia_v6_ultimate.json";a.click()});
 $("importDataBtn").addEventListener("click",()=>$("importDataFile").click());$("importDataFile").addEventListener("change",e=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const p=JSON.parse(String(r.result));data=migrate(p.data||p);save();alert("Sauvegarde restaurée.")}catch{alert("Fichier invalide.")}};r.readAsText(f)});
 $("restoreAutoBackup").addEventListener("click",()=>{try{const raw=localStorage.getItem(BACKUP_KEY);data=migrate(JSON.parse(raw).data);save();alert("Sauvegarde récupérée.")}catch{alert("Aucune sauvegarde.")}});
 $("removeDuplicates").addEventListener("click",()=>{

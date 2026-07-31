@@ -9,15 +9,15 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css?v=5.0.0-ultimate">
-  <title>Mon Budget — V5 Ultimate</title>
+  <link rel="stylesheet" href="./styles.css?v=6.0.0-ultimate">
+  <title>Mon Budget — V6 Ultimate</title>
 </head>
 <body>
 <header class="app-header pro-header">
   <div>
     <div class="brand-line"><h1>💙 Mon Budget</h1><span class="pro-badge ultimate">ULTIMATE</span></div>
     <p id="headerSubtitle">Laetitia</p>
-    <small>V5 Ultimate</small>
+    <small>V6 Ultimate</small>
   </div>
   <div class="header-actions">
     <select id="profileQuick" class="profile-quick" aria-label="Profil"></select>
@@ -32,10 +32,18 @@
 
 <main class="app-main">
   <section id="home" class="screen active">
-    <article class="hero card">
-      <span>Disponible après dépenses engagées</span>
+    <article class="hero card glass-card">
+      <div class="hero-topline">
+        <span>Disponible après dépenses engagées</span>
+        <span id="heroTrend" class="trend-pill">Stable</span>
+      </div>
       <strong id="available">0 €</strong>
       <small id="budgetStatus">Calcul en cours</small>
+      <div class="hero-mini-grid">
+        <div><span>Par jour</span><b id="heroDaily">0 €</b></div>
+        <div><span>Fin de mois</span><b id="heroEndMonth">0 €</b></div>
+        <div><span>CB en attente</span><b id="heroDeferred">0 €</b></div>
+      </div>
     </article>
 
     <article class="card premium-decision">
@@ -175,8 +183,8 @@
     </article>
 
     <article class="card">
-      <div class="section-title"><h2>🏦 Comptes</h2></div>
-      <div id="accountsSummary"></div>
+      <div class="section-title"><h2>🏦 Comptes familiaux</h2><span class="badge">Vue globale</span></div>
+      <div id="accountsSummary" class="family-account-cards"></div>
     </article>
 
     <article class="card">
@@ -287,8 +295,8 @@
     </article>
 
     <article class="card">
-      <div class="section-title"><h2>🎯 Objectifs d’épargne</h2></div>
-      <div id="goalsSummary"></div>
+      <div class="section-title"><h2>🎯 Objectifs d’épargne</h2><span class="badge">Progression</span></div>
+      <div id="goalsSummary" class="goal-cards"></div>
     </article>
   </section>
 
@@ -354,6 +362,10 @@
   </section>
 
   <section id="calendar" class="screen">
+    <article class="card">
+      <div class="section-title"><h2>📆 Agenda financier intelligent</h2><span class="badge">30 jours</span></div>
+      <div id="smartAgenda" class="smart-agenda"></div>
+    </article>
     <article class="card">
       <div class="section-title"><h2>📋 Résumé du mois</h2><span class="badge">Vue rapide</span></div>
       <div id="monthOverview" class="month-overview"></div>
@@ -518,8 +530,8 @@
   </section>
 
   <section id="reports" class="screen">
-    <article class="card">
-      <div class="section-title"><h2>📄 Rapports Premium</h2><span class="badge">Imprimables</span></div>
+    <article class="card reports-hero">
+      <div class="section-title"><h2>📄 Rapports Ultimate</h2><span class="badge">Imprimables</span></div>
       <p class="muted">Crée des rapports clairs à conserver, imprimer ou envoyer.</p>
       <button id="exportMonthlyReport" class="primary">Rapport mensuel complet</button>
       <button id="exportAnnualReport" class="soft full">Rapport annuel</button>
@@ -669,7 +681,7 @@
 <nav class="bottom-nav ultimate-nav">
   <button data-tab="home" class="active"><span>🏠</span><small>Accueil</small></button>
   <button data-tab="add"><span>➕</span><small>Ajouter</small></button>
-  <button data-tab="calendar"><span>📅</span><small>Mois</small></button>
+  <button data-tab="calendar"><span>📅</span><small>Agenda</small></button>
   <button data-tab="history"><span>🧾</span><small>Historique</small></button>
   <button data-tab="import"><span>📥</span><small>Importer</small></button>
   <button data-tab="loans"><span>🏦</span><small>Crédits</small></button>
@@ -680,6 +692,6 @@
   <button data-tab="settings"><span>⚙️</span><small>Réglages</small></button>
 </nav>
 
-<script src="./app.js?v=5.0.0-ultimate"></script>
+<script src="./app.js?v=6.0.0-ultimate"></script>
 </body>
 </html>
