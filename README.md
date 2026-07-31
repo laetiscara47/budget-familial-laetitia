@@ -1,24 +1,26 @@
-# Budget Familial Laetitia — V6.0
+# Budget Familial Laetitia — V8.0
 
-## Fonctions principales
+## Nouveautés
 
-- migration automatique des données V3 ;
-- plusieurs comptes : courant, épargne, espèces ;
-- virements entre comptes ;
-- carte bancaire à débit différé le 4 ;
-- prévision du solde jour par jour ;
-- import bancaire CSV avec aperçu et classement ;
-- graphiques des dépenses par catégorie ;
+- verrouillage par code PIN ;
+- mode sombre ;
+- alertes de dépassement des budgets ;
+- archives mensuelles ;
+- statistiques des dépenses sur 12 mois ;
+- comparaison visuelle des mois ;
+- export CSV compatible Excel ;
 - objectifs d’épargne ;
-- filtres de l’historique ;
-- prélèvements, revenus, dépenses et revenus futurs ;
-- sauvegarde et restauration.
+- plusieurs comptes et virements ;
+- import bancaire CSV ;
+- carte à débit différé ;
+- migration automatique des données V6.
 
-## Limite actuelle
+## Limites techniques
 
-L’import direct PDF n’est pas inclus dans cette version statique. L’import CSV est disponible et beaucoup plus fiable sur iPhone.
+Face ID et les widgets iPhone natifs ne sont pas disponibles dans une application GitHub Pages.
+Le code PIN protège l’ouverture dans l’application, mais ne remplace pas la sécurité bancaire de l’iPhone.
 
-## Fichiers à mettre sur GitHub
+## Fichiers GitHub
 
 - index.html
 - styles.css

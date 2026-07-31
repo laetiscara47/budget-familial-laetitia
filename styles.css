@@ -29,3 +29,28 @@ label{display:block;font-size:13px;font-weight:750;margin:12px 0 6px}input,selec
 .bottom-nav button{border:0;background:transparent;color:#7a8394;display:flex;flex-direction:column;align-items:center;gap:3px;padding:2px}.bottom-nav button span{font-size:18px}.bottom-nav button small{font-size:9px}.bottom-nav button.active{color:var(--blue);font-weight:800}
 @media(max-width:680px){.summary-grid{grid-template-columns:repeat(2,1fr)}.filter-grid{grid-template-columns:1fr}}
 @media(max-width:520px){.timeline-item{grid-template-columns:72px minmax(0,1fr);align-items:start}.timeline-balance{grid-column:2;text-align:left;font-size:17px;margin-top:3px}.edit-row,.edit-row.four,.edit-row.goal-edit{grid-template-columns:1fr 1fr}.edit-row button{grid-column:2}}
+
+
+/* V8 */
+.lock-screen{position:fixed;inset:0;z-index:100;background:linear-gradient(180deg,#2f6fed,#204ca9);display:flex;align-items:center;justify-content:center;padding:24px}
+.lock-card{width:min(360px,100%);background:#fff;border-radius:22px;padding:24px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.28)}
+.lock-logo{font-size:54px}.lock-card h2{margin:8px 0}.lock-card p{color:var(--muted)}
+.alert-item{padding:11px;border-radius:12px;margin:8px 0;background:#eef6ff;border:1px solid #dce8fb}
+.alert-item.warning{background:#fff6e7;border-color:#f0d5a5;color:#8b5900}
+.alert-item.danger{background:#fff0f0;border-color:#efc3c3;color:#a52d2d}
+.month-chart{display:flex;align-items:flex-end;gap:7px;height:180px;padding-top:12px;overflow-x:auto}
+.month-col{min-width:42px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.month-bar{width:28px;background:var(--blue);border-radius:7px 7px 0 0;min-height:3px}
+.month-col small{font-size:9px;color:var(--muted);margin-top:5px}
+.month-col b{font-size:9px;margin-bottom:4px}
+.archive-row{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.archive-row small{display:block;color:var(--muted);margin-top:3px}
+.archive-row button{border:0;background:#fff0f0;color:var(--bad);border-radius:8px;padding:6px}
+
+body.dark{--bg:#10141d;--card:#1a202c;--text:#f3f5f8;--muted:#aab2c0;--line:#303849;--blue-soft:#202d49}
+body.dark .app-header{background:#1f4fb0}
+body.dark input,body.dark select{background:#151b25;color:var(--text);border-color:var(--line)}
+body.dark .forecast-summary div,body.dark .info-box{background:#20283a}
+body.dark .charge-button{background:#1a202c;color:var(--text);border-color:var(--line)}
+body.dark .bottom-nav{background:#171d27}
+body.dark .lock-card{background:#1a202c;color:var(--text)}
