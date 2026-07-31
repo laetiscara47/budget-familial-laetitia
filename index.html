@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-title" content="Mon Budget">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <title>Budget Familial Laetitia V2.4</title>
+  <title>Budget Familial Laetitia V2.5</title>
   <style>
     :root{
       --blue:#2f6fed;--blue2:#eef3ff;--bg:#f3f6fb;--card:#fff;--text:#172033;
@@ -65,6 +65,13 @@
     .editCharge input{padding:9px;font-size:14px}
     .editBudget{display:grid;grid-template-columns:1.4fr .8fr;gap:8px;align-items:center;margin-bottom:8px}
     .forecast{background:#f8fbff;border:1px solid #dfe8fb;border-radius:14px;padding:14px;margin-top:10px}
+    .timelineItem{display:grid;grid-template-columns:64px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+    .timelineItem:last-child{border-bottom:0}
+    .timelineDate{font-weight:800;color:var(--blue)}
+    .timelineItem small{display:block;color:var(--muted);margin-top:2px}
+    .timelineBalance{text-align:right;font-weight:800}
+    .timelineBalance.negative{color:var(--bad)}
+    .timelineBalance.warning{color:var(--warn)}
     @media(max-width:600px){.editCharge{grid-template-columns:.6fr 1.4fr}.editCharge .amountField{grid-column:1/2}.editCharge button{grid-column:2/3}}
     .muted{color:var(--muted)}
     .empty{text-align:center;color:var(--muted);padding:14px}
@@ -80,7 +87,7 @@
 <body>
 <header>
   <h1>💙 Mon Budget</h1>
-  <p id="headerMonth">Laetitia</p><p style="font-size:10px;opacity:.75;margin-top:2px">Version 2.4</p>
+  <p id="headerMonth">Laetitia</p><p style="font-size:10px;opacity:.75;margin-top:2px">Version 2.5</p>
 </header>
 
 <main>
@@ -113,6 +120,13 @@
       <div class="row"><div><b>Solde prévu après CB</b><small>Solde bancaire moins la carte en attente</small></div><strong id="projectedExplain">0 €</strong></div>
       <div class="row"><div><b>Fin de mois prévue</b><small>Solde moins CB en attente et prélèvements non payés</small></div><strong id="endMonthExplain">0 €</strong></div>
     </div>
+    
+    <div class="card">
+      <h2>🗓️ Prévision jour par jour</h2>
+      <p class="muted">Projection à partir du solde bancaire actuel, de la CB en attente et des prélèvements non payés.</p>
+      <div id="forecastTimeline"></div>
+    </div>
+
     <div class="card"><h2>📅 Prochains prélèvements</h2><div id="nextCharges"></div></div>
     <div class="card">
       <h2>🛍️ Puis-je l’acheter ?</h2>
@@ -167,7 +181,10 @@
       <input id="oneOffIncomeAmount" type="number" step="0.01" placeholder="0,00">
       <label>Libellé</label>
       <input id="oneOffIncomeLabel" placeholder="Ex. remboursement, prime...">
-      <button id="addOneOffIncome" class="primary">Ajouter au solde</button>
+      <label style="display:flex;gap:8px;align-items:center;font-weight:600"><input id="futureIncome" type="checkbox" style="width:auto"> Revenu prévu plus tard</label>
+<label id="futureIncomeDateLabel" style="display:none">Date prévue</label>
+<input id="futureIncomeDate" type="date" style="display:none">
+<button id="addOneOffIncome" class="primary">Ajouter le revenu</button>
       <p class="muted">Le montant est ajouté immédiatement au solde bancaire et à l’historique.</p>
     </div>
 
@@ -276,6 +293,7 @@
     if(!Array.isArray(next.expenses)) next.expenses=[];
     if(!Array.isArray(next.deferredCardBatches)) next.deferredCardBatches=[];
     if(!Array.isArray(next.incomeTransactions)) next.incomeTransactions=[];
+    next.incomeTransactions=next.incomeTransactions.map(x=>({...x,future:Boolean(x.future)}));
     if(!Array.isArray(next.rules)) next.rules=clone(initial.rules);
     if(!next.budgets || typeof next.budgets!=="object") next.budgets=clone(initial.budgets);
     next.expenses=next.expenses.map(x=>({
@@ -348,9 +366,95 @@
     $("endMonthExplain").textContent=euro(projectedEndMonth());
     if(document.activeElement!==$("bankBalance")) $("bankBalance").value=data.bankBalance;
     if(document.activeElement!==$("month")) $("month").value=data.month;
-    renderNextCharges();renderBudgets();renderCharges();renderHistory();renderSettings();renderChargeSettings();renderBudgetSettings();renderCategories();
+    renderNextCharges();renderBudgets();renderCharges();renderHistory();renderSettings();renderChargeSettings();renderBudgetSettings();renderForecastTimeline();renderCategories();
     $("migrationStatus").textContent="Données sécurisées — sauvegarde automatique active";
   }
+  
+  function currentMonthParts(){
+    const now=new Date();
+    return {year:now.getFullYear(),month:now.getMonth()};
+  }
+
+  function forecastEvents(){
+    const {year,month}=currentMonthParts();
+    const today=new Date();
+    const currentDay=today.getDate();
+    const events=[];
+
+    const pendingCard=deferredPending();
+    if(pendingCard>0){
+      let cardDate=new Date(year,month,4);
+      if(currentDay>4) cardDate=new Date(year,month+1,4);
+      events.push({
+        date:cardDate,
+        label:"Débit global carte bancaire",
+        amount:-pendingCard,
+        type:"CB différée"
+      });
+    }
+
+    data.fixedCharges
+      .filter(x=>!x.paid)
+      .forEach(x=>{
+        let day=x.day||28;
+        let d=new Date(year,month,day);
+        if(day<currentDay) d=new Date(year,month+1,day);
+        events.push({
+          date:d,
+          label:x.label,
+          amount:-Number(x.amount||0),
+          type:"Prélèvement"
+        });
+      });
+
+    (data.incomeTransactions||[])
+      .filter(x=>x.future===true)
+      .forEach(x=>{
+        const d=new Date(x.date+"T12:00:00");
+        if(d>=today){
+          events.push({
+            date:d,
+            label:x.label,
+            amount:Number(x.amount||0),
+            type:"Revenu"
+          });
+        }
+      });
+
+    return events.sort((a,b)=>a.date-b.date);
+  }
+
+  function renderForecastTimeline(){
+    const events=forecastEvents();
+    let running=Number(data.bankBalance||0);
+    const rows=[{
+      date:new Date(),
+      label:"Solde actuel",
+      amount:0,
+      balance:running,
+      type:"Départ"
+    }];
+
+    events.forEach(event=>{
+      running=Number((running+event.amount).toFixed(2));
+      rows.push({...event,balance:running});
+    });
+
+    $("forecastTimeline").innerHTML=rows.map((row,index)=>{
+      const balanceClass=row.balance<0?"negative":row.balance<300?"warning":"";
+      const dateLabel=index===0?"Aujourd’hui":row.date.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"});
+      const amountText=row.amount===0?"":`${row.amount>0?"+":""}${euro(row.amount)}`;
+      return `<div class="timelineItem">
+        <div class="timelineDate">${dateLabel}</div>
+        <div>
+          <b>${esc(row.label)}</b>
+          <small>${esc(row.type)}${amountText?" · "+amountText:""}</small>
+        </div>
+        <div class="timelineBalance ${balanceClass}">${euro(row.balance)}</div>
+      </div>`;
+    }).join("");
+  }
+
   function renderNextCharges(){
     const items=data.fixedCharges.filter(x=>!x.paid).sort((a,b)=>(a.day??99)-(b.day??99)).slice(0,3);
     $("nextCharges").innerHTML=items.length?items.map(x=>`<div class="row"><div><b>${esc(x.label)}</b><small>${x.day?"Le "+x.day:"Date variable"}</small></div><strong>${euro(x.amount)}</strong></div>`).join(""):'<div class="empty">Aucun prélèvement à venir.</div>';
@@ -382,10 +486,10 @@
       <div class="row">
         <div>
           <b>${x.type==="income"?"➕ ":""}${esc(x.label)}</b>
-          <small>${esc(x.category||"")} · ${formatDate(x.date)}${x.type==="expense"?" · "+paymentLabel(x.paymentMethod,x.debited):""}</small>
+          <small>${esc(x.category||"")} · ${formatDate(x.date)}${x.type==="income"&&x.future?" · À venir":""}${x.type==="expense"?" · "+paymentLabel(x.paymentMethod,x.debited):""}</small>
         </div>
         <div class="right">
-          <strong class="${x.type==="income"?"ok":""}">${x.type==="income"?"+":""}${euro(x.amount)}</strong><br>
+          <strong class="${x.type==="income"?"ok":""}">${x.type==="income"?(x.future?"Prévu ":"+"):""}${euro(x.amount)}</strong><br>
           <button class="expenseDelete" data-${x.type}="${x.id}">Suppr.</button>
         </div>
       </div>`).join(""):'<div class="empty">Aucune opération enregistrée.</div>';
@@ -496,19 +600,38 @@
   });
 
 
-  $("addOneOffIncome").addEventListener("click",()=>{
+  $("futureIncome").addEventListener("change",()=>{
+    const show=$("futureIncome").checked;
+    $("futureIncomeDateLabel").style.display=show?"block":"none";
+    $("futureIncomeDate").style.display=show?"block":"none";
+    if(show && !$("futureIncomeDate").value) $("futureIncomeDate").value=new Date().toISOString().slice(0,10);
+  });
+
+$("addOneOffIncome").addEventListener("click",()=>{
     const amount=Number($("oneOffIncomeAmount").value);
     const label=$("oneOffIncomeLabel").value.trim()||"Revenu ponctuel";
+    const future=$("futureIncome").checked;
+    const date=future?$("futureIncomeDate").value:new Date().toISOString().slice(0,10);
     if(!amount||amount<=0){alert("Saisis un montant valide.");return;}
+    if(future && !date){alert("Choisis une date prévue.");return;}
+
     data.incomeTransactions.unshift({
       id:String(Date.now()),
       amount,
       label,
-      date:new Date().toISOString().slice(0,10)
+      date,
+      future
     });
-    data.bankBalance=Number((Number(data.bankBalance)+amount).toFixed(2));
+
+    if(!future){
+      data.bankBalance=Number((Number(data.bankBalance)+amount).toFixed(2));
+    }
+
     $("oneOffIncomeAmount").value="";
     $("oneOffIncomeLabel").value="";
+    $("futureIncome").checked=false;
+    $("futureIncomeDate").style.display="none";
+    $("futureIncomeDateLabel").style.display="none";
     save();
   });
 
@@ -584,7 +707,7 @@
     const incomeId=e.target.closest("[data-income]")?.dataset.income;
     if(incomeId){
       const income=data.incomeTransactions.find(x=>x.id===incomeId);
-      if(income) data.bankBalance=Number((Number(data.bankBalance)-Number(income.amount)).toFixed(2));
+      if(income && !income.future) data.bankBalance=Number((Number(data.bankBalance)-Number(income.amount)).toFixed(2));
       data.incomeTransactions=data.incomeTransactions.filter(x=>x.id!==incomeId);
       save();
     }
@@ -644,7 +767,7 @@
     caches.keys().then(keys=>Promise.all(keys.map(key=>caches.delete(key)))).catch(()=>{});
   }
 
-  const APP_VERSION="2.4.0";
+  const APP_VERSION="2.5.0";
   fetch("./version.json?t="+Date.now(),{cache:"no-store"})
     .then(r=>r.json())
     .then(v=>{

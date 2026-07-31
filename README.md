@@ -1,19 +1,19 @@
-# Budget Familial Laetitia — V2.4
+# Budget Familial Laetitia — V2.5
 
 ## Réalisé
 
-- prévision du solde de fin de mois ;
-- calcul des prélèvements restant à payer ;
-- solde prévu après débit CB ;
-- un prélèvement marqué payé est réellement déduit du solde bancaire ;
-- décocher un prélèvement recrédite le compte ;
-- budgets modifiables directement depuis Réglages ;
-- conservation et migration des données V2.3 ;
-- mise à jour automatique vers la version 2.4.
+- prévision chronologique du compte jour par jour ;
+- affichage du solde après chaque prélèvement futur ;
+- intégration du débit CB différé au 4 du mois ;
+- couleur orange si le solde prévu devient faible ;
+- couleur rouge si le solde prévu devient négatif ;
+- ajout de revenus futurs avec une date prévue ;
+- les revenus futurs apparaissent dans la prévision sans augmenter immédiatement le solde ;
+- migration et conservation des données V2.4.
 
-## Calcul de fin de mois
+## Calcul
 
-Solde actuel
-− CB en attente
-− prélèvements non encore payés
-= solde de fin de mois prévu.
+La prévision part du solde bancaire actuel, puis applique dans l’ordre :
+- le débit CB différé ;
+- les prélèvements non encore payés ;
+- les revenus ponctuels marqués comme futurs.
