@@ -9,15 +9,15 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css?v=6.0.0-ultimate">
-  <title>Mon Budget — V6 Ultimate</title>
+  <link rel="stylesheet" href="./styles.css?v=infinity-1.0">
+  <title>Mon Budget — Infinity</title>
 </head>
 <body>
 <header class="app-header pro-header">
   <div>
-    <div class="brand-line"><h1>💙 Mon Budget</h1><span class="pro-badge ultimate">ULTIMATE</span></div>
+    <div class="brand-line"><h1>💙 Mon Budget</h1><span class="pro-badge infinity">∞ INFINITY</span></div>
     <p id="headerSubtitle">Laetitia</p>
-    <small>V6 Ultimate</small>
+    <small>Infinity</small>
   </div>
   <div class="header-actions">
     <select id="profileQuick" class="profile-quick" aria-label="Profil"></select>
@@ -32,7 +32,7 @@
 
 <main class="app-main">
   <section id="home" class="screen active">
-    <article class="hero card glass-card">
+    <article class="hero card glass-card infinity-hero">
       <div class="hero-topline">
         <span>Disponible après dépenses engagées</span>
         <span id="heroTrend" class="trend-pill">Stable</span>
@@ -43,6 +43,11 @@
         <div><span>Par jour</span><b id="heroDaily">0 €</b></div>
         <div><span>Fin de mois</span><b id="heroEndMonth">0 €</b></div>
         <div><span>CB en attente</span><b id="heroDeferred">0 €</b></div>
+      </div>
+      <div class="serenity-wrap">
+        <div class="serenity-head"><span>Indice de sérénité</span><b id="serenityScore">0/100</b></div>
+        <div class="serenity-track"><div id="serenityFill" class="serenity-fill"></div></div>
+        <small id="serenityText">Analyse en cours…</small>
       </div>
     </article>
 
@@ -226,12 +231,19 @@
     </section>
 
     <article class="card">
-      <div class="section-title"><h2>👨‍👩‍👧‍👦 Tableau de bord familial</h2><span class="badge">Consolidé</span></div>
+      <div class="section-title"><h2>👨‍👩‍👧‍👦 Synthèse familiale Infinity</h2><span class="badge">Consolidé</span></div>
       <div id="familyDashboard" class="family-dashboard"></div>
+      <div id="familyTotals" class="family-totals"></div>
     </article>
 
     <article class="card">
-      <div class="section-title"><h2>🗓️ Prévision sur 12 mois</h2><span class="badge">Projection</span></div>
+      <div class="section-title"><h2>🗓️ Prévisions Infinity</h2><span class="badge">1 à 12 mois</span></div>
+      <div class="forecast-horizons">
+        <button data-horizon="1" class="horizon active">1 mois</button>
+        <button data-horizon="3" class="horizon">3 mois</button>
+        <button data-horizon="6" class="horizon">6 mois</button>
+        <button data-horizon="12" class="horizon">12 mois</button>
+      </div>
       <div id="yearForecastSummary" class="forecast-year-summary"></div>
       <div id="yearForecast" class="year-forecast"></div>
     </article>
@@ -363,7 +375,13 @@
 
   <section id="calendar" class="screen">
     <article class="card">
-      <div class="section-title"><h2>📆 Agenda financier intelligent</h2><span class="badge">30 jours</span></div>
+      <div class="section-title"><h2>📆 Agenda financier intelligent</h2><span class="badge">Infinity</span></div>
+      <div class="period-tabs">
+        <button class="period-tab active" data-period="today">Aujourd’hui</button>
+        <button class="period-tab" data-period="tomorrow">Demain</button>
+        <button class="period-tab" data-period="week">7 jours</button>
+        <button class="period-tab" data-period="month">30 jours</button>
+      </div>
       <div id="smartAgenda" class="smart-agenda"></div>
     </article>
     <article class="card">
@@ -531,14 +549,14 @@
 
   <section id="reports" class="screen">
     <article class="card reports-hero">
-      <div class="section-title"><h2>📄 Rapports Ultimate</h2><span class="badge">Imprimables</span></div>
+      <div class="section-title"><h2>📄 Rapports Infinity</h2><span class="badge">Imprimables</span></div>
       <p class="muted">Crée des rapports clairs à conserver, imprimer ou envoyer.</p>
       <button id="exportMonthlyReport" class="primary">Rapport mensuel complet</button>
       <button id="exportAnnualReport" class="soft full">Rapport annuel</button>
       <button id="exportDebtReport" class="soft full">Rapport crédits et dettes</button>
       <button id="exportGoalsReport" class="soft full">Rapport objectifs d’épargne</button>
       <button id="exportPatrimonyReport" class="soft full">Rapport patrimonial</button>
-      <button id="exportUltimateDashboard" class="soft full">Tableau de bord complet</button>
+      <button id="exportUltimateDashboard" class="soft full">Tableau de bord Infinity</button>
     </article>
     <article class="card">
       <h2>📊 Synthèse disponible</h2>
@@ -692,6 +710,6 @@
   <button data-tab="settings"><span>⚙️</span><small>Réglages</small></button>
 </nav>
 
-<script src="./app.js?v=6.0.0-ultimate"></script>
+<script src="./app.js?v=infinity-1.0"></script>
 </body>
 </html>

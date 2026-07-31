@@ -1,10 +1,10 @@
 {
-  "name": "Mon Budget — V6 Ultimate",
-  "short_name": "Budget Ultimate",
-  "start_url": "./?v=6.0.0-ultimate",
+  "name": "Mon Budget Infinity",
+  "short_name": "Budget Infinity",
+  "start_url": "./?v=infinity-1.0",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f3f6fb",
   "theme_color": "#2f6fed",
-  "description": "Application Ultimate de budget familial V6"
+  "description": "Gestionnaire financier familial Mon Budget Infinity"
 }

@@ -655,3 +655,46 @@ body.dark .reports-hero{
   .hero-mini-grid{grid-template-columns:1fr 1fr}
   .hero-mini-grid div:last-child{grid-column:1/-1}
 }
+
+
+/* =========================
+   MON BUDGET INFINITY
+   ========================= */
+.pro-badge.infinity{
+  background:linear-gradient(135deg,#101a3c,#2f6fed 58%,#8b5cf6);
+  color:#fff;box-shadow:0 6px 18px rgba(47,111,237,.28)
+}
+.infinity-hero{
+  position:relative;overflow:hidden
+}
+.infinity-hero::before{
+  content:"∞";position:absolute;right:-18px;bottom:-60px;
+  font-size:220px;font-weight:900;color:rgba(47,111,237,.055);pointer-events:none
+}
+.serenity-wrap{margin-top:14px;padding:12px;border-radius:14px;background:rgba(255,255,255,.68);border:1px solid rgba(47,111,237,.12);position:relative;z-index:1}
+.serenity-head{display:flex;justify-content:space-between;gap:10px;margin-bottom:7px}
+.serenity-head span{color:var(--muted);font-size:12px}
+.serenity-track{height:12px;border-radius:999px;background:#e8edf6;overflow:hidden}
+.serenity-fill{height:100%;width:0;background:linear-gradient(90deg,#ce3f3f,#f0a536 45%,#36a66f 75%,#2f6fed);transition:width .45s ease}
+.serenity-wrap small{display:block;margin-top:7px;color:var(--muted)}
+
+.period-tabs,.forecast-horizons{display:flex;gap:7px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px}
+.period-tab,.horizon{
+  border:0;border-radius:999px;padding:8px 11px;
+  background:var(--blue-soft);color:var(--blue);font-weight:800;white-space:nowrap
+}
+.period-tab.active,.horizon.active{background:var(--blue);color:#fff}
+
+.family-totals{
+  margin-top:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px
+}
+.family-totals div{padding:11px;border-radius:13px;border:1px solid var(--line);background:#f8fbff}
+.family-totals span{display:block;color:var(--muted);font-size:11px}
+.family-totals b{display:block;margin-top:5px}
+
+body.dark .serenity-wrap,
+body.dark .family-totals div{background:#171e2b}
+
+@media(max-width:680px){
+  .family-totals{grid-template-columns:1fr}
+}
