@@ -303,3 +303,49 @@ body.dark .year-bar-wrap,body.dark .receipt-preview img{background:#171e2b}
   .receipt-preview{grid-template-columns:1fr}
   .receipt-preview img{max-height:320px}
 }
+
+
+/* =========================
+   V300 — Patrimoine net, dettes, sauvegarde chiffrée
+   ========================= */
+.v300-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:13px}
+.v300-kpi span{display:block;color:var(--muted);font-size:12px}
+.v300-kpi b{display:block;margin:7px 0 4px;font-size:19px}
+.v300-kpi small{color:var(--muted);line-height:1.3}
+.v300-kpi.highlight{background:linear-gradient(135deg,#f2fbf6,#e7f7ee);border:1px solid #ccebd8}
+
+.family-dashboard{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.family-member{border:1px solid var(--line);border-radius:14px;padding:12px;background:#f8fbff}
+.family-member span{display:block;color:var(--muted);font-size:12px}
+.family-member b{display:block;margin:6px 0}
+.family-member small{color:var(--muted)}
+
+.forecast-year-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}
+.forecast-year-summary div{border:1px solid var(--line);border-radius:13px;padding:11px;background:#f8fbff}
+.forecast-year-summary span{display:block;color:var(--muted);font-size:11px}
+.forecast-year-summary b{display:block;margin-top:5px}
+
+.loan-row{display:grid;grid-template-columns:1fr auto;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.loan-row:last-child{border-bottom:0}
+.loan-row small{display:block;color:var(--muted);margin-top:3px}
+.loan-progress{height:9px;background:#e8edf6;border-radius:999px;overflow:hidden;margin-top:8px}
+.loan-progress div{height:100%;background:var(--blue)}
+.loan-actions{display:flex;gap:6px;margin-top:7px}
+.loan-actions button{border:0;border-radius:8px;padding:6px 8px;background:var(--blue-soft);color:var(--blue)}
+.loan-actions .delete-btn{background:#fff0f0;color:var(--bad)}
+
+.bottom-nav.eight{grid-template-columns:repeat(8,1fr)}
+.bottom-nav.eight button span{font-size:16px}
+.bottom-nav.eight button small{font-size:7px}
+
+body.dark .v300-kpi.highlight{background:#193124;border-color:#29563a}
+body.dark .family-member,body.dark .forecast-year-summary div{background:#171e2b}
+
+@media(max-width:760px){
+  .v300-kpi-grid{grid-template-columns:1fr 1fr}
+  .family-dashboard{grid-template-columns:1fr 1fr}
+  .forecast-year-summary{grid-template-columns:1fr}
+}
+@media(max-width:520px){
+  .family-dashboard{grid-template-columns:1fr}
+}

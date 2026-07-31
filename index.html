@@ -9,15 +9,15 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css?v=100.0.0">
-  <title>Mon Budget — V100</title>
+  <link rel="stylesheet" href="./styles.css?v=300.0.0">
+  <title>Mon Budget — V300</title>
 </head>
 <body>
 <header class="app-header">
   <div>
     <h1>💙 Mon Budget</h1>
     <p id="headerSubtitle">Laetitia</p>
-    <small>Version 100.0</small>
+    <small>Version 300.0</small>
   </div>
   <div class="header-actions">
     <select id="profileQuick" class="profile-quick" aria-label="Profil"></select>
@@ -112,26 +112,47 @@
       <div id="accountsSummary"></div>
     </article>
 
-    <section class="v100-kpi-grid">
-      <article class="card v100-kpi">
-        <span>Patrimoine total</span>
-        <b id="netWorthView">0 €</b>
-        <small>Somme de tous les comptes</small>
+    <section class="v300-kpi-grid">
+      <article class="card v300-kpi">
+        <span>Patrimoine brut</span>
+        <b id="grossWorthView">0 €</b>
+        <small>Total des comptes</small>
       </article>
-      <article class="card v100-kpi">
+      <article class="card v300-kpi">
+        <span>Dettes restantes</span>
+        <b id="totalDebtView">0 €</b>
+        <small>Crédits et emprunts</small>
+      </article>
+      <article class="card v300-kpi highlight">
+        <span>Patrimoine net</span>
+        <b id="netWorthView">0 €</b>
+        <small>Patrimoine moins dettes</small>
+      </article>
+      <article class="card v300-kpi">
         <span>Épargne mensuelle possible</span>
         <b id="monthlySavingPotential">0 €</b>
         <small>Estimation prudente</small>
       </article>
-      <article class="card v100-kpi">
+      <article class="card v300-kpi">
         <span>Abonnements annuels</span>
         <b id="annualSubscriptionsView">0 €</b>
         <small>Dépenses récurrentes estimées</small>
       </article>
+      <article class="card v300-kpi">
+        <span>Capacité d’endettement</span>
+        <b id="debtRatioView">0 %</b>
+        <small>Charges de crédits / revenus</small>
+      </article>
     </section>
 
     <article class="card">
+      <div class="section-title"><h2>👨‍👩‍👧‍👦 Tableau de bord familial</h2><span class="badge">Consolidé</span></div>
+      <div id="familyDashboard" class="family-dashboard"></div>
+    </article>
+
+    <article class="card">
       <div class="section-title"><h2>🗓️ Prévision sur 12 mois</h2><span class="badge">Projection</span></div>
+      <div id="yearForecastSummary" class="forecast-year-summary"></div>
       <div id="yearForecast" class="year-forecast"></div>
     </article>
 
@@ -340,6 +361,28 @@
     </article>
   </section>
 
+  <section id="loans" class="screen">
+    <article class="card">
+      <div class="section-title"><h2>🏦 Crédits et dettes</h2><span class="badge">Suivi</span></div>
+      <p class="muted">Ajoute les crédits, prêts auto, prêts immobiliers ou autres dettes pour calculer ton patrimoine net.</p>
+      <label>Nom</label>
+      <input id="loanName" placeholder="Ex. Prêt principal">
+      <label>Capital restant dû</label>
+      <input id="loanBalance" type="number" step="0.01" placeholder="0,00">
+      <label>Mensualité</label>
+      <input id="loanPayment" type="number" step="0.01" placeholder="0,00">
+      <label>Taux annuel (%)</label>
+      <input id="loanRate" type="number" step="0.01" placeholder="0,00">
+      <label>Date de fin prévue</label>
+      <input id="loanEndDate" type="date">
+      <button id="addLoan" class="primary">Ajouter le crédit</button>
+    </article>
+    <article class="card">
+      <h2>Crédits enregistrés</h2>
+      <div id="loansList"></div>
+    </article>
+  </section>
+
   <section id="settings" class="screen">
     <article class="card">
       <h2>👨‍👩‍👧‍👦 Profils familiaux</h2>
@@ -419,7 +462,19 @@
     </article>
 
     <article class="card">
-      <h2>💾 Sauvegarde</h2>
+      <h2>🔐 Sauvegarde chiffrée</h2>
+      <label>Mot de passe de sauvegarde</label>
+      <input id="backupPassword" type="password" placeholder="Minimum 6 caractères">
+      <div class="button-row">
+        <button id="exportEncrypted" class="soft">Exporter chiffré</button>
+        <button id="importEncryptedBtn" class="soft">Restaurer chiffré</button>
+        <input id="importEncryptedFile" type="file" accept=".json,application/json" hidden>
+      </div>
+      <p class="muted">Le chiffrement utilise les fonctions sécurisées du navigateur. Le mot de passe n’est jamais enregistré.</p>
+    </article>
+
+    <article class="card">
+      <h2>💾 Sauvegarde classique</h2>
       <div class="button-row">
         <button id="exportData" class="soft">Exporter</button>
         <button id="importDataBtn" class="soft">Restaurer</button>
@@ -432,16 +487,17 @@
   </section>
 </main>
 
-<nav class="bottom-nav seven">
+<nav class="bottom-nav eight">
   <button data-tab="home" class="active"><span>🏠</span><small>Accueil</small></button>
   <button data-tab="add"><span>➕</span><small>Ajouter</small></button>
   <button data-tab="calendar"><span>📅</span><small>Calendrier</small></button>
   <button data-tab="history"><span>🧾</span><small>Historique</small></button>
   <button data-tab="import"><span>📥</span><small>Importer</small></button>
+  <button data-tab="loans"><span>🏦</span><small>Crédits</small></button>
   <button data-tab="vault"><span>📦</span><small>Coffre</small></button>
   <button data-tab="settings"><span>⚙️</span><small>Réglages</small></button>
 </nav>
 
-<script src="./app.js?v=100.0.0"></script>
+<script src="./app.js?v=300.0.0"></script>
 </body>
 </html>

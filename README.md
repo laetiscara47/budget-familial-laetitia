@@ -1,36 +1,36 @@
-# Budget Familial Laetitia — V100.0
+# Budget Familial Laetitia — V300.0
 
 ## Nouveautés réalisées
 
-- patrimoine total de tous les comptes ;
-- estimation de l’épargne mensuelle possible ;
-- coût annuel estimé des abonnements ;
-- projection financière sur 12 mois ;
-- pièces jointes aux dépenses ;
-- photo de ticket avec saisie assistée ;
-- coffre numérique local pour PDF et images ;
-- recherche dans le coffre ;
-- stockage des fichiers dans IndexedDB sur l’appareil.
+- suivi des crédits et dettes ;
+- calcul du patrimoine brut et net ;
+- taux d’endettement ;
+- tableau de bord familial consolidé ;
+- projection sur 12 mois enrichie ;
+- paiement progressif des mensualités ;
+- sauvegarde JSON chiffrée par mot de passe avec AES-GCM ;
+- restauration chiffrée ;
+- coffre numérique local et pièces jointes conservés.
 
 ## Fonctions conservées
 
 - profils familiaux ;
-- comptes multiples et virements ;
+- comptes et virements ;
 - carte à débit différé ;
-- calendrier financier ;
-- assistant budgétaire et score financier ;
+- assistant budgétaire ;
+- score financier ;
+- abonnements récurrents ;
 - simulateur d’achat ;
-- catégories et règles personnalisables ;
-- détection des abonnements ;
-- graphiques, budgets, objectifs et archives ;
-- import CSV protégé contre les doublons ;
-- sauvegarde JSON et export CSV.
+- calendrier, graphiques et objectifs ;
+- import CSV et détection des doublons ;
+- export CSV et sauvegardes classiques.
 
 ## Limites honnêtes
 
-- la photo de ticket n’effectue pas de reconnaissance OCR automatique ;
-- les fichiers du coffre restent uniquement sur l’appareil et ne sont pas inclus dans l’export JSON ;
-- la synchronisation cloud, Face ID et les notifications système nécessitent une application native ou un serveur sécurisé.
+- aucune connexion automatique à une banque ;
+- aucun Face ID natif ;
+- aucune synchronisation cloud ;
+- le coffre reste stocké uniquement sur l’appareil.
 
 ## Fichiers GitHub à remplacer
 
