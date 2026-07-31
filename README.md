@@ -1,17 +1,18 @@
-# Budget Familial Laetitia — V1.4
+# Budget Familial Laetitia — V2.0
 
-Cette version règle le problème des anciennes versions conservées sur l’iPhone.
+## Fonctionnement de la carte à débit différé
 
-## Réalisé
+- Une dépense saisie avec **Carte bancaire — débit différé le 4** ne diminue pas immédiatement le solde bancaire.
+- Elle augmente le compteur **CB en attente**.
+- Le bouton **Débit CB effectué** retire tout le total CB du solde bancaire en une seule fois.
+- Après validation, les opérations restent dans l’historique avec la mention **CB débitée**.
+- Supprimer une dépense CB encore en attente ne touche pas au solde.
+- Supprimer une dépense déjà débitée recrédite son montant.
 
-- suppression automatique de tous les anciens caches ;
-- désactivation et suppression du service worker ;
-- vérification de la version à chaque ouverture ;
-- rechargement forcé lorsqu’une nouvelle version est publiée ;
-- ajout d’un numéro de version visible ;
-- conservation des données du budget dans le stockage local ;
-- le solde bancaire continue de diminuer après chaque dépense ;
-- supprimer une dépense recrédite son montant.
+## Autres modes
+
+- Carte immédiate, prélèvement et virement : débit immédiat du solde.
+- Espèces : ne modifie pas le solde bancaire.
 
 ## Fichiers à remplacer sur GitHub
 
@@ -20,5 +21,3 @@ Cette version règle le problème des anciennes versions conservées sur l’iPh
 - `sw.js`
 - `icon.svg`
 - `version.json`
-
-Après cette mise à jour, l’application installée doit charger automatiquement la dernière version.
