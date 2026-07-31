@@ -1,19 +1,19 @@
-# Budget Familial Laetitia — V2.5
+# Budget Familial Laetitia — V2.6
 
 ## Réalisé
 
-- prévision chronologique du compte jour par jour ;
-- affichage du solde après chaque prélèvement futur ;
-- intégration du débit CB différé au 4 du mois ;
-- couleur orange si le solde prévu devient faible ;
-- couleur rouge si le solde prévu devient négatif ;
-- ajout de revenus futurs avec une date prévue ;
-- les revenus futurs apparaissent dans la prévision sans augmenter immédiatement le solde ;
-- migration et conservation des données V2.4.
+- correction de la superposition « Aujourd’hui / Solde actuel » ;
+- chronologie optimisée pour l’écran de l’iPhone ;
+- dates, opérations et soldes clairement séparés ;
+- montant du solde placé sur une ligne dédiée sur petit écran ;
+- résumé « Solde de départ / Solde final estimé » ;
+- couleurs d’alerte sur le solde final ;
+- conservation et migration des données de la V2.5.
 
-## Calcul
+## Fichiers GitHub
 
-La prévision part du solde bancaire actuel, puis applique dans l’ordre :
-- le débit CB différé ;
-- les prélèvements non encore payés ;
-- les revenus ponctuels marqués comme futurs.
+- `index.html`
+- `manifest.webmanifest`
+- `sw.js`
+- `icon.svg`
+- `version.json`

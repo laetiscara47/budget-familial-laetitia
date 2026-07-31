@@ -1,4 +1,4 @@
-const CURRENT='budget-laetitia-v2-5-cleanup';
+const CURRENT='budget-laetitia-v2-6-cleanup';
 self.addEventListener('install',event=>self.skipWaiting());
 self.addEventListener('activate',event=>{
   event.waitUntil((async()=>{
@@ -8,7 +8,7 @@ self.addEventListener('activate',event=>{
     const clientsList=await self.clients.matchAll({type:'window',includeUncontrolled:true});
     for(const client of clientsList){
       const url=new URL(client.url);
-      url.searchParams.set('v','2.5.0');
+      url.searchParams.set('v','2.6.0');
       client.navigate(url.toString());
     }
   })());

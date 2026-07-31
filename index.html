@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-title" content="Mon Budget">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <title>Budget Familial Laetitia V2.5</title>
+  <title>Budget Familial Laetitia V2.6</title>
   <style>
     :root{
       --blue:#2f6fed;--blue2:#eef3ff;--bg:#f3f6fb;--card:#fff;--text:#172033;
@@ -65,13 +65,19 @@
     .editCharge input{padding:9px;font-size:14px}
     .editBudget{display:grid;grid-template-columns:1.4fr .8fr;gap:8px;align-items:center;margin-bottom:8px}
     .forecast{background:#f8fbff;border:1px solid #dfe8fb;border-radius:14px;padding:14px;margin-top:10px}
-    .timelineItem{display:grid;grid-template-columns:64px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+    .timelineItem{display:grid;grid-template-columns:76px minmax(0,1fr) 108px;gap:12px;align-items:center;padding:13px 0;border-bottom:1px solid var(--line)}
     .timelineItem:last-child{border-bottom:0}
-    .timelineDate{font-weight:800;color:var(--blue)}
-    .timelineItem small{display:block;color:var(--muted);margin-top:2px}
-    .timelineBalance{text-align:right;font-weight:800}
+    .timelineDate{font-weight:800;color:var(--blue);font-size:14px;line-height:1.15;white-space:normal}
+    .timelineMain{min-width:0}
+    .timelineMain b{display:block;line-height:1.2;overflow-wrap:anywhere}
+    .timelineItem small{display:block;color:var(--muted);margin-top:3px;line-height:1.25}
+    .timelineBalance{text-align:right;font-weight:800;white-space:nowrap;font-size:15px}
     .timelineBalance.negative{color:var(--bad)}
     .timelineBalance.warning{color:var(--warn)}
+    @media(max-width:520px){
+      .timelineItem{grid-template-columns:72px minmax(0,1fr);gap:10px;align-items:start}
+      .timelineBalance{grid-column:2;text-align:left;margin-top:3px;font-size:17px}
+    }
     @media(max-width:600px){.editCharge{grid-template-columns:.6fr 1.4fr}.editCharge .amountField{grid-column:1/2}.editCharge button{grid-column:2/3}}
     .muted{color:var(--muted)}
     .empty{text-align:center;color:var(--muted);padding:14px}
@@ -87,7 +93,7 @@
 <body>
 <header>
   <h1>💙 Mon Budget</h1>
-  <p id="headerMonth">Laetitia</p><p style="font-size:10px;opacity:.75;margin-top:2px">Version 2.5</p>
+  <p id="headerMonth">Laetitia</p><p style="font-size:10px;opacity:.75;margin-top:2px">Version 2.6</p>
 </header>
 
 <main>
@@ -123,7 +129,18 @@
     
     <div class="card">
       <h2>🗓️ Prévision jour par jour</h2>
-      <p class="muted">Projection à partir du solde bancaire actuel, de la CB en attente et des prélèvements non payés.</p>
+      <p class="muted">Chaque ligne montre le solde estimé après l’opération indiquée.</p>
+      
+      <div class="forecast">
+        <div class="row">
+          <div><b>Solde de départ</b><small>Solde bancaire actuel</small></div>
+          <strong id="forecastStart">0 €</strong>
+        </div>
+        <div class="row">
+          <div><b>Solde final estimé</b><small>Après CB et prélèvements restants</small></div>
+          <strong id="forecastEnd">0 €</strong>
+        </div>
+      </div>
       <div id="forecastTimeline"></div>
     </div>
 
@@ -440,13 +457,17 @@
       rows.push({...event,balance:running});
     });
 
+    $("forecastStart").textContent=euro(Number(data.bankBalance||0));
+    $("forecastEnd").textContent=euro(running);
+    $("forecastEnd").className=running<0?"bad":running<300?"warn":"ok";
+
     $("forecastTimeline").innerHTML=rows.map((row,index)=>{
       const balanceClass=row.balance<0?"negative":row.balance<300?"warning":"";
       const dateLabel=index===0?"Aujourd’hui":row.date.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"});
       const amountText=row.amount===0?"":`${row.amount>0?"+":""}${euro(row.amount)}`;
       return `<div class="timelineItem">
         <div class="timelineDate">${dateLabel}</div>
-        <div>
+        <div class="timelineMain">
           <b>${esc(row.label)}</b>
           <small>${esc(row.type)}${amountText?" · "+amountText:""}</small>
         </div>
@@ -454,7 +475,6 @@
       </div>`;
     }).join("");
   }
-
   function renderNextCharges(){
     const items=data.fixedCharges.filter(x=>!x.paid).sort((a,b)=>(a.day??99)-(b.day??99)).slice(0,3);
     $("nextCharges").innerHTML=items.length?items.map(x=>`<div class="row"><div><b>${esc(x.label)}</b><small>${x.day?"Le "+x.day:"Date variable"}</small></div><strong>${euro(x.amount)}</strong></div>`).join(""):'<div class="empty">Aucun prélèvement à venir.</div>';
@@ -767,7 +787,7 @@ $("addOneOffIncome").addEventListener("click",()=>{
     caches.keys().then(keys=>Promise.all(keys.map(key=>caches.delete(key)))).catch(()=>{});
   }
 
-  const APP_VERSION="2.5.0";
+  const APP_VERSION="2.6.0";
   fetch("./version.json?t="+Date.now(),{cache:"no-store"})
     .then(r=>r.json())
     .then(v=>{
