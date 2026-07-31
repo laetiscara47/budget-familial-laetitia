@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-title" content="Mon Budget">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <title>Budget Familial Laetitia V2.2</title>
+  <title>Budget Familial Laetitia V2.3</title>
   <style>
     :root{
       --blue:#2f6fed;--blue2:#eef3ff;--bg:#f3f6fb;--card:#fff;--text:#172033;
@@ -78,7 +78,7 @@
 <body>
 <header>
   <h1>💙 Mon Budget</h1>
-  <p id="headerMonth">Laetitia</p><p style="font-size:10px;opacity:.75;margin-top:2px">Version 2.2</p>
+  <p id="headerMonth">Laetitia</p><p style="font-size:10px;opacity:.75;margin-top:2px">Version 2.3</p>
 </header>
 
 <main>
@@ -172,13 +172,23 @@
       <button id="addCharge" class="soft">+ Ajouter un prélèvement</button>
     </div>
 
+    
+    <div class="card">
+      <h2>🛟 Récupération</h2>
+      <button id="restoreAutoBackup" class="soft">Récupérer la sauvegarde automatique</button>
+      <p class="muted">Utilise ce bouton seulement si une mise à jour a remplacé tes données.</p>
+    </div>
+
     <div class="card">
       <h2>💾 Sauvegarde</h2>
       <div class="actions">
         <button id="exportData" class="soft">Exporter</button>
+        <button id="importDataBtn" class="soft">Restaurer</button>
+        <input id="importDataFile" type="file" accept=".json,application/json" hidden>
         <button id="resetApp" class="dangerBtn">Réinitialiser</button>
       </div>
       <p class="muted">Les données restent enregistrées sur cet iPhone.</p>
+      <div id="migrationStatus" class="result">Données sécurisées — version 2.3</div>
     </div>
   </section>
 </main>
@@ -195,6 +205,7 @@
 (function(){
   "use strict";
   const STORAGE_KEY="budget-familial-laetitia-final-v1";
+  const DATA_VERSION=3;
   const initial={
     month:"Août 2026",bankBalance:3346.91,
     incomes:[
@@ -240,13 +251,48 @@
 
   const clone=o=>JSON.parse(JSON.stringify(o));
   let data;
-  try{data=JSON.parse(localStorage.getItem(STORAGE_KEY))||clone(initial)}catch{data=clone(initial)}
-  if(!Array.isArray(data.deferredCardBatches)) data.deferredCardBatches=[];
-  if(!Array.isArray(data.incomeTransactions)) data.incomeTransactions=[];
-  data.expenses=(data.expenses||[]).map(x=>({...x,paymentMethod:x.paymentMethod||"immediate_card",debited:x.debited!==false}));
+  try{
+    data=JSON.parse(localStorage.getItem(STORAGE_KEY))||clone(initial);
+  }catch{
+    data=clone(initial);
+  }
+
+  function migrateData(saved){
+    const next={...clone(initial),...saved};
+    if(!Array.isArray(next.incomes)) next.incomes=clone(initial.incomes);
+    if(!Array.isArray(next.fixedCharges)) next.fixedCharges=clone(initial.fixedCharges);
+    if(!Array.isArray(next.expenses)) next.expenses=[];
+    if(!Array.isArray(next.deferredCardBatches)) next.deferredCardBatches=[];
+    if(!Array.isArray(next.incomeTransactions)) next.incomeTransactions=[];
+    if(!Array.isArray(next.rules)) next.rules=clone(initial.rules);
+    if(!next.budgets || typeof next.budgets!=="object") next.budgets=clone(initial.budgets);
+    next.expenses=next.expenses.map(x=>({
+      id:x.id||String(Date.now()+Math.random()),
+      amount:Number(x.amount||0),
+      label:x.label||"Dépense",
+      category:x.category||"Autre",
+      date:x.date||new Date().toISOString().slice(0,10),
+      paymentMethod:x.paymentMethod||"immediate_card",
+      debited:x.debited!==false
+    }));
+    next.dataVersion=DATA_VERSION;
+    return next;
+  }
+
+  data=migrateData(data);
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+  
   const $=id=>document.getElementById(id);
   const euro=n=>Number(n||0).toLocaleString("fr-FR",{style:"currency",currency:"EUR"});
-  const save=()=>{localStorage.setItem(STORAGE_KEY,JSON.stringify(data));render();};
+  const save=()=>{
+    data.dataVersion=DATA_VERSION;
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+    localStorage.setItem(STORAGE_KEY+"-backup",JSON.stringify({
+      savedAt:new Date().toISOString(),
+      data
+    }));
+    render();
+  };
 
   function totals(){
     const income=data.incomes.reduce((s,x)=>s+Number(x.amount||0),0);
@@ -282,6 +328,7 @@
     if(document.activeElement!==$("bankBalance")) $("bankBalance").value=data.bankBalance;
     if(document.activeElement!==$("month")) $("month").value=data.month;
     renderNextCharges();renderBudgets();renderCharges();renderHistory();renderSettings();renderChargeSettings();renderCategories();
+    $("migrationStatus").textContent="Données sécurisées — sauvegarde automatique active";
   }
   function renderNextCharges(){
     const items=data.fixedCharges.filter(x=>!x.paid).sort((a,b)=>(a.day??99)-(b.day??99)).slice(0,3);
@@ -447,9 +494,44 @@
   });
 
   $("exportData").addEventListener("click",()=>{
-    const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+    const blob=new Blob([JSON.stringify({app:"Budget Familial Laetitia",version:"2.3.0",exportedAt:new Date().toISOString(),data},null,2)],{type:"application/json"});
     const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="budget_laetitia_sauvegarde.json";a.click();
   });
+  
+  $("restoreAutoBackup").addEventListener("click",()=>{
+    try{
+      const raw=localStorage.getItem(STORAGE_KEY+"-backup");
+      if(!raw){alert("Aucune sauvegarde automatique disponible.");return;}
+      const backup=JSON.parse(raw);
+      data=migrateData(backup.data||backup);
+      save();
+      alert("Sauvegarde automatique récupérée.");
+    }catch{
+      alert("Impossible de récupérer la sauvegarde automatique.");
+    }
+  });
+
+  $("importDataBtn").addEventListener("click",()=>$("importDataFile").click());
+
+  $("importDataFile").addEventListener("change",event=>{
+    const file=event.target.files?.[0];
+    if(!file) return;
+    const reader=new FileReader();
+    reader.onload=()=>{
+      try{
+        const parsed=JSON.parse(String(reader.result));
+        const restored=parsed.data?parsed.data:parsed;
+        data=migrateData(restored);
+        save();
+        alert("Sauvegarde restaurée avec succès.");
+      }catch{
+        alert("Le fichier de sauvegarde n’est pas valide.");
+      }
+      event.target.value="";
+    };
+    reader.readAsText(file);
+  });
+
   $("resetApp").addEventListener("click",()=>{if(confirm("Réinitialiser toute l’application ?")){data=clone(initial);save();}});
 
   document.addEventListener("click",e=>{
@@ -520,7 +602,7 @@
     caches.keys().then(keys=>Promise.all(keys.map(key=>caches.delete(key)))).catch(()=>{});
   }
 
-  const APP_VERSION="2.2.0";
+  const APP_VERSION="2.3.0";
   fetch("./version.json?t="+Date.now(),{cache:"no-store"})
     .then(r=>r.json())
     .then(v=>{

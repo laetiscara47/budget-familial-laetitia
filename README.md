@@ -1,17 +1,24 @@
-# Budget Familial Laetitia — V2.2
+# Budget Familial Laetitia — V2.3
 
 ## Réalisé
 
-- ajout de revenus ponctuels directement dans l’application ;
-- un revenu ponctuel augmente immédiatement le solde bancaire ;
-- suppression d’un revenu ponctuel retire le montant du solde ;
-- historique commun pour revenus et dépenses ;
-- modification directe des prélèvements ;
-- ajout et suppression de prélèvements ;
-- modification du jour, du libellé et du montant ;
-- recalcul immédiat des charges fixes, du reste théorique et du disponible.
+- migration automatique des anciennes données vers la nouvelle version ;
+- conservation du solde, des dépenses, revenus, prélèvements et budgets ;
+- sauvegarde automatique locale après chaque modification ;
+- récupération de la dernière sauvegarde automatique ;
+- export complet avec date et numéro de version ;
+- restauration depuis un fichier JSON ;
+- protection contre les champs manquants après une mise à jour ;
+- numéro de version des données intégré.
 
-## Fichiers à remplacer
+## Utilisation
+
+Dans **Réglages** :
+- **Exporter** crée une sauvegarde à conserver dans Fichiers ;
+- **Restaurer** permet de réimporter cette sauvegarde ;
+- **Récupérer la sauvegarde automatique** restaure la dernière copie locale.
+
+## Fichiers GitHub
 
 - `index.html`
 - `manifest.webmanifest`
