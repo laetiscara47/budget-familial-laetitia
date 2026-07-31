@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-title" content="Mon Budget">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <title>Budget Familial Laetitia V2.1</title>
+  <title>Budget Familial Laetitia V2.2</title>
   <style>
     :root{
       --blue:#2f6fed;--blue2:#eef3ff;--bg:#f3f6fb;--card:#fff;--text:#172033;
@@ -61,6 +61,9 @@
     .charge .right small{color:var(--ok)}
     .expenseDelete{border:0;background:#fff0f0;color:var(--bad);border-radius:8px;padding:6px 8px;margin-top:5px}
     .actions{display:flex;gap:8px;flex-wrap:wrap}
+    .editCharge{display:grid;grid-template-columns:.55fr 1.5fr .8fr auto;gap:7px;align-items:center;margin-bottom:8px}
+    .editCharge input{padding:9px;font-size:14px}
+    @media(max-width:600px){.editCharge{grid-template-columns:.6fr 1.4fr}.editCharge .amountField{grid-column:1/2}.editCharge button{grid-column:2/3}}
     .muted{color:var(--muted)}
     .empty{text-align:center;color:var(--muted);padding:14px}
     .balance-note{padding:10px;border-radius:11px;background:#eaf8f0;color:var(--ok);font-size:13px;margin-top:10px}
@@ -75,7 +78,7 @@
 <body>
 <header>
   <h1>💙 Mon Budget</h1>
-  <p id="headerMonth">Laetitia</p><p style="font-size:10px;opacity:.75;margin-top:2px">Version 2.1</p>
+  <p id="headerMonth">Laetitia</p><p style="font-size:10px;opacity:.75;margin-top:2px">Version 2.2</p>
 </header>
 
 <main>
@@ -152,6 +155,23 @@
       <div id="incomeSettings"></div>
       <button id="addIncome" class="soft">+ Ajouter un revenu</button>
     </div>
+    
+    <div class="card">
+      <h2>➕ Revenu ponctuel</h2>
+      <label>Montant</label>
+      <input id="oneOffIncomeAmount" type="number" step="0.01" placeholder="0,00">
+      <label>Libellé</label>
+      <input id="oneOffIncomeLabel" placeholder="Ex. remboursement, prime...">
+      <button id="addOneOffIncome" class="primary">Ajouter au solde</button>
+      <p class="muted">Le montant est ajouté immédiatement au solde bancaire et à l’historique.</p>
+    </div>
+
+    <div class="card">
+      <h2>🛠️ Modifier les prélèvements</h2>
+      <div id="chargeSettings"></div>
+      <button id="addCharge" class="soft">+ Ajouter un prélèvement</button>
+    </div>
+
     <div class="card">
       <h2>💾 Sauvegarde</h2>
       <div class="actions">
@@ -215,13 +235,14 @@
       {keyword:"amazon",category:"Amazon"},{keyword:"ikea",category:"Maison"},
       {keyword:"leroy merlin",category:"Maison"},{keyword:"castorama",category:"Maison"}
     ],
-    expenses:[], deferredCardBatches:[]
+    expenses:[], deferredCardBatches:[], incomeTransactions:[]
   };
 
   const clone=o=>JSON.parse(JSON.stringify(o));
   let data;
   try{data=JSON.parse(localStorage.getItem(STORAGE_KEY))||clone(initial)}catch{data=clone(initial)}
   if(!Array.isArray(data.deferredCardBatches)) data.deferredCardBatches=[];
+  if(!Array.isArray(data.incomeTransactions)) data.incomeTransactions=[];
   data.expenses=(data.expenses||[]).map(x=>({...x,paymentMethod:x.paymentMethod||"immediate_card",debited:x.debited!==false}));
   const $=id=>document.getElementById(id);
   const euro=n=>Number(n||0).toLocaleString("fr-FR",{style:"currency",currency:"EUR"});
@@ -260,7 +281,7 @@
     $("projectedExplain").textContent=euro(Number(data.bankBalance)-deferredPending());
     if(document.activeElement!==$("bankBalance")) $("bankBalance").value=data.bankBalance;
     if(document.activeElement!==$("month")) $("month").value=data.month;
-    renderNextCharges();renderBudgets();renderCharges();renderHistory();renderSettings();renderCategories();
+    renderNextCharges();renderBudgets();renderCharges();renderHistory();renderSettings();renderChargeSettings();renderCategories();
   }
   function renderNextCharges(){
     const items=data.fixedCharges.filter(x=>!x.paid).sort((a,b)=>(a.day??99)-(b.day??99)).slice(0,3);
@@ -284,9 +305,34 @@
   }
   function renderHistory(){
     const q=$("search").value.trim().toLowerCase();
-    const list=data.expenses.filter(x=>!q||x.label.toLowerCase().includes(q)||x.category.toLowerCase().includes(q));
-    $("historyList").innerHTML=list.length?list.map(x=>`<div class="row"><div><b>${esc(x.label)}</b><small>${esc(x.category)} · ${formatDate(x.date)} · ${paymentLabel(x.paymentMethod,x.debited)}</small></div><div class="right"><strong>${euro(x.amount)}</strong><br><button class="expenseDelete" data-expense="${x.id}">Suppr.</button></div></div>`).join(""):'<div class="empty">Aucune dépense enregistrée.</div>';
+    const expenses=data.expenses.map(x=>({...x,type:"expense"}));
+    const incomes=data.incomeTransactions.map(x=>({...x,type:"income",category:"Revenu"}));
+    const list=[...expenses,...incomes]
+      .filter(x=>!q||x.label.toLowerCase().includes(q)||String(x.category||"").toLowerCase().includes(q))
+      .sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+    $("historyList").innerHTML=list.length?list.map(x=>`
+      <div class="row">
+        <div>
+          <b>${x.type==="income"?"➕ ":""}${esc(x.label)}</b>
+          <small>${esc(x.category||"")} · ${formatDate(x.date)}${x.type==="expense"?" · "+paymentLabel(x.paymentMethod,x.debited):""}</small>
+        </div>
+        <div class="right">
+          <strong class="${x.type==="income"?"ok":""}">${x.type==="income"?"+":""}${euro(x.amount)}</strong><br>
+          <button class="expenseDelete" data-${x.type}="${x.id}">Suppr.</button>
+        </div>
+      </div>`).join(""):'<div class="empty">Aucune opération enregistrée.</div>';
   }
+  
+  function renderChargeSettings(){
+    $("chargeSettings").innerHTML=data.fixedCharges.map((x,i)=>`
+      <div class="editCharge">
+        <input data-charge-day="${i}" type="number" min="1" max="31" value="${x.day??""}" placeholder="Jour">
+        <input data-charge-label="${i}" value="${escAttr(x.label)}">
+        <input class="amountField" data-charge-amount="${i}" type="number" step="0.01" value="${x.amount}">
+        <button class="dangerBtn" data-charge-delete="${i}">Suppr.</button>
+      </div>`).join("");
+  }
+
   function renderSettings(){
     $("incomeSettings").innerHTML=data.incomes.map((x,i)=>`<div class="grid2" style="margin-bottom:8px"><input data-income-label="${i}" value="${escAttr(x.label)}"><input data-income-amount="${i}" type="number" step="0.01" value="${x.amount}"></div>`).join("");
   }
@@ -372,7 +418,35 @@
     save();
   });
 
-$("exportData").addEventListener("click",()=>{
+
+  $("addOneOffIncome").addEventListener("click",()=>{
+    const amount=Number($("oneOffIncomeAmount").value);
+    const label=$("oneOffIncomeLabel").value.trim()||"Revenu ponctuel";
+    if(!amount||amount<=0){alert("Saisis un montant valide.");return;}
+    data.incomeTransactions.unshift({
+      id:String(Date.now()),
+      amount,
+      label,
+      date:new Date().toISOString().slice(0,10)
+    });
+    data.bankBalance=Number((Number(data.bankBalance)+amount).toFixed(2));
+    $("oneOffIncomeAmount").value="";
+    $("oneOffIncomeLabel").value="";
+    save();
+  });
+
+  $("addCharge").addEventListener("click",()=>{
+    data.fixedCharges.push({
+      id:"f"+Date.now(),
+      day:null,
+      label:"Nouveau prélèvement",
+      amount:0,
+      paid:false
+    });
+    save();
+  });
+
+  $("exportData").addEventListener("click",()=>{
     const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
     const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="budget_laetitia_sauvegarde.json";a.click();
   });
@@ -382,6 +456,18 @@ $("exportData").addEventListener("click",()=>{
     const chargeId=e.target.closest("[data-charge]")?.dataset.charge;
     if(chargeId){
       data.fixedCharges=data.fixedCharges.map(x=>x.id===chargeId?{...x,paid:!x.paid}:x);
+      save();
+    }
+    const incomeId=e.target.closest("[data-income]")?.dataset.income;
+    if(incomeId){
+      const income=data.incomeTransactions.find(x=>x.id===incomeId);
+      if(income) data.bankBalance=Number((Number(data.bankBalance)-Number(income.amount)).toFixed(2));
+      data.incomeTransactions=data.incomeTransactions.filter(x=>x.id!==incomeId);
+      save();
+    }
+    const chargeDelete=e.target.closest("[data-charge-delete]")?.dataset.chargeDelete;
+    if(chargeDelete!==undefined){
+      data.fixedCharges.splice(Number(chargeDelete),1);
       save();
     }
     const expId=e.target.closest("[data-expense]")?.dataset.expense;
@@ -396,6 +482,11 @@ $("exportData").addEventListener("click",()=>{
   });
 
   document.addEventListener("input",e=>{
+    const cd=e.target.dataset.chargeDay, cl=e.target.dataset.chargeLabel, ca=e.target.dataset.chargeAmount;
+    if(cd!==undefined){data.fixedCharges[Number(cd)].day=e.target.value===""?null:Number(e.target.value);localStorage.setItem(STORAGE_KEY,JSON.stringify(data));}
+    if(cl!==undefined){data.fixedCharges[Number(cl)].label=e.target.value;localStorage.setItem(STORAGE_KEY,JSON.stringify(data));}
+    if(ca!==undefined){data.fixedCharges[Number(ca)].amount=Number(e.target.value)||0;localStorage.setItem(STORAGE_KEY,JSON.stringify(data));const t=totals();$("fixedView").textContent=euro(t.fixed);$("theoreticalView").textContent=euro(t.theoretical);$("available").textContent=euro(t.available);}
+
     const li=e.target.dataset.incomeLabel, ai=e.target.dataset.incomeAmount;
     if(li!==undefined){
       data.incomes[Number(li)].label=e.target.value;
@@ -413,7 +504,8 @@ $("exportData").addEventListener("click",()=>{
   });
   document.addEventListener("change",e=>{
     const li=e.target.dataset.incomeLabel, ai=e.target.dataset.incomeAmount;
-    if(li!==undefined||ai!==undefined)save();
+    const cd=e.target.dataset.chargeDay, cl=e.target.dataset.chargeLabel, ca=e.target.dataset.chargeAmount;
+    if(li!==undefined||ai!==undefined||cd!==undefined||cl!==undefined||ca!==undefined)save();
   });
 
   $("date").value=new Date().toISOString().slice(0,10);
@@ -428,7 +520,7 @@ $("exportData").addEventListener("click",()=>{
     caches.keys().then(keys=>Promise.all(keys.map(key=>caches.delete(key)))).catch(()=>{});
   }
 
-  const APP_VERSION="2.1.0";
+  const APP_VERSION="2.2.0";
   fetch("./version.json?t="+Date.now(),{cache:"no-store"})
     .then(r=>r.json())
     .then(v=>{

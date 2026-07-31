@@ -1,16 +1,20 @@
-# Budget Familial Laetitia — V2.1
+# Budget Familial Laetitia — V2.2
 
 ## Réalisé
 
-- séparation entre **Reste théorique** et **Disponible après dépenses engagées** ;
-- affichage du **Solde prévu après débit CB** ;
-- conservation du compteur **CB en attente** ;
-- meilleure explication des trois montants sur l’écran d’accueil ;
-- maintien du débit différé le 4 ;
-- mise à jour automatique vers la version 2.1.
+- ajout de revenus ponctuels directement dans l’application ;
+- un revenu ponctuel augmente immédiatement le solde bancaire ;
+- suppression d’un revenu ponctuel retire le montant du solde ;
+- historique commun pour revenus et dépenses ;
+- modification directe des prélèvements ;
+- ajout et suppression de prélèvements ;
+- modification du jour, du libellé et du montant ;
+- recalcul immédiat des charges fixes, du reste théorique et du disponible.
 
-### Définitions
+## Fichiers à remplacer
 
-- Reste théorique = revenus − charges fixes.
-- Disponible réel = reste théorique − toutes les dépenses saisies.
-- Solde prévu après CB = solde bancaire − CB en attente.
+- `index.html`
+- `manifest.webmanifest`
+- `sw.js`
+- `icon.svg`
+- `version.json`
