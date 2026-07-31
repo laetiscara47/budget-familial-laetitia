@@ -1,6 +1,6 @@
 (()=>{
 "use strict";
-const STORAGE_KEY="budget-familial-laetitia-final-v1",BACKUP_KEY=STORAGE_KEY+"-backup",DATA_VERSION=12;
+const STORAGE_KEY="budget-familial-laetitia-final-v1",BACKUP_KEY=STORAGE_KEY+"-backup",DATA_VERSION=15;
 const $=id=>document.getElementById(id),clone=o=>JSON.parse(JSON.stringify(o));
 const euro=n=>Number(n||0).toLocaleString("fr-FR",{style:"currency",currency:"EUR"});
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
@@ -75,18 +75,159 @@ function render(){
  const t=totals(),def=pendingDeferred();
  $("headerSubtitle").textContent=`Laetitia · ${data.month}`;$("available").textContent=euro(t.available);$("available").className=t.available<0?"bad":t.available<300?"warn":"ok";$("budgetStatus").textContent=t.available<0?"Budget dépassé":t.available<300?"À surveiller":"Budget disponible";
  $("currentBalanceView").textContent=euro(current().balance);$("deferredView").textContent=euro(def);$("untilIncomeView").textContent=euro(nextIncomeAmount());$("endMonthView").textContent=euro(endMonth());$("deferredTotal").textContent=euro(def);
- renderSelects();renderAccounts();renderAlerts();renderForecast();renderChart();renderMonthlyStats();renderGoals();renderCalendar();renderHistory();renderSettings();applyTheme();
+ renderSelects();renderAccounts();renderAlerts();renderSmartSummary();renderForecast();renderChart();renderMonthlyStats();renderGoals();renderCalendar();renderHistory();renderSettings();applyTheme();
 }
 function renderSelects(){
  const opts=data.accounts.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("");["expenseAccount","incomeAccount","transferFrom","transferTo","importAccount"].forEach(id=>$(id).innerHTML=opts);
  $("historyAccount").innerHTML=`<option value="">Tous les comptes</option>${opts}`;$("historyCategory").innerHTML=`<option value="">Toutes les catégories</option>${Object.keys(data.budgets).map(x=>`<option>${esc(x)}</option>`).join("")}`;$("expenseCategory").innerHTML=Object.keys(data.budgets).map(x=>`<option>${esc(x)}</option>`).join("");
 }
+
+function daysLeftInMonth(){
+ const now=new Date();
+ const end=new Date(now.getFullYear(),now.getMonth()+1,0);
+ return Math.max(1,end.getDate()-now.getDate()+1);
+}
+function weeksLeftInMonth(){return Math.max(1,daysLeftInMonth()/7)}
+function nextUnpaidCharge(){
+ const day=new Date().getDate();
+ const upcoming=data.fixedCharges.filter(x=>!x.paid).map(x=>({...x,sortDay:(x.day||28)<day?(x.day||28)+31:(x.day||28)})).sort((a,b)=>a.sortDay-b.sortDay);
+ return upcoming[0]||null;
+}
+function nextFutureIncome(){
+ return data.incomeTransactions.filter(x=>x.future&&new Date(x.date+"T23:59:59")>=new Date()).sort((a,b)=>a.date.localeCompare(b.date))[0]||null;
+}
+function renderSmartSummary(){
+ const t=totals();
+ const projected=endMonth();
+ const charge=nextUnpaidCharge();
+ const income=nextFutureIncome();
+ const weekly=t.available/weeksLeftInMonth();
+
+ $("weeklyBudgetView").textContent=euro(weekly);
+
+ if(charge){
+   $("nextChargeName").textContent=charge.label;
+   $("nextChargeInfo").textContent=`Le ${charge.day||28} · ${euro(charge.amount)}`;
+ }else{
+   $("nextChargeName").textContent="Aucun";
+   $("nextChargeInfo").textContent="Tout est marqué payé";
+ }
+
+ if(income){
+   $("nextIncomeName").textContent=income.label;
+   $("nextIncomeInfo").textContent=`${fmtDate(income.date)} · ${euro(income.amount)}`;
+ }else{
+   $("nextIncomeName").textContent="Non renseigné";
+   $("nextIncomeInfo").textContent="Ajoute un revenu futur";
+ }
+
+ const card=$("smartInsightCard");
+ card.classList.remove("positive","warning","danger");
+ let icon="✅",title="Budget sous contrôle",text="La situation du mois est correcte.";
+
+ if(projected<0){
+   card.classList.add("danger");
+   icon="🚨";title="Risque de découvert";
+   text=`La fin de mois est estimée à ${euro(projected)}. Vérifie les prélèvements et les dépenses à venir.`;
+ }else if(projected<300){
+   card.classList.add("warning");
+   icon="⚠️";title="Marge assez faible";
+   text=`Il resterait environ ${euro(projected)} à la fin du mois. Le budget hebdomadaire conseillé est de ${euro(weekly)}.`;
+ }else{
+   card.classList.add("positive");
+   const difference=projected-300;
+   icon="🟢";title="Vous gardez une marge";
+   text=`La fin de mois est estimée à ${euro(projected)}, soit ${euro(difference)} au-dessus de la marge de sécurité de 300 €.`;
+ }
+ $("smartInsightIcon").textContent=icon;
+ $("smartInsightTitle").textContent=title;
+ $("smartInsightText").textContent=text;
+}
+
 function renderAccounts(){$("accountsSummary").innerHTML=data.accounts.map(x=>`<div class="account-row"><div><b>${esc(x.name)}</b><small>${x.type==="savings"?"Épargne":x.type==="cash"?"Espèces":"Compte bancaire"}</small></div><strong>${euro(x.balance)}</strong></div>`).join("")}
 function renderAlerts(){const alerts=[];Object.entries(data.budgets).forEach(([cat,limit])=>{const spent=data.expenses.filter(x=>x.category===cat).reduce((s,x)=>s+x.amount,0),pct=limit?spent/limit*100:0;if(pct>=100)alerts.push({c:"danger",t:`${cat} dépassé : ${euro(spent)} sur ${euro(limit)}`});else if(pct>=80)alerts.push({c:"warning",t:`${cat} atteint ${Math.round(pct)} %`})});if(endMonth()<0)alerts.unshift({c:"danger",t:`Fin de mois prévue négative : ${euro(endMonth())}`});$("alerts").innerHTML=alerts.length?alerts.map(a=>`<div class="alert-item ${a.c}">${esc(a.t)}</div>`).join(""):'<div class="alert-item">Aucune alerte.</div>'}
-function renderForecast(){const ev=forecastEvents();let running=current().balance;const rows=[{date:new Date(),label:"Solde actuel",amount:0,type:"Départ",balance:running}];ev.forEach(e=>{running=Number((running+e.amount).toFixed(2));rows.push({...e,balance:running})});$("forecastStart").textContent=euro(current().balance);$("forecastEnd").textContent=euro(running);$("forecastEnd").className=running<0?"bad":running<300?"warn":"ok";$("forecastTimeline").innerHTML=rows.map((x,i)=>`<div class="timeline-item"><div class="timeline-date">${i===0?"Aujourd’hui":x.date.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"})}</div><div class="timeline-main"><b>${esc(x.label)}</b><small>${esc(x.type)}${x.amount?` · ${x.amount>0?"+":""}${euro(x.amount)}`:""}</small></div><div class="timeline-balance ${x.balance<0?"bad":x.balance<300?"warn":""}">${euro(x.balance)}</div></div>`).join("")}
-function renderChart(){const sums={};data.expenses.forEach(x=>sums[x.category]=(sums[x.category]||0)+x.amount);const max=Math.max(1,...Object.values(sums));$("categoryChart").innerHTML=Object.entries(sums).sort((a,b)=>b[1]-a[1]).map(([cat,val])=>`<div class="chart-row"><div class="chart-head"><b>${esc(cat)}</b><span>${euro(val)}</span></div><div class="chart-track"><div class="chart-fill" style="width:${val/max*100}%"></div></div></div>`).join("")||'<p class="muted">Aucune dépense.</p>'}
-function renderMonthlyStats(){const map={};data.expenses.forEach(x=>map[monthKey(x.date)]=(map[monthKey(x.date)]||0)+x.amount);data.archives.forEach(a=>{if(a.month&&!map[a.month])map[a.month]=a.expensesTotal||0});const now=new Date(),rows=[];for(let i=11;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1),k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;rows.push({label:d.toLocaleDateString("fr-FR",{month:"short"}),value:map[k]||0})}const max=Math.max(1,...rows.map(x=>x.value));$("monthlyStats").innerHTML=`<div class="month-chart">${rows.map(x=>`<div class="month-col"><b>${x.value?Math.round(x.value):""}</b><div class="month-bar" style="height:${Math.max(3,x.value/max*130)}px"></div><small>${esc(x.label)}</small></div>`).join("")}</div>`}
-function renderGoals(){$("goalsSummary").innerHTML=data.goals.map(g=>{const pct=g.target?Math.min(100,g.current/g.target*100):0;return`<div class="goal"><div class="goal-head"><div><b>${esc(g.name)}</b><small>${euro(g.current)} sur ${euro(g.target)}</small></div><span>${Math.round(pct)} %</span></div><div class="chart-track"><div class="chart-fill" style="width:${pct}%"></div></div></div>`}).join("")}
+function renderForecast(){
+ const ev=forecastEvents();
+ let running=current().balance;
+ const rows=[{date:new Date(),label:"Solde actuel",amount:0,type:"Départ",balance:running}];
+ ev.forEach(e=>{running=Number((running+e.amount).toFixed(2));rows.push({...e,balance:running})});
+
+ $("forecastStart").textContent=euro(current().balance);
+ $("forecastEnd").textContent=euro(running);
+ $("forecastEnd").className=running<0?"bad":running<300?"warn":"ok";
+
+ $("forecastTimeline").innerHTML=rows.map((x,i)=>`<div class="timeline-item"><div class="timeline-date">${i===0?"Aujourd’hui":x.date.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"})}</div><div class="timeline-main"><b>${esc(x.label)}</b><small>${esc(x.type)}${x.amount?` · ${x.amount>0?"+":""}${euro(x.amount)}`:""}</small></div><div class="timeline-balance ${x.balance<0?"bad":x.balance<300?"warn":""}">${euro(x.balance)}</div></div>`).join("");
+
+ const svg=$("forecastChart");
+ const width=640,height=220,padX=38,padTop=25,padBottom=35;
+ const values=rows.map(r=>r.balance);
+ const min=Math.min(...values,0),max=Math.max(...values,1);
+ const spread=Math.max(1,max-min);
+ const x=i=>rows.length===1?width/2:padX+i*(width-padX*2)/(rows.length-1);
+ const y=v=>padTop+(max-v)*(height-padTop-padBottom)/spread;
+ const points=rows.map((r,i)=>`${x(i).toFixed(1)},${y(r.balance).toFixed(1)}`).join(" ");
+ const area=`${x(0)},${height-padBottom} ${points} ${x(rows.length-1)},${height-padBottom}`;
+ const grid=[0,.25,.5,.75,1].map(f=>{
+   const gy=padTop+f*(height-padTop-padBottom);
+   const val=max-f*spread;
+   return `<line class="chart-grid-line" x1="${padX}" y1="${gy}" x2="${width-padX}" y2="${gy}"></line><text class="chart-label" x="4" y="${gy+6}">${Math.round(val)}</text>`;
+ }).join("");
+ const dots=rows.map((r,i)=>{
+   const cls=r.balance<0?"danger":r.balance<300?"warning":"";
+   return `<circle class="chart-dot ${cls}" cx="${x(i)}" cy="${y(r.balance)}" r="7"></circle>`;
+ }).join("");
+ svg.innerHTML=`<defs><linearGradient id="forecastGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2f6fed" stop-opacity=".28"/><stop offset="100%" stop-color="#2f6fed" stop-opacity=".02"/></linearGradient></defs>${grid}<polygon class="chart-area" points="${area}"></polygon><polyline class="chart-path" points="${points}"></polyline>${dots}`;
+}
+function renderChart(){
+ const sums={};
+ data.expenses.forEach(x=>sums[x.category]=(sums[x.category]||0)+x.amount);
+ const entries=Object.entries(sums).sort((a,b)=>b[1]-a[1]);
+ const total=entries.reduce((s,x)=>s+x[1],0);
+ $("categoryTotal").textContent=euro(total);
+
+ const palette=["#2f6fed","#36a66f","#f0a536","#d65d5d","#8c6dd7","#33a6b8","#e17fb2","#6f829f","#9aaf42","#df7b3f","#4f9bdf","#a56a43"];
+ let cursor=0;
+ const segments=entries.map(([cat,val],i)=>{
+   const pct=total?val/total*100:0;
+   const start=cursor,end=cursor+pct;
+   cursor=end;
+   return {cat,val,pct,color:palette[i%palette.length],css:`${palette[i%palette.length]} ${start}% ${end}%`};
+ });
+ $("categoryDonut").style.background=segments.length?`conic-gradient(${segments.map(s=>s.css).join(",")})`:"#e8edf6";
+ $("categoryLegend").innerHTML=segments.slice(0,7).map(s=>`<div class="legend-row"><div class="legend-name"><span class="legend-dot" style="background:${s.color}"></span><span>${esc(s.cat)}</span></div><b>${Math.round(s.pct)} %</b></div>`).join("")||'<p class="muted">Aucune dépense.</p>';
+
+ const max=Math.max(1,...entries.map(x=>x[1]));
+ $("categoryChart").innerHTML=entries.map(([cat,val],i)=>`<div class="chart-row"><div class="chart-head"><b>${esc(cat)}</b><span>${euro(val)}</span></div><div class="chart-track"><div class="chart-fill" style="width:${val/max*100}%;background:${palette[i%palette.length]}"></div></div></div>`).join("");
+}
+function renderMonthlyStats(){
+ const map={};
+ data.expenses.forEach(x=>map[monthKey(x.date)]=(map[monthKey(x.date)]||0)+x.amount);
+ data.archives.forEach(a=>{if(a.month&&!map[a.month])map[a.month]=a.expensesTotal||0});
+ const now=new Date(),rows=[];
+ for(let i=11;i>=0;i--){
+   const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+   const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+   rows.push({key:k,label:d.toLocaleDateString("fr-FR",{month:"short"}),value:map[k]||0});
+ }
+ const max=Math.max(1,...rows.map(x=>x.value));
+ $("monthlyStats").innerHTML=`<div class="month-chart">${rows.map(x=>`<div class="month-col"><b>${x.value?Math.round(x.value):""}</b><div class="month-bar" style="height:${Math.max(3,x.value/max*130)}px"></div><small>${esc(x.label)}</small></div>`).join("")}</div>`;
+
+ const currentRow=rows[rows.length-1],previousRow=rows[rows.length-2];
+ const completed=rows.filter(x=>x.value>0);
+ const average=completed.length?completed.reduce((s,x)=>s+x.value,0)/completed.length:0;
+ const diff=currentRow.value-previousRow.value;
+ const diffPct=previousRow.value?diff/previousRow.value*100:0;
+ $("monthComparison").innerHTML=`
+   <div class="compare-box"><span>Ce mois-ci</span><b>${euro(currentRow.value)}</b><small>Dépenses saisies</small></div>
+   <div class="compare-box"><span>Mois précédent</span><b>${euro(previousRow.value)}</b><small>${diff===0?"Stable":diff>0?`+${Math.round(diffPct)} %`:`${Math.round(diffPct)} %`}</small></div>
+   <div class="compare-box"><span>Moyenne</span><b>${euro(average)}</b><small>mois renseignés</small></div>`;
+}
+function renderGoals(){
+ $("goalsSummary").innerHTML=data.goals.map(g=>{
+   const pct=g.target?Math.min(100,g.current/g.target*100):0;
+   return `<div class="goal"><div class="goal-head"><div><b>${esc(g.name)}</b><small>${euro(g.current)} sur ${euro(g.target)}</small></div><span>${Math.round(pct)} %</span></div><div class="chart-track"><div class="chart-fill" style="width:${pct}%"></div></div><div class="goal-actions"><button data-goal-add="${g.id}" data-amount="10">+10 €</button><button data-goal-add="${g.id}" data-amount="50">+50 €</button><button data-goal-add="${g.id}" data-amount="100">+100 €</button></div></div>`;
+ }).join("");
+}
 function calendarEventsFor(dateStr){const day=Number(dateStr.slice(8,10));return[...data.expenses.filter(x=>x.date===dateStr).map(x=>({type:"expense",label:x.label,amount:-x.amount})),...data.incomeTransactions.filter(x=>x.date===dateStr).map(x=>({type:"income",label:x.label,amount:x.amount})),...data.fixedCharges.filter(x=>!x.paid&&x.day===day).map(x=>({type:"charge",label:x.label,amount:-x.amount}))]}
 function renderCalendar(){const y=calendarDate.getFullYear(),m=calendarDate.getMonth();$("calendarTitle").textContent=new Date(y,m,1).toLocaleDateString("fr-FR",{month:"long",year:"numeric"});let first=new Date(y,m,1).getDay();first=first===0?6:first-1;const days=new Date(y,m+1,0).getDate(),cells=[];for(let i=0;i<first;i++)cells.push('<div class="calendar-day empty"></div>');for(let d=1;d<=days;d++){const ds=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`,events=calendarEventsFor(ds);cells.push(`<button class="calendar-day ${ds===selectedCalendarDate?"selected":""}" data-calendar-date="${ds}"><span class="num">${d}</span>${events.slice(0,2).map(e=>`<span class="calendar-dot ${e.type}">${esc(e.label)}</span>`).join("")}${events.length>2?`<span class="calendar-dot">+${events.length-2}</span>`:""}</button>`)}$("calendarGrid").innerHTML=cells.join("");renderCalendarDetails()}
 function renderCalendarDetails(){const events=calendarEventsFor(selectedCalendarDate);$("calendarDetails").innerHTML=events.length?`<b>${fmtDate(selectedCalendarDate)}</b>`+events.map(e=>`<div class="history-row"><span>${esc(e.label)}</span><strong class="${e.amount>0?"ok":""}">${e.amount>0?"+":""}${euro(e.amount)}</strong></div>`).join(""):`Aucune opération le ${fmtDate(selectedCalendarDate)}.`}
@@ -104,8 +245,8 @@ function applyTheme(){document.body.classList.toggle("dark",data.settings.darkMo
 document.querySelectorAll(".bottom-nav button").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".bottom-nav button").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));b.classList.add("active");$(b.dataset.tab).classList.add("active")}));
 $("themeQuick").addEventListener("click",()=>{data.settings.darkMode=!data.settings.darkMode;save()});$("darkModeToggle").addEventListener("change",()=>{data.settings.darkMode=$("darkModeToggle").checked;save()});
 $("expenseLabel").addEventListener("input",()=>{const c=guessCategory($("expenseLabel").value);$("expenseCategory").value=c;$("categorySuggestion").innerHTML=`Catégorie proposée : <b>${esc(c)}</b>`});
-$("saveExpense").addEventListener("click",()=>{const amount=Number($("expenseAmount").value),method=$("paymentMethod").value,accountId=$("expenseAccount").value;if(!amount||amount<=0)return alert("Montant invalide.");const deferred=method==="deferred_card";data.expenses.unshift({id:crypto.randomUUID(),amount,label:$("expenseLabel").value.trim()||"Dépense",category:$("expenseCategory").value,date:$("expenseDate").value,paymentMethod:method,debited:!deferred,accountId});if(!deferred)account(accountId).balance=Number((account(accountId).balance-amount).toFixed(2));$("expenseAmount").value="";$("expenseLabel").value="";save()});
-$("futureIncome").addEventListener("change",()=>{$("futureDateBlock").hidden=!$("futureIncome").checked});$("saveIncome").addEventListener("click",()=>{const amount=Number($("incomeAmount").value),future=$("futureIncome").checked,accountId=$("incomeAccount").value;if(!amount||amount<=0)return alert("Montant invalide.");const date=future?$("futureIncomeDate").value:today();data.incomeTransactions.unshift({id:crypto.randomUUID(),amount,label:$("incomeLabel").value.trim()||"Revenu",date,future,accountId});if(!future)account(accountId).balance=Number((account(accountId).balance+amount).toFixed(2));$("incomeAmount").value="";$("incomeLabel").value="";save()});
+$("saveExpense").addEventListener("click",()=>{const amount=Number($("expenseAmount").value),method=$("paymentMethod").value,accountId=$("expenseAccount").value;if(!amount||amount<=0)return alert("Montant invalide.");const deferred=method==="deferred_card";data.expenses.unshift({id:crypto.randomUUID(),amount,label:$("expenseLabel").value.trim()||"Dépense",category:$("expenseCategory").value,date:$("expenseDate").value,paymentMethod:method,debited:!deferred,accountId});if(!deferred)account(accountId).balance=Number((account(accountId).balance-amount).toFixed(2));$("expenseAmount").value="";$("expenseLabel").value="";navigator.vibrate?.(25);save()});
+$("futureIncome").addEventListener("change",()=>{$("futureDateBlock").hidden=!$("futureIncome").checked});$("saveIncome").addEventListener("click",()=>{const amount=Number($("incomeAmount").value),future=$("futureIncome").checked,accountId=$("incomeAccount").value;if(!amount||amount<=0)return alert("Montant invalide.");const date=future?$("futureIncomeDate").value:today();data.incomeTransactions.unshift({id:crypto.randomUUID(),amount,label:$("incomeLabel").value.trim()||"Revenu",date,future,accountId});if(!future)account(accountId).balance=Number((account(accountId).balance+amount).toFixed(2));$("incomeAmount").value="";$("incomeLabel").value="";navigator.vibrate?.(25);save()});
 $("saveTransfer").addEventListener("click",()=>{const amount=Number($("transferAmount").value),from=$("transferFrom").value,to=$("transferTo").value;if(!amount||amount<=0||from===to)return alert("Virement invalide.");account(from).balance-=amount;account(to).balance+=amount;data.transfers.unshift({id:crypto.randomUUID(),amount,label:`${account(from).name} → ${account(to).name}`,date:today(),fromAccountId:from,toAccountId:to});save()});
 $("applyDeferredDebit").addEventListener("click",()=>{const total=pendingDeferred();if(total<=0)return alert("Aucune CB en attente.");current().balance=Number((current().balance-total).toFixed(2));data.expenses=data.expenses.map(x=>x.paymentMethod==="deferred_card"&&!x.debited?{...x,debited:true}:x);save()});
 $("prevMonth").addEventListener("click",()=>{calendarDate=new Date(calendarDate.getFullYear(),calendarDate.getMonth()-1,1);renderCalendar()});$("nextMonth").addEventListener("click",()=>{calendarDate=new Date(calendarDate.getFullYear(),calendarDate.getMonth()+1,1);renderCalendar()});
@@ -117,6 +258,14 @@ function renderImportPreview(){if(!importRows.length){$("importStatus").hidden=f
 $("confirmImport").addEventListener("click",()=>{const accountId=$("importAccount").value;importRows.filter(x=>x.selected).forEach(r=>{if(r.direction==="expense"){data.expenses.unshift({id:r.id,amount:r.amount,label:r.label,category:r.category,date:r.date,paymentMethod:"immediate_card",debited:true,accountId});account(accountId).balance-=r.amount}else{data.incomeTransactions.unshift({id:r.id,amount:r.amount,label:r.label,date:r.date,future:false,accountId});account(accountId).balance+=r.amount}});importRows=[];$("importPreviewCard").hidden=true;save();alert("Import terminé.")});
 
 document.addEventListener("click",e=>{
+ const goalButton=e.target.closest("[data-goal-add]");
+ if(goalButton){
+   const goal=data.goals.find(g=>g.id===goalButton.dataset.goalAdd);
+   const amount=Number(goalButton.dataset.amount||0);
+   if(goal&&amount>0){goal.current=Number((goal.current+amount).toFixed(2));navigator.vibrate?.(25);save();}
+   return;
+ }
+
  const cd=e.target.closest("[data-calendar-date]")?.dataset.calendarDate;if(cd){selectedCalendarDate=cd;renderCalendar();return}
  const ad=e.target.closest("[data-archive-delete]")?.dataset.archiveDelete;if(ad){data.archives=data.archives.filter(x=>x.id!==ad);save();return}
  for(const type of["expense","income","transfer"]){const id=e.target.closest(`[data-${type}]`)?.dataset[type];if(id){if(type==="expense"){const x=data.expenses.find(y=>y.id===id);if(x&&x.debited)account(x.accountId).balance+=x.amount;data.expenses=data.expenses.filter(y=>y.id!==id)}if(type==="income"){const x=data.incomeTransactions.find(y=>y.id===id);if(x&&!x.future)account(x.accountId).balance-=x.amount;data.incomeTransactions=data.incomeTransactions.filter(y=>y.id!==id)}if(type==="transfer"){const x=data.transfers.find(y=>y.id===id);if(x){account(x.fromAccountId).balance+=x.amount;account(x.toAccountId).balance-=x.amount}data.transfers=data.transfers.filter(y=>y.id!==id)}save();return}}
@@ -127,7 +276,7 @@ $("addAccount").addEventListener("click",()=>{data.accounts.push({id:crypto.rand
 $("archiveMonth").addEventListener("click",()=>{const key=new Date().toISOString().slice(0,7),expensesTotal=data.expenses.filter(x=>monthKey(x.date)===key).reduce((s,x)=>s+x.amount,0),archive={id:crypto.randomUUID(),month:key,label:new Date().toLocaleDateString("fr-FR",{month:"long",year:"numeric"}),expensesTotal,closingBalance:current().balance};data.archives=data.archives.filter(x=>x.month!==key);data.archives.push(archive);save();alert("Mois archivé.")});
 function csvEscape(v){const s=String(v??"");return /[;"\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s}
 $("exportCsv").addEventListener("click",()=>{const rows=[["Date","Type","Libellé","Catégorie","Montant","Compte","Paiement"]];data.expenses.forEach(x=>rows.push([x.date,"Dépense",x.label,x.category,-x.amount,account(x.accountId)?.name||"",paymentLabel(x)]));data.incomeTransactions.forEach(x=>rows.push([x.date,"Revenu",x.label,"Revenu",x.amount,account(x.accountId)?.name||"",x.future?"Prévu":"Reçu"]));const csv="\ufeff"+rows.map(r=>r.map(csvEscape).join(";")).join("\n"),blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="budget_laetitia_operations.csv";a.click()});
-$("exportData").addEventListener("click",()=>{const blob=new Blob([JSON.stringify({app:"Budget Familial Laetitia",version:"12.0.0",data},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="budget_laetitia_v12.json";a.click()});
+$("exportData").addEventListener("click",()=>{const blob=new Blob([JSON.stringify({app:"Budget Familial Laetitia",version:"15.0.0",data},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="budget_laetitia_v15.json";a.click()});
 $("importDataBtn").addEventListener("click",()=>$("importDataFile").click());$("importDataFile").addEventListener("change",e=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const p=JSON.parse(String(r.result));data=migrate(p.data||p);save();alert("Sauvegarde restaurée.")}catch{alert("Fichier invalide.")}};r.readAsText(f)});
 $("restoreAutoBackup").addEventListener("click",()=>{try{const raw=localStorage.getItem(BACKUP_KEY);data=migrate(JSON.parse(raw).data);save();alert("Sauvegarde récupérée.")}catch{alert("Aucune sauvegarde.")}});
 $("resetApp").addEventListener("click",()=>{if(confirm("Réinitialiser ?")){data=migrate(initial);save()}});

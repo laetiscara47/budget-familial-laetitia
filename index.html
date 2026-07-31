@@ -9,15 +9,15 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css?v=12.0.0">
-  <title>Mon Budget — V12</title>
+  <link rel="stylesheet" href="./styles.css?v=15.0.0">
+  <title>Mon Budget — V15</title>
 </head>
 <body>
 <header class="app-header">
   <div>
     <h1>💙 Mon Budget</h1>
     <p id="headerSubtitle">Laetitia</p>
-    <small>Version 12.0</small>
+    <small>Version 15.0</small>
   </div>
   <button id="themeQuick" class="header-button" aria-label="Changer le thème">🌙</button>
 </header>
@@ -35,6 +35,32 @@
       <article class="metric card"><span>CB en attente</span><b id="deferredView">0 €</b></article>
       <article class="metric card"><span>Jusqu’au prochain revenu</span><b id="untilIncomeView">0 €</b></article>
       <article class="metric card"><span>Fin de mois prévue</span><b id="endMonthView">0 €</b></article>
+    </section>
+
+    <article id="smartInsightCard" class="card smart-insight">
+      <div class="insight-icon" id="smartInsightIcon">💡</div>
+      <div>
+        <h2 id="smartInsightTitle">Analyse du mois</h2>
+        <p id="smartInsightText">Calcul en cours…</p>
+      </div>
+    </article>
+
+    <section class="quick-grid">
+      <article class="card quick-card">
+        <span>Prochain prélèvement</span>
+        <b id="nextChargeName">Aucun</b>
+        <small id="nextChargeInfo">—</small>
+      </article>
+      <article class="card quick-card">
+        <span>Prochain revenu</span>
+        <b id="nextIncomeName">Non renseigné</b>
+        <small id="nextIncomeInfo">—</small>
+      </article>
+      <article class="card quick-card">
+        <span>Budget par semaine</span>
+        <b id="weeklyBudgetView">0 €</b>
+        <small>jusqu’à la fin du mois</small>
+      </article>
     </section>
 
     <article class="card">
@@ -65,16 +91,29 @@
         <div><span>Départ</span><b id="forecastStart">0 €</b></div>
         <div><span>Fin estimée</span><b id="forecastEnd">0 €</b></div>
       </div>
-      <div id="forecastTimeline" class="timeline"></div>
+      <div class="line-chart-wrap">
+        <svg id="forecastChart" class="line-chart" viewBox="0 0 640 220" role="img" aria-label="Évolution prévue du solde"></svg>
+      </div>
+      <details class="forecast-details">
+        <summary>Voir le détail jour par jour</summary>
+        <div id="forecastTimeline" class="timeline"></div>
+      </details>
     </article>
 
     <article class="card">
       <div class="section-title"><h2>📊 Dépenses par catégorie</h2></div>
-      <div id="categoryChart"></div>
+      <div class="donut-layout">
+        <div id="categoryDonut" class="donut-chart">
+          <div class="donut-center"><span>Total</span><b id="categoryTotal">0 €</b></div>
+        </div>
+        <div id="categoryLegend" class="donut-legend"></div>
+      </div>
+      <div id="categoryChart" class="category-bars"></div>
     </article>
 
     <article class="card">
       <div class="section-title"><h2>📅 12 derniers mois</h2></div>
+      <div id="monthComparison" class="comparison-grid"></div>
       <div id="monthlyStats"></div>
     </article>
 
@@ -238,6 +277,6 @@
   <button data-tab="settings"><span>⚙️</span><small>Réglages</small></button>
 </nav>
 
-<script src="./app.js?v=12.0.0"></script>
+<script src="./app.js?v=15.0.0"></script>
 </body>
 </html>

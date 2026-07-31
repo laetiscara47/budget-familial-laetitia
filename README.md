@@ -1,30 +1,32 @@
-# Budget Familial Laetitia — V12.0
+# Budget Familial Laetitia — V15.0
 
-## Réalisé
+## Nouveautés
 
-- tableau de bord complet ;
+- accueil intelligent avec commentaire automatique ;
+- prochain prélèvement et prochain revenu ;
+- budget conseillé par semaine ;
+- graphique circulaire des catégories ;
+- courbe de trésorerie prévisionnelle ;
+- comparaison avec le mois précédent et la moyenne ;
+- objectifs d’épargne avec boutons rapides ;
+- animations et interface plus fluide ;
+- retour haptique lorsque le navigateur le permet.
+
+## Fonctions conservées
+
 - plusieurs comptes et virements ;
 - carte à débit différé le 4 ;
-- calendrier financier mensuel ;
-- prévision du compte ;
-- disponible jusqu’au prochain revenu ;
-- catégories intelligentes ;
-- budgets avec alertes ;
-- statistiques sur 12 mois ;
-- objectifs d’épargne ;
-- import bancaire CSV avec aperçu ;
+- calendrier financier ;
+- import bancaire CSV ;
 - recherche et filtres ;
+- budgets et alertes ;
+- statistiques sur 12 mois ;
 - archives mensuelles ;
 - mode sombre ;
 - export CSV et sauvegarde JSON ;
-- migration automatique des données précédentes.
+- migration automatique des anciennes données.
 
-## Important
-
-Cette version ne comporte aucun écran PIN afin d’éviter tout blocage.
-Face ID, widgets iPhone et synchronisation cloud nécessiteraient une application native et ne sont pas simulés ici.
-
-## Fichiers GitHub
+## Fichiers GitHub à remplacer
 
 - index.html
 - styles.css
