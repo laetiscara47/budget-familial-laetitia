@@ -1,20 +1,18 @@
-# Budget Familial Laetitia — V1.2
+# Budget Familial Laetitia — V1.3
 
-Corrections réalisées :
+Fonction réalisée :
 
-- le solde bancaire s’actualise immédiatement pendant la saisie ;
-- le nouveau solde est sauvegardé automatiquement ;
-- les revenus actualisent immédiatement le reste à vivre ;
-- le mois affiché se met à jour en direct ;
-- le cache de l’ancienne application est automatiquement remplacé ;
-- le service worker vérifie les nouvelles versions au démarrage.
+- chaque dépense enregistrée diminue automatiquement le solde bancaire ;
+- exemple : solde 3 000 € puis dépense de 50 € = nouveau solde 2 950 € ;
+- supprimer une dépense recrédite automatiquement son montant ;
+- le nouveau solde est sauvegardé sur l’iPhone ;
+- l’affichage de l’accueil se met à jour immédiatement ;
+- le cache de l’ancienne version est remplacé.
 
-## Mise à jour GitHub Pages
+## Mise à jour
 
-Remplacer dans le dépôt :
+Remplacer dans GitHub :
 - `index.html`
 - `manifest.webmanifest`
 - `sw.js`
 - `icon.svg`
-
-Puis attendre la nouvelle publication GitHub Pages.

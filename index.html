@@ -60,6 +60,7 @@
     .actions{display:flex;gap:8px;flex-wrap:wrap}
     .muted{color:var(--muted)}
     .empty{text-align:center;color:var(--muted);padding:14px}
+    .balance-note{padding:10px;border-radius:11px;background:#eaf8f0;color:var(--ok);font-size:13px;margin-top:10px}
     nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#fff;border-top:1px solid #e0e5ef;display:grid;grid-template-columns:repeat(5,1fr);padding:7px 3px calc(7px + env(safe-area-inset-bottom));box-shadow:0 -4px 14px rgba(20,35,70,.08)}
     nav button{border:0;background:transparent;color:#7a8394;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;padding:5px 2px}
     nav button.active{color:var(--blue);font-weight:800}
@@ -82,7 +83,7 @@
       <small id="status">Calcul en cours</small>
     </div>
     <div class="summary">
-      <div class="box"><span>Solde banque</span><b id="bankBalanceView">0 €</b></div>
+      <div class="box"><span>Solde banque actuel</span><b id="bankBalanceView">0 €</b></div>
       <div class="box"><span>Revenus</span><b id="incomeView">0 €</b></div>
       <div class="box"><span>Charges fixes</span><b id="fixedView">0 €</b></div>
       <div class="box"><span>Dépenses saisies</span><b id="expenseView">0 €</b></div>
@@ -106,6 +107,7 @@
       <label>Catégorie</label><select id="category"></select>
       <label>Date</label><input id="date" type="date">
       <button id="saveExpense" class="primary">Enregistrer</button>
+      <div class="balance-note">La dépense sera automatiquement déduite du solde bancaire.</div>
     </div>
   </section>
 
@@ -124,7 +126,7 @@
       <h2>⚙️ Réglages</h2>
       <label>Solde bancaire actuel</label>
       <input id="bankBalance" type="number" step="0.01">
-      <p class="muted">Le solde s’actualise immédiatement pendant la saisie.</p>
+      <p class="muted">Ce solde diminue automatiquement à chaque dépense saisie.</p>
       <label>Mois affiché</label>
       <input id="month">
     </div>
@@ -275,12 +277,22 @@
     $("categorySuggestion").innerHTML='Catégorie proposée : <b>'+esc(cat)+'</b>';
   });
 
+  // NOUVEAU : la dépense diminue immédiatement le solde bancaire
   $("saveExpense").addEventListener("click",()=>{
     const amount=Number($("amount").value);
     if(!amount||amount<=0){alert("Saisis un montant valide.");return;}
     const category=guessCategory($("label").value);
-    data.expenses.unshift({id:String(Date.now()),amount,label:$("label").value.trim()||category,category,date:$("date").value});
-    $("amount").value="";$("label").value="";save();
+    data.expenses.unshift({
+      id:String(Date.now()),
+      amount,
+      label:$("label").value.trim()||category,
+      category,
+      date:$("date").value
+    });
+    data.bankBalance=Number((Number(data.bankBalance)-amount).toFixed(2));
+    $("amount").value="";
+    $("label").value="";
+    save();
     document.querySelector('nav button[data-tab="home"]').click();
   });
 
@@ -293,15 +305,12 @@
   });
 
   $("search").addEventListener("input",renderHistory);
-
-  // CORRECTION : mise à jour immédiate, sans attendre de quitter le champ
   $("bankBalance").addEventListener("input",()=>{
     data.bankBalance=Number($("bankBalance").value)||0;
     localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
     $("bankBalanceView").textContent=euro(data.bankBalance);
   });
   $("bankBalance").addEventListener("change",save);
-
   $("month").addEventListener("input",()=>{
     data.month=$("month").value;
     localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
@@ -318,9 +327,19 @@
 
   document.addEventListener("click",e=>{
     const chargeId=e.target.closest("[data-charge]")?.dataset.charge;
-    if(chargeId){data.fixedCharges=data.fixedCharges.map(x=>x.id===chargeId?{...x,paid:!x.paid}:x);save();}
+    if(chargeId){
+      data.fixedCharges=data.fixedCharges.map(x=>x.id===chargeId?{...x,paid:!x.paid}:x);
+      save();
+    }
     const expId=e.target.closest("[data-expense]")?.dataset.expense;
-    if(expId){data.expenses=data.expenses.filter(x=>x.id!==expId);save();}
+    if(expId){
+      const expense=data.expenses.find(x=>x.id===expId);
+      if(expense){
+        data.bankBalance=Number((Number(data.bankBalance)+Number(expense.amount)).toFixed(2));
+      }
+      data.expenses=data.expenses.filter(x=>x.id!==expId);
+      save();
+    }
   });
 
   document.addEventListener("input",e=>{
@@ -346,7 +365,6 @@
 
   $("date").value=new Date().toISOString().slice(0,10);
   render();
-
   if("serviceWorker" in navigator){
     navigator.serviceWorker.register("./sw.js").then(reg=>reg.update()).catch(()=>{});
   }

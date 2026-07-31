@@ -1,4 +1,4 @@
-const CACHE='budget-laetitia-v1-2-20260731';
+const CACHE='budget-laetitia-v1-3-20260731';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./icon.svg'];
 
 self.addEventListener('install',event=>{
