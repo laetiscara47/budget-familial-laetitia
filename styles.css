@@ -54,3 +54,8 @@ body.dark .forecast-summary div,body.dark .info-box{background:#20283a}
 body.dark .charge-button{background:#1a202c;color:var(--text);border-color:var(--line)}
 body.dark .bottom-nav{background:#171d27}
 body.dark .lock-card{background:#1a202c;color:var(--text)}
+
+
+/* V9 */
+.setup-note{margin-top:10px;padding:10px;border-radius:10px;background:#eef6ff;color:#2859a8;font-size:13px}
+body.dark .setup-note{background:#20283a;color:#a9c2ff}

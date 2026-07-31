@@ -9,8 +9,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css?v=8.0.0">
-  <title>Mon Budget — V8</title>
+  <link rel="stylesheet" href="./styles.css?v=9.0.0">
+  <title>Mon Budget — V9</title>
 </head>
 <body>
 <div id="lockScreen" class="lock-screen" hidden>
@@ -20,6 +20,7 @@
     <p>Entre ton code PIN</p>
     <input id="pinInput" type="password" inputmode="numeric" maxlength="6" placeholder="••••">
     <button id="unlockApp" class="primary">Déverrouiller</button>
+    <button id="forgotPin" class="soft full">Code oublié</button>
     <p id="pinMessage" class="muted"></p>
   </div>
 </div>
@@ -27,7 +28,7 @@
   <div>
     <h1>💙 Mon Budget</h1>
     <p id="headerSubtitle">Laetitia</p>
-    <small>Version 8.0</small>
+    <small>Version 9.0</small>
   </div>
 </header>
 
@@ -204,6 +205,7 @@
       <input id="pinSetting" type="password" inputmode="numeric" maxlength="6" placeholder="4 à 6 chiffres">
       <button id="savePin" class="soft full">Enregistrer le code PIN</button>
       <button id="removePin" class="danger full">Supprimer le code PIN</button>
+      <p id="pinStatus" class="muted">Aucun code PIN actif.</p>
     </article>
 
     <article class="card">
@@ -245,6 +247,6 @@
   <button data-tab="settings"><span>⚙️</span><small>Réglages</small></button>
 </nav>
 
-<script src="./app.js?v=8.0.0"></script>
+<script src="./app.js?v=9.0.0"></script>
 </body>
 </html>

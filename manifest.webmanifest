@@ -1,10 +1,10 @@
 {
   "name": "Budget Familial Laetitia",
   "short_name": "Mon Budget",
-  "start_url": "./?v=8.0.0",
+  "start_url": "./?v=9.0.0",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f3f6fb",
   "theme_color": "#2f6fed",
-  "description": "Application personnelle de budget familial V8"
+  "description": "Application personnelle de budget familial V9"
 }

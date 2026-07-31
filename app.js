@@ -1,6 +1,6 @@
 (()=>{
 "use strict";
-const STORAGE_KEY="budget-familial-laetitia-final-v1",BACKUP_KEY=STORAGE_KEY+"-backup",DATA_VERSION=8;
+const STORAGE_KEY="budget-familial-laetitia-final-v1",BACKUP_KEY=STORAGE_KEY+"-backup",DATA_VERSION=9;
 const $=id=>document.getElementById(id),clone=o=>JSON.parse(JSON.stringify(o));
 const euro=n=>Number(n||0).toLocaleString("fr-FR",{style:"currency",currency:"EUR"});
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
@@ -64,7 +64,7 @@ function migrate(saved){
  d.expenses=(Array.isArray(d.expenses)?d.expenses:[]).map(x=>({...x,id:x.id||crypto.randomUUID(),amount:Number(x.amount||0),category:x.category||"Autre",date:x.date||today(),paymentMethod:x.paymentMethod||"immediate_card",debited:x.debited!==false,accountId:x.accountId||"current"}));
  d.incomeTransactions=(Array.isArray(d.incomeTransactions)?d.incomeTransactions:[]).map(x=>({...x,id:x.id||crypto.randomUUID(),future:Boolean(x.future),accountId:x.accountId||"current"}));
  d.transfers=Array.isArray(d.transfers)?d.transfers:[];
- d.goals=Array.isArray(d.goals)?d.goals:clone(initial.goals);d.archives=Array.isArray(d.archives)?d.archives:[];d.settings=d.settings&&typeof d.settings==="object"?d.settings:{pin:"",darkMode:false};
+ d.goals=Array.isArray(d.goals)?d.goals:clone(initial.goals);d.archives=Array.isArray(d.archives)?d.archives:[];d.settings=d.settings&&typeof d.settings==="object"?d.settings:{pin:"",darkMode:false};d.settings.pin=typeof d.settings.pin==="string"?d.settings.pin:"";d.settings.darkMode=Boolean(d.settings.darkMode);
  d.budgets=d.budgets&&typeof d.budgets==="object"?d.budgets:clone(initial.budgets);
  d.rules=Array.isArray(d.rules)?d.rules:clone(initial.rules);
  d.dataVersion=DATA_VERSION;
@@ -99,7 +99,7 @@ function render(){
  $("currentBalanceView").textContent=euro(current().balance);$("deferredView").textContent=euro(def);
  $("savingsBalanceView").textContent=euro(data.accounts.filter(x=>x.type==="savings").reduce((s,x)=>s+x.balance,0));
  $("endMonthView").textContent=euro(endMonth());$("deferredTotal").textContent=euro(def);
- renderSelects();renderAccounts();renderForecast();renderChart();renderGoals();renderCharges();renderHistory();renderSettings();renderAlerts();renderMonthlyStats();renderArchives();applyTheme();
+ renderSelects();renderAccounts();renderForecast();renderChart();renderGoals();renderCharges();renderHistory();renderSettings();renderAlerts();renderMonthlyStats();renderArchives();applyTheme();renderPinStatus();
 }
 function renderSelects(){
  const opts=data.accounts.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("");
@@ -171,15 +171,21 @@ function renderMonthlyStats(){
 function renderArchives(){
  $("archivesList").innerHTML=data.archives.length?data.archives.slice().reverse().map(a=>`<div class="archive-row"><div><b>${esc(a.label||a.month)}</b><small>Dépenses ${euro(a.expensesTotal)} · Solde ${euro(a.closingBalance)}</small></div><button data-archive-delete="${a.id}">✕</button></div>`).join(""):'<p class="muted">Aucune archive.</p>';
 }
+function renderPinStatus(){
+ $("pinStatus").textContent=data.settings.pin?"Code PIN actif.":"Aucun code PIN actif.";
+}
 function applyTheme(){
  document.body.classList.toggle("dark",Boolean(data.settings.darkMode));
  $("darkModeToggle").checked=Boolean(data.settings.darkMode);
 }
 function lockIfNeeded(){
- if(data.settings.pin){
+ const pin=String(data.settings.pin||"").trim();
+ if(/^\d{4,6}$/.test(pin)){
    $("lockScreen").hidden=false;
    document.body.style.overflow="hidden";
  }else{
+   data.settings.pin="";
+   localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
    $("lockScreen").hidden=true;
    document.body.style.overflow="";
  }
@@ -212,12 +218,27 @@ $("addAccount").addEventListener("click",()=>{data.accounts.push({id:crypto.rand
 $("savePin").addEventListener("click",()=>{
  const pin=$("pinSetting").value.trim();
  if(!/^\d{4,6}$/.test(pin))return alert("Choisis un code de 4 à 6 chiffres.");
- data.settings.pin=pin;$("pinSetting").value="";save();alert("Code PIN enregistré.");
+ data.settings.pin=pin;
+ $("pinSetting").value="";
+ save();
+ renderPinStatus();
+ alert("Code PIN enregistré. Il sera demandé au prochain démarrage.");
 });
-$("removePin").addEventListener("click",()=>{data.settings.pin="";save();alert("Code PIN supprimé.")});
+$("removePin").addEventListener("click",()=>{data.settings.pin="";save();renderPinStatus();$("lockScreen").hidden=true;document.body.style.overflow="";alert("Code PIN supprimé.")});
 $("unlockApp").addEventListener("click",()=>{
- if($("pinInput").value===data.settings.pin){$("lockScreen").hidden=true;document.body.style.overflow="";$("pinInput").value="";$("pinMessage").textContent=""}
+ if($("pinInput").value===String(data.settings.pin||"")){$("lockScreen").hidden=true;document.body.style.overflow="";$("pinInput").value="";$("pinMessage").textContent=""}
  else{$("pinMessage").textContent="Code incorrect."}
+});
+$("forgotPin").addEventListener("click",()=>{
+ if(!confirm("Supprimer le code PIN de cette application ?"))return;
+ data.settings.pin="";
+ localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+ $("lockScreen").hidden=true;
+ document.body.style.overflow="";
+ $("pinInput").value="";
+ $("pinMessage").textContent="";
+ renderPinStatus();
+ alert("Le code PIN a été supprimé. Tu peux en créer un nouveau dans Réglages.");
 });
 $("pinInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("unlockApp").click()});
 $("darkModeToggle").addEventListener("change",()=>{data.settings.darkMode=$("darkModeToggle").checked;save()});
@@ -236,12 +257,12 @@ $("exportCsv").addEventListener("click",()=>{
  const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="budget_laetitia_operations.csv";a.click();
 });
 
-$("exportData").addEventListener("click",()=>{const blob=new Blob([JSON.stringify({app:"Budget Familial Laetitia",version:"8.0.0",data},null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="budget_laetitia_v8.json";a.click()});
+$("exportData").addEventListener("click",()=>{const blob=new Blob([JSON.stringify({app:"Budget Familial Laetitia",version:"9.0.0",data},null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="budget_laetitia_v9.json";a.click()});
 $("importDataBtn").addEventListener("click",()=>$("importDataFile").click());$("importDataFile").addEventListener("change",e=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const p=JSON.parse(String(r.result));data=migrate(p.data||p);save();alert("Sauvegarde restaurée.")}catch{alert("Fichier invalide.")}};r.readAsText(f)});
 $("restoreAutoBackup").addEventListener("click",()=>{try{const raw=localStorage.getItem(BACKUP_KEY);data=migrate(JSON.parse(raw).data);save()}catch{alert("Aucune sauvegarde.")}});
 $("resetApp").addEventListener("click",()=>{if(confirm("Réinitialiser ?")){data=migrate(initial);save()}});
 
-$("expenseDate").value=today();$("futureIncomeDate").value=today();save();lockIfNeeded();
+$("expenseDate").value=today();$("futureIncomeDate").value=today();save();renderPinStatus();lockIfNeeded();
 if("caches"in window)caches.keys().then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).catch(()=>{});
 fetch("./version.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(v=>{if(location.search!==`?v=${v.version}`)location.replace(`${location.pathname}?v=${v.version}`)}).catch(()=>{});
 })();
