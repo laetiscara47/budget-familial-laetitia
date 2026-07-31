@@ -389,3 +389,60 @@ body.dark .scenario-result-grid div,body.dark .debt-plan-summary{background:#171
   .scenario-grid{grid-template-columns:1fr}
   .scenario-result-grid{grid-template-columns:1fr}
 }
+
+
+/* =========================
+   V2 PRO — finition professionnelle
+   ========================= */
+.brand-line{display:flex;align-items:center;gap:9px}
+.brand-line h1{margin:0}
+.pro-badge{
+  padding:4px 7px;border-radius:999px;background:rgba(255,255,255,.2);
+  color:#fff;font-size:10px;font-weight:900;letter-spacing:.08em
+}
+.pro-header{backdrop-filter:saturate(160%) blur(16px)}
+
+.pro-alert{
+  display:grid;grid-template-columns:38px 1fr auto;gap:10px;align-items:start;
+  padding:11px 0;border-bottom:1px solid var(--line)
+}
+.pro-alert:last-child{border-bottom:0}
+.pro-alert-icon{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:var(--blue-soft)}
+.pro-alert b{display:block;margin-bottom:3px}
+.pro-alert p{margin:0;color:var(--muted);font-size:13px;line-height:1.4}
+.pro-alert time{font-size:11px;color:var(--muted);white-space:nowrap}
+.pro-alert.warning .pro-alert-icon{background:#fff3da}
+.pro-alert.danger .pro-alert-icon{background:#ffe7e7}
+
+.merchant-row{margin:13px 0}
+.merchant-head{display:flex;justify-content:space-between;gap:10px;margin-bottom:5px}
+.merchant-head div{min-width:0}
+.merchant-head b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.merchant-head small{display:block;color:var(--muted);margin-top:2px}
+.merchant-track{height:12px;background:#e8edf6;border-radius:999px;overflow:hidden}
+.merchant-fill{height:100%;background:linear-gradient(90deg,var(--blue),#6d96f5)}
+
+.savings-card{
+  padding:12px;border:1px solid var(--line);border-radius:14px;margin:9px 0;
+  background:linear-gradient(135deg,#f8fbff,#eef5ff)
+}
+.savings-card b{display:block}
+.savings-card small{display:block;color:var(--muted);margin-top:4px}
+.savings-card strong{display:block;margin-top:8px;color:var(--ok)}
+
+.goal-feasibility{margin-top:7px;padding:8px;border-radius:10px;background:#f8fbff;border:1px solid var(--line)}
+.goal-feasibility span{display:block;color:var(--muted);font-size:11px}
+.goal-feasibility b{display:block;margin-top:4px}
+.goal-feasibility.good{background:#effbf4;border-color:#ccebd8}
+.goal-feasibility.warning{background:#fff8e9;border-color:#f1d7a4}
+
+.edit-row.goal-edit-pro{grid-template-columns:1.2fr .7fr .7fr .9fr auto}
+.edit-row.goal-edit-pro input{padding:9px;font-size:14px}
+
+body.dark .savings-card,body.dark .goal-feasibility{background:#171e2b}
+
+@media(max-width:720px){
+  .edit-row.goal-edit-pro{grid-template-columns:1fr 1fr}
+  .edit-row.goal-edit-pro input:first-child{grid-column:1/-1}
+  .edit-row.goal-edit-pro button{grid-column:2}
+}

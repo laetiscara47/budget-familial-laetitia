@@ -9,15 +9,15 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css?v=1000.0.0">
-  <title>Mon Budget — V1000</title>
+  <link rel="stylesheet" href="./styles.css?v=2.0.0-pro">
+  <title>Mon Budget — V2 Pro</title>
 </head>
 <body>
-<header class="app-header">
+<header class="app-header pro-header">
   <div>
-    <h1>💙 Mon Budget</h1>
+    <div class="brand-line"><h1>💙 Mon Budget</h1><span class="pro-badge">PRO</span></div>
     <p id="headerSubtitle">Laetitia</p>
-    <small>Version 1000.0</small>
+    <small>V2 Pro</small>
   </div>
   <div class="header-actions">
     <select id="profileQuick" class="profile-quick" aria-label="Profil"></select>
@@ -37,6 +37,11 @@
       <div class="section-title"><h2>☀️ Briefing du jour</h2><span class="badge" id="briefingDate">Aujourd’hui</span></div>
       <p id="dailyBriefingText">Analyse en cours…</p>
       <div id="dailyBriefingActions" class="briefing-actions"></div>
+    </article>
+
+    <article class="card">
+      <div class="section-title"><h2>🔔 Centre d’alertes</h2><span id="alertCountBadge" class="badge">0</span></div>
+      <div id="proAlerts"></div>
     </article>
 
     <section class="summary-grid">
@@ -79,6 +84,11 @@
     <article class="card">
       <div class="section-title"><h2>🔁 Abonnements détectés</h2><span class="badge">Automatique</span></div>
       <div id="subscriptionsList"></div>
+    </article>
+
+    <article class="card">
+      <div class="section-title"><h2>✂️ Économies possibles</h2><span class="badge">Abonnements</span></div>
+      <div id="subscriptionSavings"></div>
     </article>
 
     <article class="card">
@@ -210,6 +220,11 @@
         <summary>Voir le détail jour par jour</summary>
         <div id="forecastTimeline" class="timeline"></div>
       </details>
+    </article>
+
+    <article class="card">
+      <div class="section-title"><h2>🏪 Dépenses par commerçant</h2><span class="badge">Analyse</span></div>
+      <div id="merchantAnalytics"></div>
     </article>
 
     <article class="card">
@@ -348,6 +363,8 @@
       <h2>📥 Import bancaire CSV</h2>
       <p class="muted">Importe un CSV de ta banque. Vérifie l’aperçu avant validation.</p>
       <label>Compte concerné</label><select id="importAccount"></select>
+      <label class="checkline"><input id="skipKnownDuplicates" type="checkbox" checked> Ignorer automatiquement les doublons</label>
+      <label class="checkline"><input id="autoCategorizeImport" type="checkbox" checked> Classer automatiquement les opérations</label>
       <input id="csvFile" type="file" accept=".csv,text/csv">
       <button id="parseCsv" class="primary">Analyser le fichier</button>
       <div id="importStatus" class="info-box" hidden></div>
@@ -478,6 +495,7 @@
 
     <article class="card">
       <h2>🎯 Objectifs d’épargne</h2>
+      <p class="muted">Ajoute une date cible pour calculer l’effort mensuel nécessaire.</p>
       <div id="goalSettings"></div>
       <button id="addGoal" class="soft">+ Ajouter un objectif</button>
     </article>
@@ -520,6 +538,12 @@
     </article>
 
     <article class="card">
+      <h2>📊 Rapport professionnel</h2>
+      <button id="exportProReport" class="soft full">Exporter le rapport mensuel HTML</button>
+      <p class="muted">Rapport lisible avec soldes, dépenses, catégories, crédits et objectifs.</p>
+    </article>
+
+    <article class="card">
       <h2>💾 Sauvegarde classique</h2>
       <div class="button-row">
         <button id="exportData" class="soft">Exporter</button>
@@ -544,6 +568,6 @@
   <button data-tab="settings"><span>⚙️</span><small>Réglages</small></button>
 </nav>
 
-<script src="./app.js?v=1000.0.0"></script>
+<script src="./app.js?v=2.0.0-pro"></script>
 </body>
 </html>

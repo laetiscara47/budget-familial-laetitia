@@ -1,6 +1,6 @@
 (()=>{
 "use strict";
-const STORAGE_KEY="budget-familial-laetitia-final-v1",BACKUP_KEY=STORAGE_KEY+"-backup",DATA_VERSION=1000;
+const STORAGE_KEY="budget-familial-laetitia-final-v1",BACKUP_KEY=STORAGE_KEY+"-backup",DATA_VERSION=2000;
 const $=id=>document.getElementById(id),clone=o=>JSON.parse(JSON.stringify(o));
 const euro=n=>Number(n||0).toLocaleString("fr-FR",{style:"currency",currency:"EUR"});
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
@@ -47,7 +47,7 @@ function migrate(saved){
  d.fixedCharges=(Array.isArray(d.fixedCharges)?d.fixedCharges:clone(initial.fixedCharges)).map(x=>({...x,paid:Boolean(x.paid),debited:Boolean(x.debited),accountId:x.accountId||"current",profileId:x.profileId||"p1"}));
  d.expenses=(Array.isArray(d.expenses)?d.expenses:[]).map(x=>({...x,id:x.id||crypto.randomUUID(),amount:Number(x.amount||0),category:x.category||"Autre",date:x.date||today(),paymentMethod:x.paymentMethod||"immediate_card",debited:x.debited!==false,accountId:x.accountId||"current",profileId:x.profileId||"p1"}));
  d.incomeTransactions=(Array.isArray(d.incomeTransactions)?d.incomeTransactions:[]).map(x=>({...x,id:x.id||crypto.randomUUID(),future:Boolean(x.future),accountId:x.accountId||"current",profileId:x.profileId||"p1"}));
- d.transfers=Array.isArray(d.transfers)?d.transfers:[];d.goals=Array.isArray(d.goals)?d.goals:clone(initial.goals);d.archives=Array.isArray(d.archives)?d.archives:[];
+ d.transfers=Array.isArray(d.transfers)?d.transfers:[];d.goals=(Array.isArray(d.goals)?d.goals:clone(initial.goals)).map(g=>({...g,targetDate:g.targetDate||""}));d.archives=Array.isArray(d.archives)?d.archives:[];
  d.budgets=d.budgets&&typeof d.budgets==="object"?d.budgets:clone(initial.budgets);d.rules=Array.isArray(d.rules)?d.rules:clone(initial.rules);d.profiles=Array.isArray(d.profiles)&&d.profiles.length?d.profiles:[{id:"p1",name:"Laetitia"}];d.vaultDocuments=Array.isArray(d.vaultDocuments)?d.vaultDocuments:[];d.loans=Array.isArray(d.loans)?d.loans:[];d.settings={darkMode:Boolean(d.settings?.darkMode),activeProfileId:d.settings?.activeProfileId||d.profiles[0].id,showBriefing:d.settings?.showBriefing!==false,showEnvelopes:d.settings?.showEnvelopes!==false,showYearForecast:d.settings?.showYearForecast!==false};d.dataVersion=DATA_VERSION;delete d.bankBalance;return d;
 }
 let data;try{data=migrate(JSON.parse(localStorage.getItem(STORAGE_KEY)))}catch{data=migrate(initial)}
@@ -75,7 +75,7 @@ function render(){
  const t=totals(),def=pendingDeferred();
  $("headerSubtitle").textContent=`Laetitia · ${data.month}`;$("available").textContent=euro(t.available);$("available").className=t.available<0?"bad":t.available<300?"warn":"ok";$("budgetStatus").textContent=t.available<0?"Budget dépassé":t.available<300?"À surveiller":"Budget disponible";
  $("currentBalanceView").textContent=euro(current().balance);$("deferredView").textContent=euro(def);$("untilIncomeView").textContent=euro(nextIncomeAmount());$("endMonthView").textContent=euro(endMonth());$("deferredTotal").textContent=euro(def);
- renderSelects();renderProfiles();renderAccounts();renderV300Dashboard();renderV100Dashboard();renderDailyBriefing();renderEnvelopes();renderAlerts();renderSmartSummary();renderV30Insights();renderSubscriptions();renderForecast();renderChart();renderMonthlyStats();renderGoals();renderCalendar();renderHistory();renderLoans();renderVault();renderSettings();renderProfileSettings();renderCategorySettings();renderRuleSettings();renderDataQuality();applyTheme();applyDashboardPreferences();
+ renderSelects();renderProfiles();renderAccounts();renderV300Dashboard();renderV100Dashboard();renderDailyBriefing();renderProAlerts();renderEnvelopes();renderAlerts();renderSmartSummary();renderV30Insights();renderSubscriptions();renderSubscriptionSavings();renderMerchantAnalytics();renderForecast();renderChart();renderMonthlyStats();renderGoals();renderCalendar();renderHistory();renderLoans();renderVault();renderSettings();renderProfileSettings();renderCategorySettings();renderRuleSettings();renderDataQuality();applyTheme();applyDashboardPreferences();
 }
 function renderSelects(){
  const opts=data.accounts.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("");["expenseAccount","incomeAccount","transferFrom","transferTo","importAccount"].forEach(id=>$(id).innerHTML=opts);
@@ -518,6 +518,64 @@ function calculateDebtStrategy(method,extra){
  return {details,totalMonths,totalInterest};
 }
 
+
+function monthsUntil(dateStr){
+ if(!dateStr)return 0;
+ const now=new Date(),target=new Date(dateStr+"T12:00:00");
+ return Math.max(1,(target.getFullYear()-now.getFullYear())*12+(target.getMonth()-now.getMonth()));
+}
+function renderProAlerts(){
+ const alerts=[];
+ const charge=nextUnpaidCharge();
+ if(charge)alerts.push({icon:"📅",level:"",title:"Prochain prélèvement",text:`${charge.label} pour ${euro(charge.amount)} le ${charge.day||28}.`,date:`J-${Math.max(0,(charge.day||28)-new Date().getDate())}`});
+ if(pendingDeferred()>0)alerts.push({icon:"💳",level:"warning",title:"Carte à débit différé",text:`${euro(pendingDeferred())} seront débités globalement le 4.`,date:"CB"});
+ if(endMonth()<300)alerts.push({icon:"⚠️",level:"warning",title:"Marge faible",text:`La fin de mois est estimée à ${euro(endMonth())}.`,date:"Budget"});
+ if(endMonth()<0)alerts.push({icon:"🚨",level:"danger",title:"Risque de découvert",text:"La prévision de fin de mois est négative.",date:"Urgent"});
+ const overBudgets=Object.entries(data.budgets).filter(([cat,limit])=>{
+  const spent=data.expenses.filter(x=>x.category===cat&&monthKey(x.date)===new Date().toISOString().slice(0,7)).reduce((s,x)=>s+x.amount,0);
+  return limit>0&&spent>limit;
+ });
+ overBudgets.slice(0,3).forEach(([cat])=>alerts.push({icon:"📊",level:"warning",title:`Budget ${cat} dépassé`,text:"Consulte les enveloppes pour ajuster le reste du mois.",date:"Budget"}));
+ $("alertCountBadge").textContent=alerts.length;
+ $("proAlerts").innerHTML=alerts.length?alerts.map(a=>`<div class="pro-alert ${a.level}"><div class="pro-alert-icon">${a.icon}</div><div><b>${esc(a.title)}</b><p>${esc(a.text)}</p></div><time>${esc(a.date)}</time></div>`).join(""):'<div class="alert-item">Aucune alerte importante.</div>';
+}
+function cleanMerchant(label){
+ return String(label||"")
+  .replace(/\b(cb|paiement|prlv|sepa|facture|achat)\b/gi," ")
+  .replace(/\d{2}[\/\-]\d{2}[\/\-]\d{2,4}/g," ")
+  .replace(/\d+/g," ")
+  .replace(/\s+/g," ")
+  .trim()||"Autre";
+}
+function renderMerchantAnalytics(){
+ const map={};
+ data.expenses.filter(operationBelongsToActive).forEach(x=>{
+  const merchant=cleanMerchant(x.label);
+  map[merchant]=map[merchant]||{amount:0,count:0};
+  map[merchant].amount+=Number(x.amount||0);
+  map[merchant].count++;
+ });
+ const rows=Object.entries(map).sort((a,b)=>b[1].amount-a[1].amount).slice(0,8);
+ const max=Math.max(1,...rows.map(x=>x[1].amount));
+ $("merchantAnalytics").innerHTML=rows.length?rows.map(([name,v])=>`<div class="merchant-row"><div class="merchant-head"><div><b>${esc(name)}</b><small>${v.count} opération${v.count>1?"s":""}</small></div><strong>${euro(v.amount)}</strong></div><div class="merchant-track"><div class="merchant-fill" style="width:${v.amount/max*100}%"></div></div></div>`).join(""):'<p class="muted">Aucune dépense à analyser.</p>';
+}
+function renderSubscriptionSavings(){
+ const subs=detectedSubscriptions();
+ const candidates=subs.filter(s=>s.avg>=5).sort((a,b)=>b.avg-a.avg).slice(0,5);
+ $("subscriptionSavings").innerHTML=candidates.length?candidates.map(s=>`<div class="savings-card"><b>${esc(s.label)}</b><small>${euro(s.avg)} par mois · ${euro(s.avg*12)} par an</small><strong>Économie possible si supprimé : ${euro(s.avg*12)}/an</strong></div>`).join(""):'<p class="muted">Pas assez d’historique pour proposer des économies.</p>';
+}
+function goalMonthlyNeed(goal){
+ if(!goal.targetDate)return null;
+ const remaining=Math.max(0,Number(goal.target||0)-Number(goal.current||0));
+ return remaining/monthsUntil(goal.targetDate);
+}
+function generateProReport(){
+ const t=totals(),subs=detectedSubscriptions(),merchants={};
+ data.expenses.forEach(x=>{const m=cleanMerchant(x.label);merchants[m]=(merchants[m]||0)+x.amount});
+ const topMerchants=Object.entries(merchants).sort((a,b)=>b[1]-a[1]).slice(0,10);
+ return `<!doctype html><html lang="fr"><meta charset="utf-8"><title>Rapport Mon Budget</title><style>body{font-family:Arial,sans-serif;max-width:900px;margin:30px auto;color:#172033}h1{color:#2f6fed}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.card{border:1px solid #ddd;border-radius:12px;padding:15px}table{width:100%;border-collapse:collapse;margin-top:15px}th,td{text-align:left;padding:9px;border-bottom:1px solid #ddd}.ok{color:#278b57}.bad{color:#ce3f3f}</style><h1>💙 Rapport Mon Budget — ${esc(data.month)}</h1><p>Profil : ${esc(activeProfile()?.name||"Laetitia")}</p><div class="grid"><div class="card"><b>Disponible</b><h2>${euro(t.available)}</h2></div><div class="card"><b>Fin de mois</b><h2 class="${endMonth()<0?"bad":"ok"}">${euro(endMonth())}</h2></div><div class="card"><b>Patrimoine net</b><h2>${euro(netWorthAfterDebt())}</h2></div></div><h2>Principaux commerçants</h2><table><tr><th>Commerçant</th><th>Total</th></tr>${topMerchants.map(([m,v])=>`<tr><td>${esc(m)}</td><td>${euro(v)}</td></tr>`).join("")}</table><h2>Abonnements détectés</h2><table><tr><th>Libellé</th><th>Mensuel</th><th>Annuel</th></tr>${subs.map(s=>`<tr><td>${esc(s.label)}</td><td>${euro(s.avg)}</td><td>${euro(s.avg*12)}</td></tr>`).join("")}</table></html>`;
+}
+
 function renderAccounts(){$("accountsSummary").innerHTML=data.accounts.map(x=>`<div class="account-row"><div><b>${esc(x.name)}</b><small>${x.type==="savings"?"Épargne":x.type==="cash"?"Espèces":"Compte bancaire"}</small></div><strong>${euro(x.balance)}</strong></div>`).join("")}
 function renderAlerts(){const alerts=[];Object.entries(data.budgets).forEach(([cat,limit])=>{const spent=data.expenses.filter(x=>x.category===cat).reduce((s,x)=>s+x.amount,0),pct=limit?spent/limit*100:0;if(pct>=100)alerts.push({c:"danger",t:`${cat} dépassé : ${euro(spent)} sur ${euro(limit)}`});else if(pct>=80)alerts.push({c:"warning",t:`${cat} atteint ${Math.round(pct)} %`})});if(endMonth()<0)alerts.unshift({c:"danger",t:`Fin de mois prévue négative : ${euro(endMonth())}`});$("alerts").innerHTML=alerts.length?alerts.map(a=>`<div class="alert-item ${a.c}">${esc(a.t)}</div>`).join(""):'<div class="alert-item">Aucune alerte.</div>'}
 function renderForecast(){
@@ -599,7 +657,9 @@ function renderMonthlyStats(){
 function renderGoals(){
  $("goalsSummary").innerHTML=data.goals.map(g=>{
    const pct=g.target?Math.min(100,g.current/g.target*100):0;
-   return `<div class="goal"><div class="goal-head"><div><b>${esc(g.name)}</b><small>${euro(g.current)} sur ${euro(g.target)}</small></div><span>${Math.round(pct)} %</span></div><div class="chart-track"><div class="chart-fill" style="width:${pct}%"></div></div><div class="goal-actions"><button data-goal-add="${g.id}" data-amount="10">+10 €</button><button data-goal-add="${g.id}" data-amount="50">+50 €</button><button data-goal-add="${g.id}" data-amount="100">+100 €</button></div></div>`;
+   const need=goalMonthlyNeed(g);
+   const possible=need===null||need<=Math.max(0,possibleSavingsEstimate());
+   return `<div class="goal"><div class="goal-head"><div><b>${esc(g.name)}</b><small>${euro(g.current)} sur ${euro(g.target)}${g.targetDate?` · cible ${fmtDate(g.targetDate)}`:""}</small></div><span>${Math.round(pct)} %</span></div><div class="chart-track"><div class="chart-fill" style="width:${pct}%"></div></div>${need!==null?`<div class="goal-feasibility ${possible?"good":"warning"}"><span>Effort mensuel nécessaire</span><b>${euro(need)} / mois · ${possible?"objectif réaliste":"objectif ambitieux"}</b></div>`:""}<div class="goal-actions"><button data-goal-add="${g.id}" data-amount="10">+10 €</button><button data-goal-add="${g.id}" data-amount="50">+50 €</button><button data-goal-add="${g.id}" data-amount="100">+100 €</button></div></div>`;
  }).join("");
 }
 function calendarEventsFor(dateStr){const day=Number(dateStr.slice(8,10));return[...data.expenses.filter(x=>x.date===dateStr).map(x=>({type:"expense",label:x.label,amount:-x.amount})),...data.incomeTransactions.filter(x=>x.date===dateStr).map(x=>({type:"income",label:x.label,amount:x.amount})),...data.fixedCharges.filter(x=>!x.paid&&x.day===day).map(x=>({type:"charge",label:x.label,amount:-x.amount}))]}
@@ -611,7 +671,7 @@ function renderSettings(){
  $("incomeSettings").innerHTML=data.incomes.map((x,i)=>`<div class="edit-row"><input data-income-label="${i}" value="${esc(x.label)}"><input data-income-amount="${i}" type="number" step="0.01" value="${x.amount}"><button class="delete-btn" data-income-delete="${i}">✕</button></div>`).join("");
  $("chargeSettings").innerHTML=data.fixedCharges.map((x,i)=>`<div class="edit-row four"><input data-charge-day="${i}" type="number" value="${x.day??""}" placeholder="Jour"><input data-charge-label="${i}" value="${esc(x.label)}"><input data-charge-amount="${i}" type="number" step="0.01" value="${x.amount}"><button class="delete-btn" data-charge-delete="${i}">✕</button></div>`).join("");
  $("budgetSettings").innerHTML=Object.entries(data.budgets).map(([k,v])=>`<div class="edit-row"><input value="${esc(k)}" readonly><input data-budget="${esc(k)}" type="number" step="0.01" value="${v}"><span></span></div>`).join("");
- $("goalSettings").innerHTML=data.goals.map((g,i)=>`<div class="edit-row goal-edit"><input data-goal-name="${i}" value="${esc(g.name)}"><input data-goal-target="${i}" type="number" step="0.01" value="${g.target}"><input data-goal-current="${i}" type="number" step="0.01" value="${g.current}"><button class="delete-btn" data-goal-delete="${i}">✕</button></div>`).join("");
+ $("goalSettings").innerHTML=data.goals.map((g,i)=>`<div class="edit-row goal-edit-pro"><input data-goal-name="${i}" value="${esc(g.name)}"><input data-goal-target="${i}" type="number" step="0.01" value="${g.target}"><input data-goal-current="${i}" type="number" step="0.01" value="${g.current}"><input data-goal-date="${i}" type="date" value="${g.targetDate||""}"><button class="delete-btn" data-goal-delete="${i}">✕</button></div>`).join("");
  $("darkModeToggle").checked=data.settings.darkMode;$("showBriefingToggle").checked=data.settings.showBriefing!==false;$("showEnvelopesToggle").checked=data.settings.showEnvelopes!==false;$("showYearForecastToggle").checked=data.settings.showYearForecast!==false;$("archivesList").innerHTML=data.archives.length?data.archives.slice().reverse().map(a=>`<div class="archive-row"><div><b>${esc(a.label)}</b><small>Dépenses ${euro(a.expensesTotal)} · Solde ${euro(a.closingBalance)}</small></div><button data-archive-delete="${a.id}">✕</button></div>`).join(""):'<p class="muted">Aucune archive.</p>';
 }
 function applyTheme(){document.body.classList.toggle("dark",data.settings.darkMode);$("themeQuick").textContent=data.settings.darkMode?"☀️":"🌙"}
@@ -670,7 +730,7 @@ function parseCsvText(text){const lines=text.split(/\r?\n/).filter(Boolean),rows
  const isDuplicate=direction==="expense"
    ?data.expenses.some(x=>x.date===normalizedDate&&x.label.trim().toLowerCase()===label.trim().toLowerCase()&&Math.abs(Number(x.amount)-absAmount)<0.01)
    :data.incomeTransactions.some(x=>x.date===normalizedDate&&x.label.trim().toLowerCase()===label.trim().toLowerCase()&&Math.abs(Number(x.amount)-absAmount)<0.01);
- rows.push({id:crypto.randomUUID(),selected:!isDuplicate,date:normalizedDate,label,amount:absAmount,direction,category:guessCategory(label),isDuplicate});
+ rows.push({id:crypto.randomUUID(),selected:$("skipKnownDuplicates").checked?!isDuplicate:true,date:normalizedDate,label,amount:absAmount,direction,category:$("autoCategorizeImport").checked?guessCategory(label):"Autre",isDuplicate});
 }}return rows}
 function renderImportPreview(){
  if(!importRows.length){$("importStatus").hidden=false;$("importStatus").textContent="Aucune opération reconnue.";return}
@@ -765,8 +825,8 @@ document.addEventListener("change",e=>{const d=e.target.dataset;if(d.profileName
  }
  if(d.ruleKeyword!==undefined)data.rules[+d.ruleKeyword].keyword=e.target.value.trim().toLowerCase();
  if(d.ruleCategory!==undefined)data.rules[+d.ruleCategory].category=e.target.value;
- if(d.accountName!==undefined)data.accounts[+d.accountName].name=e.target.value;if(d.accountBalance!==undefined)data.accounts[+d.accountBalance].balance=Number(e.target.value)||0;if(d.incomeLabel!==undefined)data.incomes[+d.incomeLabel].label=e.target.value;if(d.incomeAmount!==undefined)data.incomes[+d.incomeAmount].amount=Number(e.target.value)||0;if(d.chargeDay!==undefined)data.fixedCharges[+d.chargeDay].day=e.target.value===""?null:Number(e.target.value);if(d.chargeLabel!==undefined)data.fixedCharges[+d.chargeLabel].label=e.target.value;if(d.chargeAmount!==undefined)data.fixedCharges[+d.chargeAmount].amount=Number(e.target.value)||0;if(d.budget!==undefined)data.budgets[d.budget]=Number(e.target.value)||0;if(d.goalName!==undefined)data.goals[+d.goalName].name=e.target.value;if(d.goalTarget!==undefined)data.goals[+d.goalTarget].target=Number(e.target.value)||0;if(d.goalCurrent!==undefined)data.goals[+d.goalCurrent].current=Number(e.target.value)||0;if(d.importSelect!==undefined)importRows[+d.importSelect].selected=e.target.checked;if(d.importCategory!==undefined)importRows[+d.importCategory].category=e.target.value;if(Object.keys(d).length&&!d.importSelect&&!d.importCategory)save()});
-$("addAccount").addEventListener("click",()=>{data.accounts.push({id:crypto.randomUUID(),name:"Nouveau compte",type:"savings",balance:0});save()});$("addMonthlyIncome").addEventListener("click",()=>{data.incomes.push({id:crypto.randomUUID(),label:"Nouveau revenu",amount:0});save()});$("addCharge").addEventListener("click",()=>{data.fixedCharges.push({id:crypto.randomUUID(),day:null,label:"Nouveau prélèvement",amount:0,paid:false,debited:false,accountId:"current"});save()});$("addGoal").addEventListener("click",()=>{data.goals.push({id:crypto.randomUUID(),name:"Nouvel objectif",target:500,current:0});save()});
+ if(d.accountName!==undefined)data.accounts[+d.accountName].name=e.target.value;if(d.accountBalance!==undefined)data.accounts[+d.accountBalance].balance=Number(e.target.value)||0;if(d.incomeLabel!==undefined)data.incomes[+d.incomeLabel].label=e.target.value;if(d.incomeAmount!==undefined)data.incomes[+d.incomeAmount].amount=Number(e.target.value)||0;if(d.chargeDay!==undefined)data.fixedCharges[+d.chargeDay].day=e.target.value===""?null:Number(e.target.value);if(d.chargeLabel!==undefined)data.fixedCharges[+d.chargeLabel].label=e.target.value;if(d.chargeAmount!==undefined)data.fixedCharges[+d.chargeAmount].amount=Number(e.target.value)||0;if(d.budget!==undefined)data.budgets[d.budget]=Number(e.target.value)||0;if(d.goalName!==undefined)data.goals[+d.goalName].name=e.target.value;if(d.goalTarget!==undefined)data.goals[+d.goalTarget].target=Number(e.target.value)||0;if(d.goalCurrent!==undefined)data.goals[+d.goalCurrent].current=Number(e.target.value)||0;if(d.goalDate!==undefined)data.goals[+d.goalDate].targetDate=e.target.value;if(d.importSelect!==undefined)importRows[+d.importSelect].selected=e.target.checked;if(d.importCategory!==undefined)importRows[+d.importCategory].category=e.target.value;if(Object.keys(d).length&&!d.importSelect&&!d.importCategory)save()});
+$("addAccount").addEventListener("click",()=>{data.accounts.push({id:crypto.randomUUID(),name:"Nouveau compte",type:"savings",balance:0});save()});$("addMonthlyIncome").addEventListener("click",()=>{data.incomes.push({id:crypto.randomUUID(),label:"Nouveau revenu",amount:0});save()});$("addCharge").addEventListener("click",()=>{data.fixedCharges.push({id:crypto.randomUUID(),day:null,label:"Nouveau prélèvement",amount:0,paid:false,debited:false,accountId:"current"});save()});$("addGoal").addEventListener("click",()=>{data.goals.push({id:crypto.randomUUID(),name:"Nouvel objectif",target:500,current:0,targetDate:""});save()});
 $("archiveMonth").addEventListener("click",()=>{const key=new Date().toISOString().slice(0,7),expensesTotal=data.expenses.filter(x=>monthKey(x.date)===key).reduce((s,x)=>s+x.amount,0),archive={id:crypto.randomUUID(),month:key,label:new Date().toLocaleDateString("fr-FR",{month:"long",year:"numeric"}),expensesTotal,closingBalance:current().balance};data.archives=data.archives.filter(x=>x.month!==key);data.archives.push(archive);save();alert("Mois archivé.")});
 function csvEscape(v){const s=String(v??"");return /[;"\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s}
 
@@ -834,7 +894,7 @@ $("exportEncrypted").addEventListener("click",async()=>{
  const password=$("backupPassword").value;
  if(password.length<6)return alert("Choisis un mot de passe d’au moins 6 caractères.");
  try{
-  const container=await encryptPayload({app:"Budget Familial Laetitia",version:"1000.0",data},password);
+  const container=await encryptPayload({app:"Budget Familial Laetitia",version:"2.0.0-pro",data},password);
   const blob=new Blob([JSON.stringify(container,null,2)],{type:"application/json"}),a=document.createElement("a");
   a.href=URL.createObjectURL(blob);a.download="budget_laetitia_v300_chiffre.json";a.click();
  }catch{alert("La sauvegarde chiffrée n’a pas pu être créée.")}
@@ -860,8 +920,12 @@ $("calculateDebtPlan").addEventListener("click",()=>{
  const plan=calculateDebtStrategy(method,extra);
  $("debtPlanResult").innerHTML=plan.details.length?plan.details.map((l,i)=>`<div class="debt-plan-item"><span class="debt-plan-rank">${i+1}</span><b>${esc(l.name)}</b><small>Paiement simulé ${euro(l.payment)} · ${l.months} mois · intérêts estimés ${euro(l.interest)}</small></div>`).join("")+`<div class="debt-plan-summary"><b>Durée totale estimée : ${plan.totalMonths} mois</b><br><span>Intérêts estimés : ${euro(plan.totalInterest)}</span></div>`:'<p class="muted">Aucun crédit à simuler.</p>';
 });
+$("exportProReport").addEventListener("click",()=>{
+ const blob=new Blob([generateProReport()],{type:"text/html;charset=utf-8"}),a=document.createElement("a");
+ a.href=URL.createObjectURL(blob);a.download="rapport_budget_familial.html";a.click();
+});
 $("exportCsv").addEventListener("click",()=>{const rows=[["Date","Type","Libellé","Catégorie","Montant","Compte","Paiement"]];data.expenses.forEach(x=>rows.push([x.date,"Dépense",x.label,x.category,-x.amount,account(x.accountId)?.name||"",paymentLabel(x)]));data.incomeTransactions.forEach(x=>rows.push([x.date,"Revenu",x.label,"Revenu",x.amount,account(x.accountId)?.name||"",x.future?"Prévu":"Reçu"]));const csv="\ufeff"+rows.map(r=>r.map(csvEscape).join(";")).join("\n"),blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="budget_laetitia_operations.csv";a.click()});
-$("exportData").addEventListener("click",()=>{const blob=new Blob([JSON.stringify({app:"Budget Familial Laetitia",version:"1000.0",data},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="budget_laetitia_v1000.json";a.click()});
+$("exportData").addEventListener("click",()=>{const blob=new Blob([JSON.stringify({app:"Budget Familial Laetitia",version:"2.0.0-pro",data},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="budget_laetitia_v2_pro.json";a.click()});
 $("importDataBtn").addEventListener("click",()=>$("importDataFile").click());$("importDataFile").addEventListener("change",e=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const p=JSON.parse(String(r.result));data=migrate(p.data||p);save();alert("Sauvegarde restaurée.")}catch{alert("Fichier invalide.")}};r.readAsText(f)});
 $("restoreAutoBackup").addEventListener("click",()=>{try{const raw=localStorage.getItem(BACKUP_KEY);data=migrate(JSON.parse(raw).data);save();alert("Sauvegarde récupérée.")}catch{alert("Aucune sauvegarde.")}});
 $("removeDuplicates").addEventListener("click",()=>{

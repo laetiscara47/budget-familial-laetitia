@@ -1,39 +1,35 @@
-# Budget Familial Laetitia — V1000.0
+# Mon Budget — V2 Pro
 
 ## Nouveautés réalisées
 
-- briefing quotidien automatique ;
-- enveloppes budgétaires mensuelles ;
-- laboratoire de scénarios d’achat ;
-- stratégie de remboursement des dettes :
-  - boule de neige ;
-  - avalanche ;
-- calcul approximatif de la durée et des intérêts ;
-- notes personnelles sur les dépenses ;
-- personnalisation des blocs du tableau de bord ;
-- centre de pilotage familial renforcé.
+- finition visuelle PRO ;
+- centre d’alertes consolidé ;
+- analyse des dépenses par commerçant ;
+- recommandations d’économies sur les abonnements ;
+- objectifs d’épargne avec date cible ;
+- calcul de l’effort mensuel nécessaire ;
+- import bancaire avec options professionnelles ;
+- export d’un rapport mensuel HTML lisible et imprimable ;
+- conservation de toutes les fonctions V1000.
 
 ## Fonctions conservées
 
-- comptes, profils et virements ;
-- carte à débit différé ;
-- calendrier financier ;
-- patrimoine brut et net ;
-- crédits et taux d’endettement ;
-- assistant budgétaire et score financier ;
-- abonnements récurrents ;
-- coffre numérique local ;
-- pièces jointes et photo de ticket ;
-- sauvegarde classique et sauvegarde chiffrée ;
-- import CSV, doublons et recherche avancée.
+- briefing quotidien ;
+- enveloppes budgétaires ;
+- scénarios d’achat ;
+- crédits et stratégie de remboursement ;
+- patrimoine net ;
+- coffre numérique ;
+- sauvegarde chiffrée ;
+- profils familiaux ;
+- calendrier, historique et import CSV.
 
 ## Limites honnêtes
 
-- aucune connexion bancaire automatique ;
-- aucune reconnaissance OCR automatique ;
-- aucune synchronisation cloud ;
-- aucune notification native iPhone ;
-- les simulations restent indicatives et dépendent des données saisies.
+- pas de connexion bancaire automatique ;
+- pas d’OCR automatique ;
+- pas de synchronisation cloud ;
+- pas de notifications natives iPhone.
 
 ## Fichiers GitHub à remplacer
 
