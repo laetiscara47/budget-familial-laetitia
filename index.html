@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#1768e8">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <title>Mon Budget 1.0 Production</title>
-  <link rel="manifest" href="manifest.webmanifest?v=1.0.0">
-  <link rel="stylesheet" href="styles.css?v=1.0.0">
+  <title>Mon Budget 1.1 Stable</title>
+  <link rel="manifest" href="manifest.webmanifest?v=1.1.0">
+  <link rel="stylesheet" href="styles.css?v=1.1.0">
 </head>
 <body>
   <header class="topbar">
@@ -29,15 +29,12 @@
         <div id="weekIncome">Aucun revenu attendu</div>
       </article>
 
-      <article class="status-card">
+      <article class="status-card status-card-simple">
         <div class="status-dot" id="statusDot"></div>
         <div>
           <b id="statusTitle">Situation</b>
           <small id="statusText">Analyse en cours…</small>
-        </div>
-        <div class="status-kpi">
-          <small>Budget du jour</small>
-          <b id="dailyBudgetValue">0,00 €</b>
+          <strong id="dailyBudgetValue" class="status-daily">0,00 € aujourd’hui</strong>
         </div>
       </article>
 
@@ -216,6 +213,6 @@
   </nav>
 
   <div id="toast" class="toast" aria-live="polite"></div>
-  <script src="app.js?v=1.0.0"></script>
+  <script src="app.js?v=1.1.0"></script>
 </body>
 </html>

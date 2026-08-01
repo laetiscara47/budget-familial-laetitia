@@ -1,16 +1,14 @@
-# Mon Budget 1.0 Production
+# Mon Budget 1.1 Stable
 
-Version stable destinée à l’utilisation quotidienne.
+Mise à jour visuelle légère, sans nouvelle fonctionnalité.
 
-Aucune nouvelle fonctionnalité.
+Améliorations :
+- bandeau bleu plus compact ;
+- montant principal mieux mis en valeur ;
+- carte Situation simplifiée ;
+- budget du jour affiché directement dans la phrase ;
+- alertes plus lisibles ;
+- icônes de navigation légèrement agrandies ;
+- toutes les données et fonctions de la version 1.0 conservées.
 
-Finitions :
-- barre de navigation plus compacte ;
-- en-tête plus discret ;
-- cartes rapprochées ;
-- meilleure lisibilité sur iPhone ;
-- davantage de contenu visible sans défilement ;
-- conservation des données, comptes, opérations, agenda, statistiques et sauvegardes ;
-- anciens caches toujours neutralisés.
-
-Cette version devient la base officielle du projet.
+Cette version devient la nouvelle base stable.

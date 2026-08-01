@@ -242,7 +242,7 @@
     $("availableValue").textContent=euro(available());
     $("forecastValue").textContent=`Fin de mois estimée : ${euro(forecast())}`;
     $("weekIncome").textContent=remainingIncome()?`${euro(remainingIncome())} attendus ce mois-ci`:"Aucun revenu attendu ce mois-ci";
-    $("dailyBudgetValue").textContent=euro(dailyBudget());
+    $("dailyBudgetValue").textContent=`${euro(dailyBudget())} aujourd’hui`;
     $("monthIncome").textContent=euro(monthIncome());
     $("monthExpense").textContent=euro(monthExpense());
     $("remainingCharges").textContent=euro(remainingCharges());
@@ -255,7 +255,16 @@
       return diff>=0&&diff<=3;
     }).slice(0,4);
     $("alertsCount").textContent=alerts.length;
-    $("alertsList").innerHTML=alerts.length?alerts.map(r=>`<div class="alert-row"><span class="alert-icon">${r.type==="income"?"💰":"🔔"}</span><div><b>${r.label}</b><small>${new Date(r.date+"T12:00:00").toLocaleDateString("fr-FR")}</small></div><b class="${r.type==="income"?"positive":"negative"}">${r.type==="income"?"+":"-"}${euro(r.amount)}</b></div>`).join(""):"<p>Aucune alerte dans les 3 prochains jours.</p>";
+    $("alertsList").innerHTML=alerts.length?alerts.map(r=>`
+      <div class="alert-row">
+        <span class="alert-icon">${r.type==="income"?"💰":"🔔"}</span>
+        <div class="alert-main">
+          <b>${r.label}</b>
+          <small>${new Date(r.date+"T12:00:00").toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"})}</small>
+        </div>
+        <b class="${r.type==="income"?"positive":"negative"}">${r.type==="income"?"+":"-"}${euro(r.amount)}</b>
+      </div>
+    `).join(""):"<p>Aucune alerte dans les 3 prochains jours.</p>";
     const upcoming=futureRules().slice(0,5);
     $("upcomingList").innerHTML=upcoming.length?upcoming.map(r=>`<div class="list-row"><div><b>${r.type==="income"?"💰":"🧾"} ${r.label}</b><small>${new Date(r.date+"T12:00:00").toLocaleDateString("fr-FR")}</small></div><b class="${r.type==="income"?"positive":"negative"}">${r.type==="income"?"+":"-"}${euro(r.amount)}</b></div>`).join(""):"<p>Aucune échéance à venir.</p>";
     $("saveState").textContent=data.lastSavedAt?`Dernière sauvegarde : ${new Date(data.lastSavedAt).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}`:"Données enregistrées localement";
