@@ -370,3 +370,14 @@ body{
     font-size:21px;
   }
 }
+
+
+/* Mon Budget 2.0 – Phase 1 Stabilité */
+#migrationStatus{
+  padding:12px 14px;
+  border-radius:14px;
+  background:rgba(47,157,98,.08);
+  border:1px solid rgba(47,157,98,.18);
+  color:var(--text);
+  line-height:1.45;
+}

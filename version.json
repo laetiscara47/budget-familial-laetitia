@@ -1,5 +1,6 @@
 {
-  "version": "2.0.0-phase1",
+  "version": "2.0.0-phase1-stable",
+  "schema": 2,
   "channel": "stable",
-  "focus": "stability"
+  "focus": "data-integrity"
 }
