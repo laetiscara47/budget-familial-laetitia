@@ -1,11 +1,15 @@
-# Mon Budget 2.3 Test — Saisie rapide
+# Mon Budget 3.0 Candidate
 
-Construite sur la 2.2.2 Stable.
+Cette version est construite sur la 2.2.2 Stable et conserve la même clé de stockage.
 
-Une seule amélioration :
-- sous le champ Libellé, jusqu’à 6 opérations connues apparaissent en raccourcis ;
-- un toucher remplit le type, le libellé, le montant, la catégorie et le compte ;
-- vous vérifiez puis appuyez sur Enregistrer.
+Nouveautés :
+- tableau de bord « Aujourd’hui » ;
+- disponible et budget conseillé visibles ensemble ;
+- prochaine échéance affichée ;
+- nombre de jours restants ;
+- indicateur de risque ;
+- conseil automatique ;
+- échéances en retard remontées dans « À surveiller » ;
+- saisie rapide, modèles automatiques et anti-doublon conservés.
 
-La même clé de stockage et la récupération sûre sont conservées.
-Aucun nouveau menu ni nouvel écran.
+Aucun nouveau menu.

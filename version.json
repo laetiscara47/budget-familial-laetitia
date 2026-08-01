@@ -1,13 +1,14 @@
 {
-  "version": "2.3.0-test-quick-entry",
+  "version": "3.0.0-rc",
   "schema": 2,
-  "channel": "test",
+  "channel": "candidate",
   "base": "2.2.2-stable",
   "storageKey": "mon_budget_v10_stable",
   "changes": [
-    "one-tap operation templates",
-    "same stable storage key",
-    "no new screen",
-    "recovery protection retained"
+    "today dashboard",
+    "risk indicator",
+    "next due summary",
+    "overdue detection",
+    "same stable data key"
   ]
 }

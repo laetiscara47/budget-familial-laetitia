@@ -681,6 +681,65 @@
     }).join("");
   }
 
+
+  function dueInDays(date){
+    const start=new Date(`${today()}T12:00:00`);
+    const target=new Date(`${date}T12:00:00`);
+    return Math.round((target-start)/86400000);
+  }
+
+  function nextDueItem(){
+    const upcoming=futureRules()
+      .filter(rule=>rule.date>=today())
+      .sort((a,b)=>a.date.localeCompare(b.date));
+    return upcoming[0]||null;
+  }
+
+  function overdueRules(){
+    const currentDay=new Date().getDate();
+    return data.rules
+      .filter(rule=>rule.active!==false)
+      .map(rule=>({...rule,date:ruleDate(rule.day)}))
+      .filter(rule=>{
+        if(rule.date>=today())return false;
+        const key=`${rule.id}:${monthKey(today())}`;
+        return !data.operations.some(operation=>operation.recurringKey===key);
+      })
+      .sort((a,b)=>a.date.localeCompare(b.date));
+  }
+
+  function riskLevel(){
+    const amount=forecast();
+    const daily=dailyBudget();
+    const late=overdueRules().length;
+    if(amount<0)return {label:"Risque élevé",className:"danger"};
+    if(late>0)return {label:"À vérifier",className:"warning"};
+    if(daily<20)return {label:"Prudence",className:"warning"};
+    return {label:"Stable",className:"success"};
+  }
+
+  function todayAdviceText(){
+    const next=nextDueItem();
+    const late=overdueRules();
+
+    if(forecast()<0){
+      return "La fin de mois estimée est négative. Évitez les dépenses non indispensables.";
+    }
+    if(late.length){
+      return `${late.length} échéance(s) semblent en retard ou non enregistrée(s).`;
+    }
+    if(next){
+      const difference=dueInDays(next.date);
+      const when=difference===0
+        ? "aujourd’hui"
+        : difference===1
+          ? "demain"
+          : `dans ${difference} jours`;
+      return `${next.label} de ${euro(next.amount)} est prévu ${when}.`;
+    }
+    return "Aucune échéance urgente détectée.";
+  }
+
   function renderHome(){
     const now=new Date();
     $("monthLabel").textContent=`Budget familial · ${now.toLocaleDateString("fr-FR",{month:"long",year:"numeric"})}`;
@@ -689,6 +748,29 @@
     $("forecastValue").textContent=`Fin de mois estimée : ${euro(forecast())}`;
     $("weekIncome").textContent=remainingIncome()?`${euro(remainingIncome())} attendus ce mois-ci`:"Aucun revenu attendu ce mois-ci";
     $("dailyBudgetValue").textContent=`${euro(dailyBudget())} aujourd’hui`;
+
+    $("todayAvailable").textContent=euro(available());
+    $("todayBudget").textContent=euro(dailyBudget());
+    $("todayDaysLeft").textContent=daysLeft();
+
+    const nextDue=nextDueItem();
+    if(nextDue){
+      const difference=dueInDays(nextDue.date);
+      const when=difference===0
+        ? "aujourd’hui"
+        : difference===1
+          ? "demain"
+          : `dans ${difference} j`;
+      $("todayNextDue").textContent=`${nextDue.label} · ${when}`;
+    }else{
+      $("todayNextDue").textContent="Aucune";
+    }
+
+    const risk=riskLevel();
+    $("todayRiskBadge").textContent=risk.label;
+    $("todayRiskBadge").className=`badge risk-${risk.className}`;
+    $("todayAdvice").textContent=todayAdviceText();
+
     $("monthIncome").textContent=euro(monthIncome());
     $("monthExpense").textContent=euro(monthExpense());
     $("remainingCharges").textContent=euro(remainingCharges());
@@ -696,17 +778,19 @@
     $("operationsCount").textContent=monthOps().length;
     $("monthProgress").textContent=`${Math.round((new Date().getDate()/daysInMonth())*100)} %`;
     const st=budgetAssistant(); $("statusTitle").textContent=st.title;$("statusText").textContent=st.text;$("statusDot").style.background=st.color;
-    const alerts=futureRules().filter(r=>{
-      const diff=Math.round((new Date(r.date+"T12:00:00")-new Date(today()+"T12:00:00"))/86400000);
+    const lateAlerts=overdueRules().map(rule=>({...rule,overdue:true}));
+    const futureAlerts=futureRules().filter(rule=>{
+      const diff=dueInDays(rule.date);
       return diff>=0&&diff<=3;
-    }).slice(0,4);
+    });
+    const alerts=[...lateAlerts,...futureAlerts].slice(0,4);
     $("alertsCount").textContent=alerts.length;
     $("alertsList").innerHTML=alerts.length?alerts.map(r=>`
       <div class="alert-row">
         <span class="alert-icon">${r.type==="income"?"💰":"🔔"}</span>
         <div class="alert-main">
           <b>${r.label}</b>
-          <small>${new Date(r.date+"T12:00:00").toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"})}</small>
+          <small>${r.overdue?"En retard · ":""}${new Date(r.date+"T12:00:00").toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"})}</small>
         </div>
         <b class="${r.type==="income"?"positive":"negative"}">${r.type==="income"?"+":"-"}${euro(r.amount)}</b>
       </div>

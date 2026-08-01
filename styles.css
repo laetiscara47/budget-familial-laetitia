@@ -501,3 +501,63 @@ body{
   color:var(--muted);
   font-size:11px;
 }
+
+
+/* Mon Budget 3.0 Candidate */
+.today-card{
+  padding-top:16px;
+}
+.today-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+  margin-top:14px;
+}
+.today-line{
+  min-height:76px;
+  padding:12px;
+  border:1px solid var(--line);
+  border-radius:15px;
+  background:rgba(23,104,232,.035);
+}
+.today-line span{
+  display:block;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.25;
+}
+.today-line b{
+  display:block;
+  margin-top:7px;
+  font-size:17px;
+  line-height:1.2;
+}
+.today-advice{
+  margin:13px 0 0;
+  padding:12px 14px;
+  border-radius:14px;
+  background:rgba(47,157,98,.08);
+  color:var(--text);
+  line-height:1.4;
+  font-weight:650;
+}
+.risk-success{
+  background:rgba(47,157,98,.12) !important;
+  color:var(--green) !important;
+}
+.risk-warning{
+  background:rgba(229,139,39,.13) !important;
+  color:var(--orange) !important;
+}
+.risk-danger{
+  background:rgba(217,75,75,.12) !important;
+  color:var(--red) !important;
+}
+@media(max-width:430px){
+  .today-grid{
+    grid-template-columns:1fr 1fr;
+  }
+  .today-line b{
+    font-size:16px;
+  }
+}

@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#1768e8">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <title>Mon Budget 2.3 Test</title>
-  <link rel="manifest" href="manifest.webmanifest?v=2.3.0-test">
-  <link rel="stylesheet" href="styles.css?v=2.3.0-test">
+  <title>Mon Budget 3.0 Candidate</title>
+  <link rel="manifest" href="manifest.webmanifest?v=3.0.0-rc">
+  <link rel="stylesheet" href="styles.css?v=3.0.0-rc">
 </head>
 <body>
   <header class="topbar">
@@ -36,6 +36,32 @@
           <small id="statusText">Analyse en cours…</small>
           <strong id="dailyBudgetValue" class="status-daily">0,00 € aujourd’hui</strong>
         </div>
+      </article>
+
+      <article class="card today-card">
+        <div class="section-head">
+          <h2>Aujourd’hui</h2>
+          <span class="badge" id="todayRiskBadge">Analyse</span>
+        </div>
+        <div class="today-grid">
+          <div class="today-line">
+            <span>💳 Disponible</span>
+            <b id="todayAvailable">0,00 €</b>
+          </div>
+          <div class="today-line">
+            <span>💰 Budget conseillé</span>
+            <b id="todayBudget">0,00 €</b>
+          </div>
+          <div class="today-line">
+            <span>⏰ Prochaine échéance</span>
+            <b id="todayNextDue">Aucune</b>
+          </div>
+          <div class="today-line">
+            <span>📅 Jours restants</span>
+            <b id="todayDaysLeft">0</b>
+          </div>
+        </div>
+        <p id="todayAdvice" class="today-advice">Analyse en cours…</p>
       </article>
 
       <article class="card">
@@ -216,6 +242,6 @@
   </nav>
 
   <div id="toast" class="toast" aria-live="polite"></div>
-  <script src="app.js?v=2.3.0-test"></script>
+  <script src="app.js?v=3.0.0-rc"></script>
 </body>
 </html>
