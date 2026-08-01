@@ -1,30 +1,137 @@
-const KEY='mon_budget_essentiel_v5';
-const LEGACY_KEYS=['mon_budget_essentiel_v4','budget_essentiel_v3','budget_essentiel_v2','budget_essentiel_v1'];
-const defaults={balance:2697.32,cardDebitDay:4,operations:[],incomeRules:[{id:'i1',label:'CAF',amount:867.92,day:5},{id:'i2',label:'Assurance Maëva',amount:130,day:10}],chargeRules:[{id:'c1',label:'Orange',amount:28.99,day:6},{id:'c2',label:'Eau de Garonne',amount:64,day:3}],theme:'light'};
-let data=load(),opType='expense',payment='deferred',category='Alimentation';
+const KEY='mon_budget_familial_v8';
+const BACKUP_KEY='mon_budget_familial_v8_backup';
+const DATA_VERSION=8;
+const KNOWN_KEYS=[
+  'mon_budget_familial_v8',
+  'mon_budget_familial_1_0',
+  'mon_budget_essentiel_v7',
+  'mon_budget_essentiel_v6_5',
+  'mon_budget_essentiel_v6',
+  'mon_budget_essentiel_v5_2_5',
+  'mon_budget_essentiel_v5_2_4',
+  'mon_budget_essentiel_v5_2_3',
+  'mon_budget_essentiel_v5_2_2',
+  'mon_budget_essentiel_v5_2_1',
+  'mon_budget_essentiel_v5_2',
+  'mon_budget_essentiel_v5_1',
+  'mon_budget_essentiel_v5',
+  'mon_budget_essentiel_v4',
+  'budget_essentiel_v3',
+  'budget_essentiel_v2',
+  'budget_essentiel_v1'
+];
+const defaults={
+  balance:2697.32,
+  cardDebitDay:4,
+  operations:[],
+  incomeRules:[
+    {id:'i1',label:'CAF',amount:867.92,day:5,active:true},
+    {id:'i2',label:'Assurance Maëva',amount:130,day:10,active:true}
+  ],
+  chargeRules:[
+    {id:'c1',label:'Orange',amount:28.99,day:6,active:true},
+    {id:'c2',label:'Eau de Garonne',amount:64,day:3,active:true}
+  ],
+  theme:'light',
+  lastCategory:'Alimentation',
+  savings:0,
+  dataVersion:DATA_VERSION
+};
 
-function load(){
+function cloneDefaults(){
+  return JSON.parse(JSON.stringify(defaults));
+}
+function parseStored(key){
   try{
-    const current=localStorage.getItem(KEY);
-    if(current)return {...structuredClone(defaults),...JSON.parse(current)};
-    for(const k of LEGACY_KEYS){
-      const old=localStorage.getItem(k);
-      if(old){
-        const migrated={...structuredClone(defaults),...JSON.parse(old)};
-        localStorage.setItem(KEY,JSON.stringify(migrated));
-        return migrated;
-      }
+    const raw=localStorage.getItem(key);
+    if(!raw)return null;
+    const value=JSON.parse(raw);
+    return value&&typeof value==='object'?value:null;
+  }catch{
+    return null;
+  }
+}
+function dataScore(value){
+  if(!value)return -1;
+  let score=0;
+  const balance=Number(value.balance);
+  if(Number.isFinite(balance)&&balance!==0)score+=1000+Math.min(Math.abs(balance),100000)/100;
+  score+=(Array.isArray(value.operations)?value.operations.length:0)*20;
+  score+=(Array.isArray(value.incomeRules)?value.incomeRules.length:0)*5;
+  score+=(Array.isArray(value.chargeRules)?value.chargeRules.length:0)*5;
+  if(value.lastSavedAt)score+=2;
+  return score;
+}
+function normalizeData(value){
+  const base=cloneDefaults();
+  const result={...base,...(value||{})};
+  result.balance=Number(result.balance)||0;
+  result.cardDebitDay=Math.max(1,Math.min(28,Number(result.cardDebitDay)||4));
+  result.savings=Number(result.savings)||0;
+  result.operations=Array.isArray(result.operations)?result.operations:[];
+  result.incomeRules=Array.isArray(result.incomeRules)?result.incomeRules:[];
+  result.chargeRules=Array.isArray(result.chargeRules)?result.chargeRules:[];
+  result.incomeRules=result.incomeRules.map(r=>({...r,active:r.active!==false}));
+  result.chargeRules=result.chargeRules.map(r=>({...r,active:r.active!==false}));
+  result.dataVersion=DATA_VERSION;
+  return result;
+}
+function findBestStoredData(){
+  let best=null;
+  let bestKey='';
+  let bestScore=-1;
+  KNOWN_KEYS.forEach(key=>{
+    const candidate=parseStored(key);
+    const score=dataScore(candidate);
+    if(score>bestScore){
+      best=candidate;
+      bestKey=key;
+      bestScore=score;
     }
-  }catch{}
-  return structuredClone(defaults)
+  });
+  return {data:best,key:bestKey,score:bestScore};
 }
-
-function normalizeRules(){
-  data.incomeRules=(data.incomeRules||[]).map(r=>({...r,active:r.active!==false}));
-  data.chargeRules=(data.chargeRules||[]).map(r=>({...r,active:r.active!==false}));
+function writeLocalBackup(value){
+  try{
+    localStorage.setItem(BACKUP_KEY,JSON.stringify({
+      savedAt:new Date().toISOString(),
+      data:normalizeData(value)
+    }));
+    return true;
+  }catch{
+    return false;
+  }
 }
+function load(){
+  const current=parseStored(KEY);
+  if(current){
+    const normalized=normalizeData(current);
+    writeLocalBackup(normalized);
+    return normalized;
+  }
 
-function save(){localStorage.setItem(KEY,JSON.stringify(data));renderAll()}
+  const found=findBestStoredData();
+  if(found.data){
+    const migrated=normalizeData(found.data);
+    migrated.migratedFrom=found.key;
+    migrated.lastSavedAt=new Date().toISOString();
+    localStorage.setItem(KEY,JSON.stringify(migrated));
+    writeLocalBackup(migrated);
+    return migrated;
+  }
+
+  return cloneDefaults();
+}
+let data=load(),opType='expense',payment='deferred',category=data.lastCategory||'Alimentation';
+
+function save(){
+  const previous=parseStored(KEY);
+  if(previous)writeLocalBackup(previous);
+  data=normalizeData(data);
+  data.lastSavedAt=new Date().toISOString();
+  localStorage.setItem(KEY,JSON.stringify(data));
+  renderAll()
+}
 function euro(n){return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(Number(n||0))}
 
 function animateAmount(selector,value){
@@ -318,6 +425,11 @@ function drawEvents(selector,items,limit){
 function renderHome(){
   animateAmount('#homeAvailable',available());
   document.querySelector('#familyMonthLabel').textContent=new Date().toLocaleDateString('fr-FR',{month:'long'});
+  document.querySelector('#monthOverviewLabel').textContent=new Date().toLocaleDateString('fr-FR',{month:'long'});
+  document.querySelector('#monthOverviewIncome').textContent=euro(monthIncome());
+  document.querySelector('#monthOverviewExpense').textContent=euro(monthExpense());
+  document.querySelector('#monthOverviewSavings').textContent=euro(savingsPossible());
+  document.querySelector('#monthOverviewForecast').textContent=euro(forecast());
   document.querySelector('#remainingIncomeKpi').textContent=euro(remainingIncomeAmount());
   document.querySelector('#remainingChargesKpi').textContent=euro(remainingChargeAmount());
   const dti=daysToNextIncome();
@@ -431,6 +543,11 @@ function renderSettings(){
   document.querySelector('#activeChargeCount').textContent=data.chargeRules.filter(r=>r.active!==false).length;
   const nr=nextRecurring();
   document.querySelector('#nextRecurringLabel').textContent=nr?`${nr.label} · le ${nr.day}`:'Aucune';
+  const saved=data.lastSavedAt?new Date(data.lastSavedAt):null;
+  const savedText=saved
+    ? `Dernière sauvegarde locale : ${saved.toLocaleDateString('fr-FR')} à ${saved.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}`
+    : 'Données enregistrées automatiquement sur cet iPhone';
+  document.querySelector('#lastSavedText').textContent=savedText;
   document.body.classList.toggle('dark',data.theme==='dark');
   document.querySelector('#themeToggle').textContent=data.theme==='dark'?'☀️':'🌙';
 }
@@ -663,15 +780,17 @@ document.querySelector('#exportData').onclick=()=>{
 };
 document.querySelector('#importData').onchange=async e=>{
   const file=e.target.files[0];if(!file)return;
-  try{data={...structuredClone(defaults),...JSON.parse(await file.text())};save();alert('Sauvegarde importée.')}catch{alert('Fichier invalide.')}
+  try{writeLocalBackup(data);data=normalizeData(JSON.parse(await file.text()));save();alert('Sauvegarde importée.')}catch{alert('Fichier invalide.')}
 };
 document.querySelector('#resetData').onclick=()=>{if(confirm('Tout effacer et repartir de zéro ?')){data=structuredClone(defaults);save()}};
 
-document.querySelector('#quickAdd').onclick=()=>setTab('add');
-document.querySelector('#quickIncomeAction').onclick=()=>{
-  setType('income');
-  setTab('add');
-};
+const quickIncomeAction=document.querySelector('#quickIncomeAction');
+if(quickIncomeAction){
+  quickIncomeAction.onclick=()=>{
+    setType('income');
+    setTab('add');
+  };
+}
 
 function restoreOperationToBalance(op){
   if(op.type==='income')data.balance=Number((data.balance-op.amount).toFixed(2));
@@ -789,6 +908,57 @@ document.querySelector('#quickSave').onclick=()=>{
   showToast('Opération enregistrée',`${parsed.label} · ${euro(parsed.amount)}`);
   setTimeout(()=>{message.textContent=''},1200);
 };
+
+
+function updateSafetyStatus(message){
+  const el=document.querySelector('#dataSafetyStatus');
+  if(el)el.textContent=message;
+}
+document.querySelector('#createLocalBackup').onclick=()=>{
+  if(writeLocalBackup(data)){
+    updateSafetyStatus('Sauvegarde locale créée maintenant.');
+    alert('Votre budget a été sauvegardé sur cet iPhone.');
+  }else{
+    alert('La sauvegarde locale a échoué.');
+  }
+};
+document.querySelector('#restoreLocalBackup').onclick=()=>{
+  const wrapper=parseStored(BACKUP_KEY);
+  if(!wrapper||!wrapper.data){
+    alert('Aucune sauvegarde locale disponible.');
+    return;
+  }
+  if(confirm('Restaurer la dernière sauvegarde locale ?')){
+    data=normalizeData(wrapper.data);
+    data.lastSavedAt=new Date().toISOString();
+    localStorage.setItem(KEY,JSON.stringify(data));
+    renderAll();
+    updateSafetyStatus('Dernière sauvegarde restaurée.');
+  }
+};
+document.querySelector('#searchOldData').onclick=()=>{
+  const found=findBestStoredData();
+  if(!found.data){
+    alert('Aucune ancienne donnée trouvée sur cet iPhone.');
+    return;
+  }
+  const recovered=normalizeData(found.data);
+  const description=`${euro(recovered.balance)} et ${recovered.operations.length} opération(s)`;
+  if(confirm(`Anciennes données trouvées : ${description}. Les restaurer ?`)){
+    writeLocalBackup(data);
+    data=recovered;
+    data.lastSavedAt=new Date().toISOString();
+    localStorage.setItem(KEY,JSON.stringify(data));
+    renderAll();
+    updateSafetyStatus(`Données restaurées depuis ${found.key}.`);
+  }
+};
+const migratedFrom=data.migratedFrom;
+updateSafetyStatus(
+  migratedFrom
+    ? `Anciennes données récupérées automatiquement depuis ${migratedFrom}.`
+    : 'Vos données sont protégées par une sauvegarde locale automatique.'
+);
 
 document.querySelector('#opDate').value=today();
 normalizeRules();

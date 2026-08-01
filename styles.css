@@ -405,3 +405,51 @@ body{
     grid-column:1 / -1;
   }
 }
+
+/* RC5 — simplification de l’accueil */
+.month-overview-card{
+  border-left:5px solid var(--blue);
+}
+.month-overview-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:12px;
+}
+.month-overview-grid>div{
+  padding:13px;
+  border:1px solid var(--line);
+  border-radius:15px;
+  background:#f9fbff;
+}
+.month-overview-grid span{
+  display:block;
+  color:var(--muted);
+  font-size:12px;
+}
+.month-overview-grid b{
+  display:block;
+  margin-top:6px;
+  font-size:19px;
+}
+.last-saved{
+  display:block;
+  margin-top:6px;
+  font-size:11px;
+  opacity:.78;
+}
+body.dark .month-overview-grid>div{
+  background:#141b27;
+}
+@media(max-width:520px){
+  .month-overview-grid{
+    grid-template-columns:1fr 1fr;
+  }
+}
+
+.secure-backup-card{
+  border-left:5px solid var(--green);
+}
+.secure-backup-card .secondary{
+  margin-top:9px;
+}
