@@ -1,15 +1,16 @@
-# Mon Budget 3.0 Candidate
+# Mon Budget 3.0 Final
 
-Cette version est construite sur la 2.2.2 Stable et conserve la même clé de stockage.
+Version finale construite sur la 3.0 Candidate validée sur iPhone.
 
-Nouveautés :
-- tableau de bord « Aujourd’hui » ;
-- disponible et budget conseillé visibles ensemble ;
-- prochaine échéance affichée ;
-- nombre de jours restants ;
-- indicateur de risque ;
-- conseil automatique ;
-- échéances en retard remontées dans « À surveiller » ;
-- saisie rapide, modèles automatiques et anti-doublon conservés.
+Aucune nouvelle fonction et aucun nouveau menu.
 
-Aucun nouveau menu.
+Finitions :
+- badge de risque plus discret ;
+- quatre cartes « Aujourd’hui » harmonisées ;
+- prochaine échéance plus lisible ;
+- calcul des jours restants ajusté ;
+- espacements et typographie affinés ;
+- animations discrètes ;
+- compatibilité complète avec les données et sauvegardes existantes.
+
+La clé de stockage reste `mon_budget_v10_stable`.

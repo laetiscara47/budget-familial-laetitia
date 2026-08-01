@@ -751,7 +751,7 @@
 
     $("todayAvailable").textContent=euro(available());
     $("todayBudget").textContent=euro(dailyBudget());
-    $("todayDaysLeft").textContent=daysLeft();
+    $("todayDaysLeft").textContent=Math.max(0,daysLeft()-1);
 
     const nextDue=nextDueItem();
     if(nextDue){

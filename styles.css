@@ -561,3 +561,67 @@ body{
     font-size:16px;
   }
 }
+
+
+/* Mon Budget 3.0 Final — finitions */
+.today-card{
+  padding:16px 18px 18px;
+}
+.today-card .section-head{
+  align-items:center;
+}
+.today-risk-badge{
+  font-size:12px !important;
+  padding:6px 10px !important;
+  border-radius:999px !important;
+  font-weight:750 !important;
+}
+.today-grid{
+  grid-auto-rows:1fr;
+}
+.today-line{
+  min-height:92px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+.today-line span{
+  font-size:13px;
+}
+.today-line b{
+  font-size:18px;
+  line-height:1.22;
+}
+#todayNextDue{
+  font-size:17px;
+}
+.today-advice{
+  margin-top:12px;
+  font-size:14px;
+}
+.hero,.status-card,.today-card{
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+.hero:active,.status-card:active,.today-card:active{
+  transform:scale(.998);
+}
+@media(max-width:430px){
+  .today-card{
+    padding-left:16px;
+    padding-right:16px;
+  }
+  .today-line{
+    min-height:88px;
+  }
+  .today-line b{
+    font-size:17px;
+  }
+  #todayNextDue{
+    font-size:16px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .hero,.status-card,.today-card{
+    transition:none !important;
+  }
+}
