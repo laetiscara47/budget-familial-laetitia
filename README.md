@@ -1,15 +1,16 @@
-# Mon Budget V10 Finale Nettoyée
+# Mon Budget 1.0 Production
 
-Cette version devient la base unique du projet.
+Version stable destinée à l’utilisation quotidienne.
 
-Corrections définitives :
-- suppression automatique des anciens caches ;
-- désactivation des anciens service workers ;
-- conservation des données V9/V10 ;
-- barre de navigation totalement opaque ;
-- davantage d’espace sous les cartes sur iPhone ;
-- aucun nouveau menu ni nouvelle fonction ;
-- modification, duplication et suppression des opérations conservées ;
-- comptes, agenda, statistiques, sauvegardes et mode sombre conservés.
+Aucune nouvelle fonctionnalité.
 
-Remplacez tous les fichiers du dépôt GitHub par ceux de cette archive.
+Finitions :
+- barre de navigation plus compacte ;
+- en-tête plus discret ;
+- cartes rapprochées ;
+- meilleure lisibilité sur iPhone ;
+- davantage de contenu visible sans défilement ;
+- conservation des données, comptes, opérations, agenda, statistiques et sauvegardes ;
+- anciens caches toujours neutralisés.
+
+Cette version devient la base officielle du projet.
