@@ -26,6 +26,28 @@ function normalizeRules(){
 
 function save(){localStorage.setItem(KEY,JSON.stringify(data));renderAll()}
 function euro(n){return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(Number(n||0))}
+
+function animateAmount(selector,value){
+  const el=document.querySelector(selector);
+  if(!el)return;
+  const end=Number(value||0);
+  const start=Number(el.dataset.current||0);
+  const duration=320;
+  const begin=performance.now();
+  function step(now){
+    const p=Math.min(1,(now-begin)/duration);
+    const eased=1-Math.pow(1-p,3);
+    const current=start+(end-start)*eased;
+    el.textContent=euro(current);
+    if(p<1)requestAnimationFrame(step);
+    else{
+      el.textContent=euro(end);
+      el.dataset.current=String(end);
+    }
+  }
+  requestAnimationFrame(step);
+}
+
 function money(v){return Number(String(v||'').replace(/\s/g,'').replace(',','.'))||0}
 function today(){return new Date().toISOString().slice(0,10)}
 function monthKey(v){return String(v).slice(0,7)}
@@ -294,7 +316,7 @@ function drawEvents(selector,items,limit){
   }).join(''):'<p style="color:var(--muted)">Aucune opération.</p>'
 }
 function renderHome(){
-  document.querySelector('#homeAvailable').textContent=euro(available());
+  animateAmount('#homeAvailable',available());
   document.querySelector('#familyMonthLabel').textContent=new Date().toLocaleDateString('fr-FR',{month:'long'});
   document.querySelector('#remainingIncomeKpi').textContent=euro(remainingIncomeAmount());
   document.querySelector('#remainingChargesKpi').textContent=euro(remainingChargeAmount());
@@ -309,8 +331,8 @@ function renderHome(){
   document.querySelector('#homeCard').textContent=euro(cardPending());
   document.querySelector('#homeCardDay').textContent=data.cardDebitDay;
   const todayBudget=dailyBudget();
-  document.querySelector('#homeDaily').textContent=euro(todayBudget);
-  document.querySelector('#homeDailyTop').textContent=euro(todayBudget);
+  animateAmount('#homeDaily',todayBudget);
+  animateAmount('#homeDailyTop',todayBudget);
   document.querySelector('#homeDailyHint').textContent=`Fin de mois prévue : ${euro(forecast())}`;
   document.querySelector('#homeMonthName').textContent=new Date().toLocaleDateString('fr-FR',{month:'long'});
   document.querySelector('#homeMonthIncome').textContent=euro(monthIncome());

@@ -1,20 +1,14 @@
-# Mon Budget Familial 1.0
+# Mon Budget Familial 2026 — RC1
 
-Première version familiale officielle.
+Cette version n'ajoute pas de nouvelles fonctions.
 
-Principales fonctions :
-- disponible réel et budget quotidien ;
-- revenus et prélèvements à venir ;
-- échéances automatiques ;
-- saisie rapide et saisie intelligente ;
-- carte bancaire à débit différé ;
-- opérations avec recherche et filtres ;
-- agenda ;
-- comptes et épargne ;
-- vue complète du mois ;
-- statistiques par catégorie ;
-- sauvegarde, import, CSV et impression PDF ;
-- mode sombre ;
-- récupération automatique des données des anciennes versions.
+Finitions :
+- bouton flottant plus discret ;
+- cartes Dépense / Revenu plus élégantes ;
+- fond en dégradé plus doux ;
+- animations légères ;
+- montants animés ;
+- navigation plus fluide ;
+- toutes les fonctions de la version Familiale 1.0 conservées.
 
-Cette version devient la base officielle du projet.
+Cette RC1 est destinée aux derniers tests avant la version officielle.
