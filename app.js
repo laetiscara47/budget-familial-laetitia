@@ -215,6 +215,40 @@ document.querySelector('#chooseIncome').onclick=()=>setType('income');
 document.querySelector('#chooseDeferred').onclick=()=>setPayment('deferred');
 document.querySelector('#chooseCurrent').onclick=()=>setPayment('current');
 
+
+function normalizeText(value){
+  return String(value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+function smartSuggestion(label){
+  const text=normalizeText(label);
+  const incomeWords=['caf','salaire','paie','assurance maeva','remboursement','allocation','pension'];
+  const rules=[
+    {words:['carrefour','leclerc','intermarche','lidl','aldi','auchan','casino','courses','boulangerie'],category:'Alimentation',type:'expense'},
+    {words:['orange','sfr','bouygues','free','telephone','internet'],category:'Maison',type:'expense'},
+    {words:['essence','total','esso','station','carburant','garage','peage'],category:'Transport',type:'expense'},
+    {words:['pharmacie','medecin','docteur','dentiste','sante'],category:'Santé',type:'expense'},
+    {words:['tennis','cinema','restaurant','sortie','loisir'],category:'Loisirs',type:'expense'},
+    {words:['edf','engie','eau de garonne','assurance','loyer','credit','maison'],category:'Maison',type:'expense'}
+  ];
+  if(incomeWords.some(w=>text.includes(w)))return {type:'income',category:'Autre',message:'Revenu reconnu automatiquement'};
+  for(const rule of rules){
+    if(rule.words.some(w=>text.includes(w)))return {type:rule.type,category:rule.category,message:`Catégorie proposée : ${rule.category}`};
+  }
+  return {type:'expense',category:data.lastCategory||'Autre',message:'Catégorie habituelle conservée'};
+}
+function applySmartSuggestion(){
+  const label=document.querySelector('#opLabel').value.trim();
+  if(!label)return;
+  const suggestion=smartSuggestion(label);
+  setType(suggestion.type);
+  category=suggestion.category;
+  data.lastCategory=category;
+  document.querySelectorAll('[data-category]').forEach(btn=>btn.classList.toggle('active',btn.dataset.category===category));
+  document.querySelector('#autoHint').textContent=suggestion.message;
+  localStorage.setItem(KEY,JSON.stringify(data));
+  updateImpact();
+}
+
 function updateImpact(){
   const amount=money(document.querySelector('#opAmount').value),box=document.querySelector('#impactPreview');
   if(amount<=0){box.classList.remove('show');box.innerHTML='';return}
@@ -223,8 +257,13 @@ function updateImpact(){
   else box.innerHTML=`Après cette dépense, le budget conseillé serait d’environ <b>${euro(Math.max(0,(forecast()-amount)/daysLeft()))}</b><small>${payment==='deferred'?'Ajouté à la CB différée':'Débit immédiat du compte'}</small>`;
 }
 document.querySelector('#opAmount').addEventListener('input',updateImpact);
+document.querySelector('#opLabel').addEventListener('input',()=>{
+  clearTimeout(window.__smartTimer);
+  window.__smartTimer=setTimeout(applySmartSuggestion,250);
+});
 
 document.querySelector('#saveOperation').onclick=()=>{
+  applySmartSuggestion();
   const amount=money(document.querySelector('#opAmount').value),label=document.querySelector('#opLabel').value.trim(),date=document.querySelector('#opDate').value||today();
   if(amount<=0||!label){document.querySelector('#saveMessage').textContent='Complétez le montant et le libellé.';return}
   const op={id:crypto.randomUUID(),type:opType,label,amount,date,category,payment:opType==='expense'?payment:'current',cardDebited:false};
@@ -233,6 +272,7 @@ document.querySelector('#saveOperation').onclick=()=>{
   if(opType==='expense'&&payment==='current')data.balance=Number((data.balance-amount).toFixed(2));
   document.querySelector('#opAmount').value='';
   document.querySelector('#opLabel').value='';
+  document.querySelector('#autoHint').textContent='La catégorie sera proposée automatiquement.';
   document.querySelector('#saveMessage').textContent='Opération enregistrée.';
   save();
   setTimeout(()=>setTab('home'),350)
