@@ -1,21 +1,21 @@
-# Mon Budget Familial 2026
+# Mon Budget 2.3
 
-Une seule application, simple et adaptée à l’iPhone.
+Nouveautés simples :
 
-Accueil :
-- échéances du jour ;
-- prochaine échéance ;
-- revenus attendus ;
-- reste à vivre par jour ;
-- conseil court.
+## Comptes
+Touchez un compte pour :
+- modifier son nom ;
+- saisir son solde réel.
 
-Ajouter :
-- saisie en phrase naturelle ;
-- favoris ;
-- type, catégorie et compte proposés automatiquement.
+La différence crée automatiquement une opération « Ajustement du solde ».
 
-Comptes :
-- modifier le solde ;
-- synchroniser avec le solde affiché par la banque.
+## Ajouter
+Saisie rapide :
+- Carrefour 52 €
+- Salaire 1200 €
+- Orange 28,99 €
+- Vinted 15 €
 
-La même clé de stockage est conservée.
+L’application prépare les champs avant validation.
+
+La même base de données et les sauvegardes 2.2.2 sont conservées.

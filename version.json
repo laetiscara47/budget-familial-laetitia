@@ -1,16 +1,12 @@
 {
-  "version": "2026.1-family",
+  "version": "2.3.0",
   "schema": 2,
   "channel": "stable-candidate",
   "storageKey": "mon_budget_v10_stable",
   "changes": [
-    "family dashboard summary",
-    "today dues",
-    "next due",
-    "expected income",
-    "daily remainder",
-    "natural language entry retained",
-    "quick favorites retained",
-    "balance adjustment retained"
+    "quick text entry",
+    "editable account name",
+    "editable account balance",
+    "automatic balance adjustment operation"
   ]
 }
