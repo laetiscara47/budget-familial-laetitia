@@ -1,0 +1,15 @@
+{
+  "name": "Mon Budget V10 Finale",
+  "short_name": "Mon Budget",
+  "start_url": "./?v=10.2.0-final",
+  "display": "standalone",
+  "background_color": "#f4f7fc",
+  "theme_color": "#1768e8",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
