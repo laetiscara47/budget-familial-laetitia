@@ -28,6 +28,62 @@ function daysInMonth(){const d=new Date();return new Date(d.getFullYear(),d.getM
 function daysLeft(){return Math.max(1,daysInMonth()-new Date().getDate()+1)}
 function safeDate(day,monthOffset=0){const n=new Date(),d=new Date(n.getFullYear(),n.getMonth()+monthOffset,1),last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();d.setDate(Math.min(Number(day),last));d.setHours(12);return d.toISOString().slice(0,10)}
 function cardPending(){return data.operations.filter(x=>x.type==='expense'&&x.payment==='deferred'&&!x.cardDebited).reduce((s,x)=>s+x.amount,0)}
+
+function recurringKey(type,ruleId,year,month){
+  return `${type}:${ruleId}:${year}-${String(month+1).padStart(2,'0')}`;
+}
+function materializeRecurring(){
+  const now=new Date();
+  const year=now.getFullYear(),month=now.getMonth(),todayDay=now.getDate();
+  let changed=false;
+
+  data.incomeRules.forEach(rule=>{
+    if(Number(rule.day)>todayDay)return;
+    const key=recurringKey('income',rule.id,year,month);
+    if(data.operations.some(op=>op.recurringKey===key))return;
+    const op={
+      id:crypto.randomUUID(),
+      type:'income',
+      label:rule.label,
+      amount:Number(rule.amount),
+      date:safeDate(rule.day),
+      category:'Revenu récurrent',
+      payment:'current',
+      cardDebited:false,
+      recurringKey:key,
+      generated:true
+    };
+    data.operations.push(op);
+    data.balance=Number((data.balance+op.amount).toFixed(2));
+    changed=true;
+  });
+
+  data.chargeRules.forEach(rule=>{
+    if(Number(rule.day)>todayDay)return;
+    const key=recurringKey('charge',rule.id,year,month);
+    if(data.operations.some(op=>op.recurringKey===key))return;
+    const op={
+      id:crypto.randomUUID(),
+      type:'expense',
+      label:rule.label,
+      amount:Number(rule.amount),
+      date:safeDate(rule.day),
+      category:'Prélèvement récurrent',
+      payment:'current',
+      cardDebited:false,
+      recurringKey:key,
+      generated:true
+    };
+    data.operations.push(op);
+    data.balance=Number((data.balance-op.amount).toFixed(2));
+    changed=true;
+  });
+
+  if(changed){
+    localStorage.setItem(KEY,JSON.stringify(data));
+  }
+}
+
 function expectedIncome(){const day=new Date().getDate();return data.incomeRules.filter(r=>r.day>=day).reduce((s,r)=>s+r.amount,0)}
 function remainingCharges(){const day=new Date().getDate();return data.chargeRules.filter(r=>r.day>=day).reduce((s,r)=>s+r.amount,0)}
 function available(){return data.balance-cardPending()}
@@ -44,8 +100,19 @@ function esc(v){return String(v).replace(/[&<>\"']/g,s=>({'&':'&amp;','<':'&lt;'
 function allEvents(){
   const list=[];
   data.operations.forEach(o=>list.push({...o,kind:o.type,signed:o.type==='income'?o.amount:-o.amount}));
-  data.incomeRules.forEach(r=>list.push({id:'ri'+r.id,kind:'income',label:r.label,date:safeDate(r.day),signed:r.amount,rule:true}));
-  data.chargeRules.forEach(r=>list.push({id:'rc'+r.id,kind:'charge',label:r.label,date:safeDate(r.day),signed:-r.amount,rule:true}));
+  const now=new Date(),year=now.getFullYear(),month=now.getMonth();
+  data.incomeRules.forEach(r=>{
+    const key=recurringKey('income',r.id,year,month);
+    if(!data.operations.some(op=>op.recurringKey===key)){
+      list.push({id:'ri'+r.id,kind:'income',label:r.label,date:safeDate(r.day),signed:r.amount,rule:true});
+    }
+  });
+  data.chargeRules.forEach(r=>{
+    const key=recurringKey('charge',r.id,year,month);
+    if(!data.operations.some(op=>op.recurringKey===key)){
+      list.push({id:'rc'+r.id,kind:'charge',label:r.label,date:safeDate(r.day),signed:-r.amount,rule:true});
+    }
+  });
   if(cardPending()>0){
     const now=new Date(),offset=now.getDate()<=data.cardDebitDay?0:1;
     list.push({id:'card',kind:'card',label:'Débit CB différée',date:safeDate(data.cardDebitDay,offset),signed:-cardPending(),rule:true});
@@ -71,10 +138,7 @@ function renderHome(){
   document.querySelector('#homeForecast').textContent=`Fin de mois estimée : ${euro(forecast())}`;
   document.querySelector('#homeCard').textContent=euro(cardPending());
   document.querySelector('#homeCardDay').textContent=data.cardDebitDay;
-  const todayBudget=dailyBudget();
-  document.querySelector('#homeDaily').textContent=euro(todayBudget);
-  document.querySelector('#homeDailyTop').textContent=euro(todayBudget);
-  document.querySelector('#homeDailyHint').textContent=`Fin de mois prévue : ${euro(forecast())}`;
+  document.querySelector('#homeDaily').textContent=euro(dailyBudget());
   document.querySelector('#homeMonthName').textContent=new Date().toLocaleDateString('fr-FR',{month:'long'});
   document.querySelector('#homeMonthIncome').textContent=euro(monthIncome());
   document.querySelector('#homeMonthExpense').textContent=euro(monthExpense());
@@ -85,13 +149,9 @@ function renderHome(){
   document.querySelector('#homeNextCharge').textContent=nc?euro(nc.amount):'—';
   document.querySelector('#homeNextChargeLabel').textContent=nc?`${nc.label} · le ${nc.day}`:'Aucun';
   const st=statusInfo();
-  const statusColor=st.level==='danger'?'var(--red)':st.level==='warning'?'var(--orange)':'var(--green)';
   document.querySelector('#statusTitle').textContent=st.title;
   document.querySelector('#statusText').textContent=st.text;
-  document.querySelector('#statusDot').style.background=statusColor;
-  document.querySelector('#statusTitleTop').textContent=st.title;
-  document.querySelector('#statusTextTop').textContent=st.text;
-  document.querySelector('#statusDotTop').style.background=statusColor;
+  document.querySelector('#statusDot').style.background=st.level==='danger'?'var(--red)':st.level==='warning'?'var(--orange)':'var(--green)';
   drawEvents('#homeUpcoming',allEvents().filter(x=>x.date>=today()),5);
 }
 function renderAgenda(){
@@ -167,7 +227,8 @@ document.querySelector('#saveOperation').onclick=()=>{
   document.querySelector('#opAmount').value='';
   document.querySelector('#opLabel').value='';
   document.querySelector('#saveMessage').textContent='Opération enregistrée.';
-  save()
+  save();
+  setTimeout(()=>setTab('home'),350)
 };
 
 document.querySelector('#agendaFilter').addEventListener('change',renderAgenda);
@@ -207,4 +268,5 @@ document.querySelector('#resetData').onclick=()=>{if(confirm('Tout effacer et re
 
 document.querySelector('#quickAdd').onclick=()=>setTab('add');
 document.querySelector('#opDate').value=today();
+materializeRecurring();
 renderAll();
