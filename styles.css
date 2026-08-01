@@ -416,3 +416,92 @@ body{
     scroll-behavior:auto !important;
   }
 }
+
+
+/* Mon Budget 2.1 Test — diagnostic caché */
+#saveState{
+  user-select:none;
+  -webkit-user-select:none;
+}
+.developer-modal{
+  position:fixed;
+  inset:0;
+  z-index:100;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .18s ease;
+}
+.developer-modal.open{
+  opacity:1;
+  pointer-events:auto;
+}
+.developer-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(8,16,32,.48);
+}
+.developer-sheet{
+  position:absolute;
+  left:12px;
+  right:12px;
+  bottom:calc(12px + env(safe-area-inset-bottom));
+  max-height:82vh;
+  overflow:auto;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:24px;
+  padding:18px;
+  box-shadow:0 22px 60px rgba(0,0,0,.28);
+  transform:translateY(24px);
+  transition:transform .18s ease;
+}
+.developer-modal.open .developer-sheet{
+  transform:translateY(0);
+}
+.developer-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  border-bottom:1px solid var(--line);
+  padding-bottom:12px;
+  margin-bottom:12px;
+}
+.developer-head h2{
+  margin:0;
+}
+.developer-head button{
+  width:38px;
+  height:38px;
+  border:0;
+  border-radius:50%;
+  background:#eef2f8;
+  color:#172033;
+  font-size:18px;
+}
+.developer-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+}
+.developer-grid>div{
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:11px;
+}
+.developer-grid span{
+  display:block;
+  color:var(--muted);
+  font-size:11px;
+}
+.developer-grid b{
+  display:block;
+  margin-top:5px;
+  font-size:17px;
+}
+.developer-checksum{
+  margin:14px 0 4px;
+  color:var(--muted);
+  font-size:11px;
+  word-break:break-all;
+}

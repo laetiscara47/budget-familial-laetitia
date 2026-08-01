@@ -330,6 +330,24 @@
 
   if(localStorage.getItem("mon_budget_cache_cleaned_10_2")!=="yes") cleanOldApplicationCaches();
 
+  let calculationRevision=0;
+  let calculationCache=new Map();
+
+  function invalidateCalculations(){
+    calculationRevision++;
+    calculationCache.clear();
+  }
+
+  function memoCalculation(key,calculator){
+    const cached=calculationCache.get(key);
+    if(cached && cached.revision===calculationRevision){
+      return cached.value;
+    }
+    const value=calculator();
+    calculationCache.set(key,{revision:calculationRevision,value});
+    return value;
+  }
+
   let data=load();
   let operationType="expense";
   let deferredPrompt=null;
@@ -339,6 +357,7 @@
   }
 
   function save(){
+    invalidateCalculations();
     try{
       const previousRaw=parseStore(KEY);
       const previous=normalize(previousRaw);
@@ -390,12 +409,23 @@
   function totalNetWorth(){ return data.accounts.filter(a=>a.type!=="deferred").reduce((s,a)=>s+Number(a.balance),0)-Math.abs(accountBalance(deferredAccount()?.id)); }
   function available(){ return accountBalance(currentAccount().id)-Math.abs(accountBalance(deferredAccount()?.id)); }
   function monthOps(offset=0){
-    const d=new Date(); d.setMonth(d.getMonth()+offset);
-    const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
-    return data.operations.filter(op=>monthKey(op.date)===key);
+    return memoCalculation(`monthOps:${offset}`,()=>{
+      const d=new Date();
+      d.setMonth(d.getMonth()+offset);
+      const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+      return data.operations.filter(op=>monthKey(op.date)===key);
+    });
   }
-  function monthIncome(offset=0){ return monthOps(offset).filter(o=>o.type==="income").reduce((s,o)=>s+Number(o.amount),0); }
-  function monthExpense(offset=0){ return monthOps(offset).filter(o=>o.type==="expense").reduce((s,o)=>s+Number(o.amount),0); }
+  function monthIncome(offset=0){
+    return memoCalculation(`monthIncome:${offset}`,()=>
+      monthOps(offset).filter(o=>o.type==="income").reduce((sum,op)=>sum+Number(op.amount),0)
+    );
+  }
+  function monthExpense(offset=0){
+    return memoCalculation(`monthExpense:${offset}`,()=>
+      monthOps(offset).filter(o=>o.type==="expense").reduce((sum,op)=>sum+Number(op.amount),0)
+    );
+  }
   function daysInMonth(){ const d=new Date(); return new Date(d.getFullYear(),d.getMonth()+1,0).getDate(); }
   function daysLeft(){ return Math.max(1,daysInMonth()-new Date().getDate()+1); }
   function ruleDate(day,monthOffset=0){
@@ -404,12 +434,30 @@
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(Math.min(Number(day),max)).padStart(2,"0")}`;
   }
   function futureRules(){
-    return data.rules.filter(r=>r.active!==false).map(r=>({...r,date:ruleDate(r.day)})).filter(r=>r.date>=today()).sort((a,b)=>a.date.localeCompare(b.date));
+    return memoCalculation("futureRules",()=>
+      data.rules
+        .filter(rule=>rule.active!==false)
+        .map(rule=>({...rule,date:ruleDate(rule.day)}))
+        .filter(rule=>rule.date>=today())
+        .sort((a,b)=>a.date.localeCompare(b.date))
+    );
   }
-  function remainingIncome(){ return futureRules().filter(r=>r.type==="income").reduce((s,r)=>s+Number(r.amount),0); }
-  function remainingCharges(){ return futureRules().filter(r=>r.type==="expense").reduce((s,r)=>s+Number(r.amount),0); }
-  function forecast(){ return available()+remainingIncome()-remainingCharges(); }
-  function dailyBudget(){ return Math.max(0,forecast()/daysLeft()); }
+  function remainingIncome(){
+    return memoCalculation("remainingIncome",()=>
+      futureRules().filter(rule=>rule.type==="income").reduce((sum,rule)=>sum+Number(rule.amount),0)
+    );
+  }
+  function remainingCharges(){
+    return memoCalculation("remainingCharges",()=>
+      futureRules().filter(rule=>rule.type==="expense").reduce((sum,rule)=>sum+Number(rule.amount),0)
+    );
+  }
+  function forecast(){
+    return memoCalculation("forecast",()=>available()+remainingIncome()-remainingCharges());
+  }
+  function dailyBudget(){
+    return memoCalculation("dailyBudget",()=>Math.max(0,forecast()/daysLeft()));
+  }
   function statusInfo(){
     if(forecast()<0)return {title:"Situation tendue",text:"La projection de fin de mois est négative.",color:"var(--red)"};
     if(dailyBudget()<20)return {title:"Situation prudente",text:"Gardez les dépenses non essentielles sous contrôle.",color:"var(--orange)"};
@@ -427,6 +475,7 @@
   }
 
   function materializeRecurring(){
+    invalidateCalculations();
     const now=new Date(),year=now.getFullYear(),month=now.getMonth(),todayDay=now.getDate();
     let changed=false;
     data.rules.filter(r=>r.active!==false&&Number(r.day)<=todayDay).forEach(rule=>{
@@ -563,6 +612,65 @@
     $("categoryStats").innerHTML=rows.length?rows.map(([c,a])=>`<div class="stat-row"><div><b>${c}</b><span>${euro(a)}</span></div><div class="bar"><i style="width:${Math.max(3,Math.round(a/max*100))}%"></i></div></div>`).join(""):"<p>Aucune dépense ce mois-ci.</p>";
     const diff=monthExpense()-monthExpense(-1);
     $("statsAdvice").textContent=diff>0?`Vous avez dépensé ${euro(diff)} de plus que le mois précédent.`:diff<0?`Vous avez dépensé ${euro(Math.abs(diff))} de moins que le mois précédent.`:"Vos dépenses sont stables par rapport au mois précédent.";
+  }
+
+  function buildDeveloperReport(){
+    const history=readBackupHistory();
+    const valid=validateData(normalize(data));
+    const operationsByType=data.operations.reduce((result,operation)=>{
+      result[operation.type]=(result[operation.type]||0)+1;
+      return result;
+    },{});
+
+    return {
+      valid,
+      schema:data.version||DATA_SCHEMA_VERSION,
+      accounts:data.accounts.length,
+      operations:data.operations.length,
+      incomes:operationsByType.income||0,
+      expenses:operationsByType.expense||0,
+      transfers:operationsByType.transfer||0,
+      rules:data.rules.length,
+      backups:history.length,
+      checksum:dataChecksum(normalize(data)),
+      lastSavedAt:data.lastSavedAt||null,
+      storageBytes:new Blob([
+        localStorage.getItem(KEY)||"",
+        localStorage.getItem(HISTORY_KEY)||""
+      ]).size
+    };
+  }
+
+  function renderDeveloperReport(){
+    const report=buildDeveloperReport();
+    $("developerReport").innerHTML=`
+      <div class="developer-grid">
+        <div><span>Intégrité</span><b class="${report.valid?"positive":"negative"}">${report.valid?"Valide":"Erreur"}</b></div>
+        <div><span>Schéma</span><b>${report.schema}</b></div>
+        <div><span>Comptes</span><b>${report.accounts}</b></div>
+        <div><span>Opérations</span><b>${report.operations}</b></div>
+        <div><span>Dépenses</span><b>${report.expenses}</b></div>
+        <div><span>Revenus</span><b>${report.incomes}</b></div>
+        <div><span>Virements</span><b>${report.transfers}</b></div>
+        <div><span>Échéances</span><b>${report.rules}</b></div>
+        <div><span>Sauvegardes</span><b>${report.backups}</b></div>
+        <div><span>Stockage local</span><b>${Math.ceil(report.storageBytes/1024)} Ko</b></div>
+      </div>
+      <p class="developer-checksum">Empreinte : ${report.checksum}</p>
+    `;
+  }
+
+  function openDeveloperMode(){
+    renderDeveloperReport();
+    const modal=$("developerModal");
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden","false");
+  }
+
+  function closeDeveloperMode(){
+    const modal=$("developerModal");
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden","true");
   }
 
   function renderSettings(){
@@ -753,6 +861,43 @@
     }
   });
 
+
+  let developerTapCount=0;
+  let developerTapTimer=null;
+
+  $("saveState").addEventListener("click",()=>{
+    developerTapCount++;
+    clearTimeout(developerTapTimer);
+    developerTapTimer=setTimeout(()=>developerTapCount=0,1600);
+    if(developerTapCount>=7){
+      developerTapCount=0;
+      openDeveloperMode();
+    }
+  });
+
+  $("closeDeveloperBtn").addEventListener("click",closeDeveloperMode);
+  document.addEventListener("click",event=>{
+    if(event.target.closest("[data-close-developer]"))closeDeveloperMode();
+  });
+
+  $("runIntegrityCheckBtn").addEventListener("click",()=>{
+    const normalized=normalize(data);
+    if(validateData(normalized)){
+      toast("Données vérifiées : aucune erreur");
+    }else{
+      alert("Une incohérence a été détectée. Aucune donnée n’a été modifiée.");
+    }
+    renderDeveloperReport();
+  });
+
+  $("createDiagnosticBackupBtn").addEventListener("click",()=>{
+    if(pushBackup(data,"diagnostic")){
+      toast("Sauvegarde de diagnostic créée");
+      renderDeveloperReport();
+    }else{
+      alert("La sauvegarde de diagnostic a échoué.");
+    }
+  });
 
   $("dateInput").value=today();
   materializeRecurring();

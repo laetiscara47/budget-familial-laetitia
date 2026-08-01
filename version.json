@@ -1,10 +1,12 @@
 {
-  "version": "2.0.0-final",
+  "version": "2.1.0-test",
   "schema": 2,
-  "channel": "stable",
-  "focus": [
-    "stability",
-    "performance",
-    "data-integrity"
+  "channel": "test",
+  "base": "2.0.0-final",
+  "changes": [
+    "memoized calculations",
+    "hidden diagnostics",
+    "backup diagnostics",
+    "integrity check"
   ]
 }

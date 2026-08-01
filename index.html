@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#1768e8">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <title>Mon Budget 2.0 Final</title>
-  <link rel="manifest" href="manifest.webmanifest?v=2.0.0-final">
-  <link rel="stylesheet" href="styles.css?v=2.0.0-final">
+  <title>Mon Budget 2.1 Test</title>
+  <link rel="manifest" href="manifest.webmanifest?v=2.1.0-test">
+  <link rel="stylesheet" href="styles.css?v=2.1.0-test">
 </head>
 <body>
   <header class="topbar">
@@ -213,6 +213,20 @@
   </nav>
 
   <div id="toast" class="toast" aria-live="polite"></div>
-  <script src="app.js?v=2.0.0-final"></script>
+  <script src="app.js?v=2.1.0-test"></script>
+
+  <div id="developerModal" class="developer-modal" aria-hidden="true">
+    <div class="developer-backdrop" data-close-developer></div>
+    <section class="developer-sheet" role="dialog" aria-modal="true" aria-labelledby="developerTitle">
+      <div class="developer-head">
+        <h2 id="developerTitle">Diagnostic interne</h2>
+        <button id="closeDeveloperBtn" type="button" aria-label="Fermer">✕</button>
+      </div>
+      <div id="developerReport"></div>
+      <button id="runIntegrityCheckBtn" class="secondary" type="button">Vérifier les données</button>
+      <button id="createDiagnosticBackupBtn" class="secondary" type="button">Créer une sauvegarde de diagnostic</button>
+    </section>
+  </div>
+
 </body>
 </html>
