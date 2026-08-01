@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#2f6fed">
-  <title>Mon Budget Essentiel V5.0</title>
+  <title>Mon Budget Essentiel V5.1</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=5.0.0">
+  <link rel="stylesheet" href="styles.css?v=5.1.0">
 </head>
 <body>
 <header class="topbar">
-  <div><h1>💙 Mon Budget</h1><p>V5.0 Essentiel</p></div>
+  <div><h1>💙 Mon Budget</h1><p>V5.1 Essentiel</p></div>
   <button id="themeToggle" class="round-btn">🌙</button>
 </header>
 
@@ -23,6 +23,17 @@
     <small id="homeForecast">Fin de mois estimée : 0,00 €</small>
   </article>
 
+  <article class="daily-highlight">
+    <span>Aujourd’hui, vous pouvez dépenser</span>
+    <strong id="homeDailyTop">0,00 €</strong>
+    <small id="homeDailyHint">Budget conseillé</small>
+  </article>
+
+  <article id="statusCardTop" class="status-card compact-status">
+    <div class="status-dot" id="statusDotTop"></div>
+    <div><h2 id="statusTitleTop">Situation</h2><p id="statusTextTop">Analyse en cours…</p></div>
+  </article>
+
   <div class="quick-grid">
     <article class="mini-card"><span>💳 CB différée</span><b id="homeCard">0,00 €</b><small>Débit le <span id="homeCardDay">4</span></small></article>
     <article class="mini-card"><span>💰 Prochain revenu</span><b id="homeNextIncome">—</b><small id="homeNextIncomeLabel">Aucun</small></article>
@@ -30,7 +41,7 @@
     <article class="mini-card"><span>📅 Budget conseillé</span><b id="homeDaily">0,00 €</b><small>Pour aujourd’hui</small></article>
   </div>
 
-  <article id="statusCard" class="status-card">
+  <article id="statusCard" class="status-card legacy-status" hidden>
     <div class="status-dot" id="statusDot"></div>
     <div><h2 id="statusTitle">Situation</h2><p id="statusText">Analyse en cours…</p></div>
   </article>
@@ -45,14 +56,14 @@
   </article>
 
   <article class="simple-card">
-    <div class="section-head"><h2>À venir</h2><button data-tab="agenda" class="text-btn">Voir tout</button></div>
+    <div class="section-head"><h2>5 prochaines opérations</h2><button data-tab="agenda" class="text-btn">Voir tout</button></div>
     <div id="homeUpcoming"></div>
   </article>
 </section>
 
 <section id="add" class="screen">
   <article class="simple-card">
-    <h2>Ajouter une opération</h2>
+    <h2>Ajouter rapidement</h2><p class='muted-intro'>Une dépense ou un revenu en quelques secondes.</p>
     <div class="choice-row">
       <button id="chooseExpense" class="choice active">🟥 Dépense</button>
       <button id="chooseIncome" class="choice">🟩 Revenu</button>
@@ -168,6 +179,6 @@
   <button data-tab="accounts"><span>💳</span><small>Comptes</small></button>
   <button data-tab="settings"><span>⚙️</span><small>Réglages</small></button>
 </nav>
-<script src="app.js?v=5.0.0"></script>
+<script src="app.js?v=5.1.0"></script>
 </body>
 </html>
