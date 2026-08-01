@@ -283,49 +283,110 @@
   function score(value){
     if(!value||typeof value!=="object")return -1;
     let total=0;
-    if(Array.isArray(value.accounts)) total += value.accounts.reduce((s,a)=>s+Math.abs(Number(a.balance)||0),0)/10;
-    if(Number(value.balance)) total+=1000;
-    total+=(Array.isArray(value.operations)?value.operations.length:0)*20;
+
+    if(Array.isArray(value.accounts)){
+      const absoluteBalance=value.accounts.reduce(
+        (sum,account)=>sum+Math.abs(Number(account.balance)||0),
+        0
+      );
+      total+=absoluteBalance;
+      total+=value.accounts.length*10;
+    }
+
+    if(Number(value.balance))total+=Math.abs(Number(value.balance));
+    total+=(Array.isArray(value.operations)?value.operations.length:0)*100;
+    total+=(Array.isArray(value.rules)?value.rules.length:0)*30;
+    total+=(Array.isArray(value.incomeRules)?value.incomeRules.length:0)*30;
+    total+=(Array.isArray(value.chargeRules)?value.chargeRules.length:0)*30;
+
+    if(value.lastSavedAt)total+=5;
     return total;
   }
 
-  function load(){
-    const currentRaw=parseStore(KEY);
-    const current=normalize(currentRaw);
+  function dataIsMeaningfullyEmpty(value){
+    const normalized=normalize(value);
+    const accountTotal=normalized.accounts.reduce(
+      (sum,account)=>sum+Math.abs(Number(account.balance)||0),
+      0
+    );
+    return accountTotal===0 &&
+      normalized.operations.length===0 &&
+      normalized.rules.length===0;
+  }
 
-    if(currentRaw && validateData(current)){
+  function collectValidCandidates(){
+    const candidates=[];
+    const seen=new Set();
+
+    function addCandidate(source,raw,priority=0){
+      if(!raw)return;
+      const candidateData=raw&&raw.data?raw.data:raw;
+      const normalized=normalize(candidateData);
+      if(!validateData(normalized))return;
+
+      const checksum=dataChecksum(normalized);
+      if(seen.has(checksum))return;
+      seen.add(checksum);
+
+      candidates.push({
+        source,
+        data:normalized,
+        score:score(normalized)+priority,
+        savedAt:raw.savedAt||normalized.lastSavedAt||null
+      });
+    }
+
+    addCandidate(KEY,parseStore(KEY),50);
+    addCandidate(BACKUP_KEY,parseStore(BACKUP_KEY),40);
+
+    readBackupHistory().forEach((snapshot,index)=>{
+      addCandidate(`historique-${index+1}`,snapshot,30-index);
+    });
+
+    OLD_KEYS.forEach(key=>{
+      addCandidate(key,parseStore(key),20);
+    });
+
+    return candidates.sort((a,b)=>{
+      if(b.score!==a.score)return b.score-a.score;
+      return String(b.savedAt||"").localeCompare(String(a.savedAt||""));
+    });
+  }
+
+  function load(){
+    const candidates=collectValidCandidates();
+    const currentRaw=parseStore(KEY);
+    const current=currentRaw?normalize(currentRaw):null;
+    const currentScore=current&&validateData(current)?score(current):-1;
+    const best=candidates[0]||null;
+
+    if(best){
+      const shouldRecover=
+        !current ||
+        !validateData(current) ||
+        dataIsMeaningfullyEmpty(current) ||
+        best.score>currentScore+100;
+
+      if(shouldRecover){
+        const recovered=normalize(best.data);
+        recovered.dataHealth=best.source===KEY?"ok":"recovered";
+        recovered.migratedFrom=best.source===KEY?"":best.source;
+        recovered.restoredAt=new Date().toISOString();
+
+        localStorage.setItem(KEY,JSON.stringify(recovered));
+        pushBackup(recovered,"automatic-recovery");
+        return recovered;
+      }
+
       current.dataHealth="ok";
       return current;
     }
 
-    const restored=bestValidBackup();
-    if(restored){
-      restored.data.dataHealth="restored";
-      restored.data.restoredAt=new Date().toISOString();
-      localStorage.setItem(KEY,JSON.stringify(restored.data));
-      return restored.data;
-    }
-
-    const keys=OLD_KEYS;
-    let best=null,bestKey="",bestScore=-1;
-    for(const key of keys){
-      const candidate=parseStore(key);
-      const candidateData=candidate&&candidate.data?candidate.data:candidate;
-      const normalized=normalize(candidateData);
-      const candidateScore=validateData(normalized)?score(normalized):-1;
-      if(candidateScore>bestScore){
-        best=normalized;
-        bestKey=key;
-        bestScore=candidateScore;
-      }
-    }
-
-    const result=best||normalize(defaults);
-    result.migratedFrom=bestKey||"";
-    result.dataHealth=best?"migrated":"new";
-    localStorage.setItem(KEY,JSON.stringify(result));
-    pushBackup(result,best?"migration":"initial");
-    return result;
+    const fresh=normalize(defaults);
+    fresh.dataHealth="new";
+    localStorage.setItem(KEY,JSON.stringify(fresh));
+    pushBackup(fresh,"initial");
+    return fresh;
   }
 
   if(localStorage.getItem("mon_budget_cache_cleaned_10_2")!=="yes") cleanOldApplicationCaches();
@@ -722,8 +783,8 @@
   function renderSettings(){
     $("cardDayInput").value=data.cardDebitDay;
     const historyCount=readBackupHistory().length;
-    if(data.dataHealth==="restored"){
-      $("migrationStatus").textContent=`Une sauvegarde valide a été restaurée automatiquement. ${historyCount} sauvegarde(s) disponible(s).`;
+    if(data.dataHealth==="recovered"||data.dataHealth==="restored"){
+      $("migrationStatus").textContent=`Données récupérées automatiquement depuis ${data.migratedFrom||"une sauvegarde valide"}. ${historyCount} sauvegarde(s) disponible(s).`;
     }else if(data.migratedFrom){
       $("migrationStatus").textContent=`Anciennes données récupérées depuis ${data.migratedFrom}. ${historyCount} sauvegarde(s) disponible(s).`;
     }else{

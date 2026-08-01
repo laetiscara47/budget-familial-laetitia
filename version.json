@@ -1,13 +1,13 @@
 {
-  "version": "2.2.0-test",
+  "version": "2.2.1-test-recovery-safe",
   "schema": 2,
   "channel": "test",
   "base": "2.0.0-final",
+  "storageKey": "mon_budget_v10_stable",
   "changes": [
-    "budget assistant",
-    "grouped agenda",
-    "operation templates",
-    "duplicate detection",
-    "extended smart categories"
+    "same storage key",
+    "all-candidate comparison",
+    "automatic rich-data recovery",
+    "empty-database protection"
   ]
 }

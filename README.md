@@ -1,13 +1,14 @@
-# Mon Budget 2.2 Test — Assistant
+# Mon Budget 2.2.1 Test — Récupération sûre
 
-Version de test construite sur la 2.0 Final.
+Correction du problème de base vide.
 
-Nouveautés sans nouveau menu :
-- conseil d’accueil selon les échéances proches ;
-- agenda regroupé en Aujourd’hui, Demain, Cette semaine et Historique récent ;
-- modèles automatiques à partir des échéances et anciennes opérations ;
-- proposition du montant, de la catégorie et du compte ;
-- catégorisation élargie ;
-- avertissement avant l’ajout d’un doublon exact.
+Cette version :
+- utilise exactement la même clé que la 2.0 Final : `mon_budget_v10_stable` ;
+- compare la base courante, la sauvegarde directe, les 10 sauvegardes historiques
+  et toutes les anciennes bases connues ;
+- choisit automatiquement la base valide la plus complète ;
+- refuse de privilégier une base vide lorsqu’une base plus riche existe ;
+- conserve l’assistant, les modèles, l’agenda regroupé et l’anti-doublon de la 2.2.
 
-La 2.0 Final doit rester votre version de secours.
+À l’ouverture, les 3 888,87 € doivent revenir automatiquement si les anciennes
+données sont toujours présentes sur l’iPhone.

@@ -1,7 +1,7 @@
 {
-  "name": "Mon Budget 2.2 Test",
+  "name": "Mon Budget 2.2.1 Test",
   "short_name": "Budget Test",
-  "start_url": "./?v=2.2.0-test",
+  "start_url": "./?v=2.2.1-test",
   "display": "standalone",
   "background_color": "#f4f7fc",
   "theme_color": "#1768e8",
