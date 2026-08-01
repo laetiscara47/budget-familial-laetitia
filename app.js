@@ -1,4 +1,4 @@
-const KEY='budget_essentiel_v2';
+const KEY='budget_essentiel_v3';
 const defaults={balance:2697.32,cardDebitDay:4,operations:[],incomeRules:[{id:'i1',label:'CAF',amount:867.92,day:5},{id:'i2',label:'Assurance Maëva',amount:130,day:10}],chargeRules:[{id:'c1',label:'Orange',amount:28.99,day:6},{id:'c2',label:'Eau de Garonne',amount:64,day:3}],theme:'light'};
 let data=load(),type='expense',editingId=null;
 function load(){try{return {...structuredClone(defaults),...JSON.parse(localStorage.getItem(KEY))}}catch{return structuredClone(defaults)}}
@@ -17,6 +17,21 @@ function expectedIncome(){return futureRules(data.incomeRules).reduce((s,r)=>s+r
 function remainingCharges(){return futureRules(data.chargeRules).reduce((s,r)=>s+r.amount,0)}
 function available(){return data.balance-cardPending()}
 function projected(){return data.balance-cardPending()-remainingCharges()+expectedIncome()}
+function currentMonthOps(){return data.operations.filter(x=>mkey(x.date)===thisMonth())}
+function monthIncome(){return currentMonthOps().filter(x=>x.type==='income').reduce((s,x)=>s+x.amount,0)}
+function monthExpenses(){return currentMonthOps().filter(x=>x.type==='expense').reduce((s,x)=>s+x.amount,0)}
+function monthUsagePercent(){
+ const planned=Math.max(1,monthIncome()+expectedIncome());
+ return Math.min(100,Math.round((monthExpenses()/planned)*100))
+}
+function adviceText(){
+ const p=projected(),d=daily(),card=cardPending();
+ if(p<0)return `La fin de mois est estimée à ${euro(p)}. Évitez les dépenses non essentielles aujourd’hui.`;
+ if(card>available()*0.5)return `Votre CB différée est élevée à ${euro(card)}. Gardez une marge avant le débit du ${data.cardDebitDay}.`;
+ if(d<20)return `Budget serré aujourd’hui : essayez de rester sous ${euro(d)}.`;
+ return `Si vous restez autour de ${euro(d)} aujourd’hui, vous devriez terminer le mois avec environ ${euro(p)}.`;
+}
+
 function daily(){return Math.max(0,projected()/left())}
 function nextRule(rules){let day=new Date().getDate();return [...rules].sort((a,b)=>(a.day>=day?a.day:a.day+31)-(b.day>=day?b.day:b.day+31))[0]}
 function events(){let e=[];data.operations.forEach(o=>e.push({...o,kind:o.type,amountSigned:o.type==='income'?o.amount:-o.amount}));data.incomeRules.forEach(r=>e.push({id:'ir'+r.id,kind:'income',label:r.label,date:dateFor(r.day),amountSigned:r.amount}));data.chargeRules.forEach(r=>e.push({id:'cr'+r.id,kind:'charge',label:r.label,date:dateFor(r.day),amountSigned:-r.amount}));if(cardPending()>0){let d=new Date(),m=d.getDate()<=data.cardDebitDay?d.getMonth():d.getMonth()+1,dt=new Date(d.getFullYear(),m,data.cardDebitDay,12);e.push({id:'card',kind:'card',label:'Débit CB différée',date:dt.toISOString().slice(0,10),amountSigned:-cardPending()})}return e.sort((a,b)=>a.date.localeCompare(b.date))}
@@ -25,7 +40,15 @@ function kind(k){return {income:'Revenu',expense:'Dépense',charge:'Prélèvemen
 function esc(v){return String(v).replace(/[&<>\"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[s]))}
 function drawEvents(sel,list){document.querySelector(sel).innerHTML=list.length?list.map(x=>`<div class="item ${x.rule||x.id==='card'?'':'clickable'}" ${x.rule||x.id==='card'?'':`data-edit-op="${x.id}"`}><div class="icon">${icon(x.kind)}</div><div><b>${esc(x.label)}</b><small>${new Date(x.date+'T12:00:00').toLocaleDateString('fr-FR')} · ${kind(x.kind)}</small></div><div class="amount ${x.amountSigned>=0?'income':'expense'}">${x.amountSigned>=0?'+':''}${euro(x.amountSigned)}</div></div>`).join(''):'<p style="color:var(--muted)">Aucune opération.</p>'}
 function ruleRow(r,t){return `<div class="rule"><div><b>${esc(r.label)}</b><small>${euro(r.amount)} · le ${r.day}</small></div><button data-del="${t}:${r.id}">Supprimer</button></div>`}
-function render(){document.querySelector('#available').textContent=euro(available());document.querySelector('#forecast').textContent=`Fin de mois estimée : ${euro(projected())}`;document.querySelector('#balance').textContent=euro(data.balance);document.querySelector('#card').textContent=euro(cardPending());document.querySelector('#daily').textContent=euro(daily());let ni=nextRule(data.incomeRules),nc=nextRule(data.chargeRules);document.querySelector('#nextIncome').textContent=ni?euro(ni.amount):'—';document.querySelector('#nextIncomeLabel').textContent=ni?`${ni.label} · le ${ni.day}`:'Aucun';document.querySelector('#nextCharge').textContent=nc?euro(nc.amount):'—';document.querySelector('#nextChargeLabel').textContent=nc?`${nc.label} · le ${nc.day}`:'Aucun';drawEvents('#upcoming',events().filter(x=>x.date>=today()).slice(0,5));drawEvents('#events',events().filter(x=>document.querySelector('#filter').value==='all'||x.kind===document.querySelector('#filter').value));document.querySelector('#settingBalance').value=String(data.balance).replace('.',',');document.querySelector('#cardDay').value=data.cardDebitDay;document.querySelector('#incomeRules').innerHTML=data.incomeRules.map(r=>ruleRow(r,'i')).join('');document.querySelector('#chargeRules').innerHTML=data.chargeRules.map(r=>ruleRow(r,'c')).join('');
+function render(){document.querySelector('#available').textContent=euro(available());document.querySelector('#forecast').textContent=`Fin de mois estimée : ${euro(projected())}`;document.querySelector('#balance').textContent=euro(data.balance);document.querySelector('#card').textContent=euro(cardPending());document.querySelector('#daily').textContent=euro(daily());
+document.querySelector('#monthProgress').style.width=monthUsagePercent()+'%';
+document.querySelector('#monthProgressLabel').textContent=monthUsagePercent()+' % du budget mensuel utilisé';
+document.querySelector('#dailyAdvice').textContent=adviceText();
+document.querySelector('#monthName').textContent=new Date().toLocaleDateString('fr-FR',{month:'long'});
+document.querySelector('#monthIncome').textContent=euro(monthIncome());
+document.querySelector('#monthExpenses').textContent=euro(monthExpenses());
+document.querySelector('#monthCard').textContent=euro(cardPending());
+document.querySelector('#monthRemaining').textContent=euro(projected());let ni=nextRule(data.incomeRules),nc=nextRule(data.chargeRules);document.querySelector('#nextIncome').textContent=ni?euro(ni.amount):'—';document.querySelector('#nextIncomeLabel').textContent=ni?`${ni.label} · le ${ni.day}`:'Aucun';document.querySelector('#nextCharge').textContent=nc?euro(nc.amount):'—';document.querySelector('#nextChargeLabel').textContent=nc?`${nc.label} · le ${nc.day}`:'Aucun';drawEvents('#upcoming',events().filter(x=>x.date>=today()).slice(0,5));drawEvents('#events',events().filter(x=>document.querySelector('#filter').value==='all'||x.kind===document.querySelector('#filter').value));document.querySelector('#settingBalance').value=String(data.balance).replace('.',',');document.querySelector('#cardDay').value=data.cardDebitDay;document.querySelector('#incomeRules').innerHTML=data.incomeRules.map(r=>ruleRow(r,'i')).join('');document.querySelector('#chargeRules').innerHTML=data.chargeRules.map(r=>ruleRow(r,'c')).join('');
 document.querySelector('#accountCurrent').textContent=euro(data.balance);
 document.querySelector('#accountDeferred').textContent=euro(cardPending());
 document.querySelector('#accountAvailable').textContent=euro(available());
@@ -70,6 +93,19 @@ document.querySelector('#export').onclick=()=>{let blob=new Blob([JSON.stringify
 document.querySelector('#import').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{data={...structuredClone(defaults),...JSON.parse(await f.text())};save();alert('Sauvegarde importée.')}catch{alert('Fichier invalide.')}};
 document.querySelector('#reset').onclick=()=>{if(confirm('Tout effacer ?')){data=structuredClone(defaults);save()}};
 
+
+function renderSearch(){
+ const q=(document.querySelector('#globalSearch')?.value||'').trim().toLowerCase();
+ const box=document.querySelector('#searchResults');
+ if(!box)return;
+ if(!q){box.innerHTML='';return}
+ const list=events().filter(x=>{
+   const hay=`${x.label} ${kind(x.kind)} ${x.date}`.toLowerCase();
+   return hay.includes(q)
+ }).slice(0,20);
+ drawEvents('#searchResults',list)
+}
+
 function renderAlert(){
  const p=projected(),card=cardPending(),el=document.querySelector('#alertCard'),badge=document.querySelector('#alertBadge'),text=document.querySelector('#alertText');
  el.classList.remove('warning','danger');
@@ -78,6 +114,27 @@ function renderAlert(){
  else if(card>data.balance*.5){el.classList.add('warning');badge.textContent='CB élevée';text.textContent=`La CB différée représente ${euro(card)}.`}
  else{badge.textContent='OK';text.textContent=`Situation correcte. Fin de mois estimée à ${euro(p)}.`}
 }
+
+function updateImpactPreview(){
+ const amount=money(document.querySelector('#amount').value);
+ let box=document.querySelector('#operationImpact');
+ if(!box){
+   box=document.createElement('div');
+   box.id='operationImpact';
+   box.className='impact-box';
+   document.querySelector('#saveOp').before(box);
+ }
+ if(amount<=0){box.innerHTML='';box.style.display='none';return}
+ box.style.display='block';
+ if(type==='income'){
+   box.innerHTML=`Après ce revenu, le solde du compte serait de <b>${euro(data.balance+amount)}</b>`;
+ }else{
+   const immediate=document.querySelector('#payment').value==='current';
+   const futureDaily=Math.max(0,(projected()-amount)/left());
+   box.innerHTML=`Après cette dépense, votre budget conseillé du jour serait de <b>${euro(futureDaily)}</b><small>${immediate?'Débit immédiat du compte':'Ajouté à la CB différée'}</small>`;
+ }
+}
+
 document.querySelector('#simulate').onclick=()=>{
  const amount=money(document.querySelector('#simAmount').value),box=document.querySelector('#simResult');
  if(amount<=0){box.className='simulation-result show';box.innerHTML='Saisis un montant valide.';return}
@@ -114,5 +171,10 @@ document.addEventListener('click',e=>{
    document.querySelector('[data-tab="add"]').click();
  }
 });
+
+
+document.querySelector('#globalSearch').addEventListener('input',renderSearch);
+document.querySelector('#amount').addEventListener('input',updateImpactPreview);
+document.querySelector('#payment').addEventListener('change',updateImpactPreview);
 
 document.querySelector('#date').value=today();render();

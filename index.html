@@ -1,11 +1,41 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#2f6fed"><title>Mon Budget Essentiel</title><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg"><link rel="stylesheet" href="styles.css?v=2.0.0"></head><body>
-<header><div><h1>💙 Mon Budget</h1><p>V2.0</p></div><button id="theme">🌙</button></header>
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#2f6fed"><title>Mon Budget Essentiel</title><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg"><link rel="stylesheet" href="styles.css?v=3.0.0"></head><body>
+<header><div><h1>💙 Mon Budget</h1><p>V3.0</p></div><button id="theme">🌙</button></header>
 <main>
 <section id="home" class="screen active">
-<article class="hero"><span>Disponible réel</span><strong id="available">0 €</strong><small id="forecast"></small></article>
+<article class="hero compact-hero">
+      <span>Disponible réel</span>
+      <strong id="available">0 €</strong>
+      <small id="forecast"></small>
+    </article>
 <div class="grid"><article><span>Solde du compte</span><b id="balance">0 €</b></article><article><span>CB différée</span><b id="card">0 €</b><small>Débit le 4</small></article></div>
 <div class="grid"><article><span>Prochain revenu</span><b id="nextIncome">—</b><small id="nextIncomeLabel">Aucun</small></article><article><span>Prochain prélèvement</span><b id="nextCharge">—</b><small id="nextChargeLabel">Aucun</small></article></div>
-<article><span>Budget du jour</span><b class="bigblue" id="daily">0 €</b></article>
+<article class="daily-focus">
+      <span>Aujourd’hui, vous pouvez dépenser</span>
+      <b class="bigblue" id="daily">0 €</b>
+      <div class="progress"><div id="monthProgress"></div></div>
+      <small id="monthProgressLabel">0 % du budget mensuel utilisé</small>
+    </article>
+<article class="advice-card">
+  <div class="title"><h2>Conseil du jour</h2><span class="badge">Simple</span></div>
+  <p id="dailyAdvice">Analyse en cours…</p>
+</article>
+
+<article>
+  <div class="title"><h2>Résumé du mois</h2><span class="badge" id="monthName">Mois</span></div>
+  <div class="month-summary">
+    <div><span>Revenus</span><b id="monthIncome">0 €</b></div>
+    <div><span>Dépenses</span><b id="monthExpenses">0 €</b></div>
+    <div><span>CB en attente</span><b id="monthCard">0 €</b></div>
+    <div><span>Reste prévu</span><b id="monthRemaining">0 €</b></div>
+  </div>
+</article>
+
+<article>
+  <div class="title"><h2>Rechercher</h2><span class="badge">Opérations</span></div>
+  <input id="globalSearch" placeholder="Ex. Orange, alimentation, revenu…">
+  <div id="searchResults"></div>
+</article>
+
 <article id="alertCard" class="alert-card">
   <div class="title"><h2>À surveiller</h2><span id="alertBadge" class="badge">OK</span></div>
   <p id="alertText">Aucune alerte.</p>
@@ -52,4 +82,4 @@
 </section>
 </main>
 <nav><button data-tab="home" class="active"><span>🏠</span><small>Accueil</small></button><button data-tab="add"><span>➕</span><small>Ajouter</small></button><button data-tab="calendar"><span>📅</span><small>Agenda</small></button><button data-tab="accounts"><span>💳</span><small>Comptes</small></button><button data-tab="settings"><span>⚙️</span><small>Réglages</small></button></nav>
-<script src="app.js?v=2.0.0"></script></body></html>
+<script src="app.js?v=3.0.0"></script></body></html>
