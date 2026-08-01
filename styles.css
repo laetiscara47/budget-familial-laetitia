@@ -625,20 +625,3 @@ body{
     transition:none !important;
   }
 }
-
-.balance-tools{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
-.balance-tools h3{margin:0 0 10px;font-size:18px}
-.balance-tool-btn{width:100%;margin-top:9px;padding:14px;border:1px solid rgba(23,104,232,.18);border-radius:15px;background:rgba(23,104,232,.06);color:var(--text);text-align:left;font-weight:800}
-.balance-tool-btn.bank{border-color:rgba(47,157,98,.22);background:rgba(47,157,98,.07)}
-.balance-modal{position:fixed;inset:0;z-index:120;opacity:0;pointer-events:none;transition:.18s}
-.balance-modal.open{opacity:1;pointer-events:auto}
-.balance-modal-backdrop{position:absolute;inset:0;background:rgba(9,18,35,.5)}
-.balance-sheet{position:absolute;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));padding:18px;border:1px solid var(--line);border-radius:24px;background:var(--card);box-shadow:0 22px 60px rgba(0,0,0,.28)}
-.balance-sheet-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:16px}
-.balance-sheet-head h2{margin:0}.balance-sheet-head p{margin:5px 0 0;color:var(--muted);font-size:13px}
-.balance-sheet-head button{width:38px;height:38px;border:0;border-radius:50%;background:#eef2f8}
-.balance-input-wrap{display:flex;align-items:center;border:1px solid var(--line);border-radius:15px}
-.balance-input-wrap input{flex:1;min-width:0;border:0;padding:16px;font-size:24px;font-weight:800;background:transparent;color:var(--text)}
-.balance-input-wrap span{padding-right:16px;color:var(--muted);font-size:21px;font-weight:800}
-.balance-preview{margin:12px 0;padding:11px 13px;border-radius:13px;background:rgba(23,104,232,.07);font-weight:750}
-.balance-confirm{width:100%;min-height:52px}

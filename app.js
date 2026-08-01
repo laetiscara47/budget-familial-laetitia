@@ -848,61 +848,6 @@
     $("rulesList").innerHTML=data.rules.length?data.rules.map(r=>`<div class="rule-row"><div><b>${r.type==="income"?"💰":"🧾"} ${r.label}</b><small>${euro(r.amount)} · le ${r.day} · ${r.active===false?"Désactivée":"Active"}</small></div><button class="link-btn" data-rule-id="${r.id}">${r.active===false?"Activer":"Désactiver"}</button></div>`).join(""):"<p>Aucune échéance.</p>";
   }
 
-
-  let balanceUpdateMode="manual";
-
-  function parseBalanceInput(value){
-    const n=Number(String(value||"").replace(/\s/g,"").replace(",",".").replace(/[^\d.-]/g,""));
-    return Number.isFinite(n)?Math.round(n*100)/100:null;
-  }
-
-  function openBalanceModal(mode){
-    balanceUpdateMode=mode;
-    const bank=mode==="bank";
-    $("balanceModalTitle").textContent=bank?"Synchroniser avec ma banque":"Modifier le solde";
-    $("balanceModalText").textContent=bank
-      ?"Saisissez le solde actuellement affiché par votre banque."
-      :"Saisissez le nouveau solde souhaité.";
-    $("newBalanceInput").value=String(Number(currentAccount().balance||0).toFixed(2)).replace(".",",");
-    $("balanceModalMessage").textContent="";
-    updateBalancePreview();
-    $("balanceModal").classList.add("open");
-  }
-
-  function closeBalanceModal(){ $("balanceModal").classList.remove("open"); }
-
-  function updateBalancePreview(){
-    const target=parseBalanceInput($("newBalanceInput").value);
-    if(target===null){ $("balanceDifferencePreview").textContent="Montant invalide"; return; }
-    const diff=Math.round((target-Number(currentAccount().balance||0))*100)/100;
-    $("balanceDifferencePreview").textContent=`Ajustement : ${diff>0?"+":""}${euro(diff)}`;
-  }
-
-  function confirmBalanceUpdate(){
-    const account=currentAccount();
-    const target=parseBalanceInput($("newBalanceInput").value);
-    if(target===null){ $("balanceModalMessage").textContent="Montant invalide."; return; }
-    const diff=Math.round((target-Number(account.balance||0))*100)/100;
-    if(diff===0){ $("balanceModalMessage").textContent="Le solde est déjà identique."; return; }
-
-    const op={
-      id:uid(),
-      type:diff>0?"income":"expense",
-      label:balanceUpdateMode==="bank"?"Synchronisation bancaire":"Ajustement manuel du solde",
-      amount:Math.abs(diff),
-      date:today(),
-      category:"Ajustement",
-      accountId:account.id,
-      toAccountId:null,
-      adjustment:true
-    };
-    data.operations.push(op);
-    applyOperation(op,1);
-    save();
-    closeBalanceModal();
-    toast(balanceUpdateMode==="bank"?"Solde synchronisé":"Solde modifié");
-  }
-
   function renderAccounts(){
     populateAccounts();
     $("accountsList").innerHTML=data.accounts.map(a=>`<div class="account-row"><div class="account-chip"><span class="account-icon">${a.icon||"💳"}</span><div class="account-name"><b>${a.name}</b><small>${accountTypeLabel(a.type)}</small></div></div><b class="account-amount ${Number(a.balance)<0?"negative":""}">${euro(a.balance)}</b></div>`).join("");
@@ -1189,14 +1134,6 @@
     }
   });
 
-
-
-  $("editBalanceBtn").addEventListener("click",()=>openBalanceModal("manual"));
-  $("syncBankBtn").addEventListener("click",()=>openBalanceModal("bank"));
-  $("closeBalanceModalBtn").addEventListener("click",closeBalanceModal);
-  $("newBalanceInput").addEventListener("input",updateBalancePreview);
-  $("confirmBalanceBtn").addEventListener("click",confirmBalanceUpdate);
-  document.addEventListener("click",e=>{if(e.target.closest("[data-close-balance]"))closeBalanceModal();});
 
   $("dateInput").value=today();
   materializeRecurring();
