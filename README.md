@@ -1,11 +1,19 @@
-# Mon Budget V8.1 Stable
+# Mon Budget V9 Premium
 
-Améliorations :
-- correction définitive de la barre noire ;
-- jauge d’avancement du mois ;
-- comparaison entre temps écoulé et budget consommé ;
-- alertes sur les échéances des 3 prochains jours ;
-- alerte si les dépenses avancent trop vite ;
-- toutes les fonctions de la V8 Foundation conservées.
+Version majeure reconstruite sur la base stable V8.
 
-Pour GitHub, remplacez tous les fichiers du dépôt avec ceux de cette archive.
+Nouveautés :
+- plusieurs comptes ;
+- virements entre comptes ;
+- ajout/suppression d’opérations ;
+- filtres par mois, compte et type ;
+- échéances automatiques mensuelles ;
+- agenda intelligent ;
+- comparaison avec le mois précédent ;
+- patrimoine total ;
+- sauvegarde, import et export ;
+- mode sombre ;
+- installation PWA et fonctionnement hors ligne ;
+- récupération automatique des données V8 et des anciennes versions.
+
+Pour GitHub Pages, remplacez tous les fichiers du dépôt par ceux de cette archive.

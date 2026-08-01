@@ -1,7 +1,7 @@
 {
-  "name": "Mon Budget V8.1 Stable",
+  "name": "Mon Budget V9 Premium",
   "short_name": "Mon Budget",
-  "start_url": "./?v=8.1.0",
+  "start_url": "./?v=9.0.0",
   "display": "standalone",
   "background_color": "#f4f7fc",
   "theme_color": "#1768e8",

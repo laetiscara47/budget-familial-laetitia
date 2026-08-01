@@ -4,9 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#1768e8">
-  <title>Mon Budget V8.1 Stable</title>
-  <link rel="manifest" href="manifest.webmanifest?v=8.1.0">
-  <link rel="stylesheet" href="styles.css?v=8.1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>Mon Budget V9 Premium</title>
+  <link rel="manifest" href="manifest.webmanifest?v=9.0.0">
+  <link rel="stylesheet" href="styles.css?v=9.0.0">
 </head>
 <body>
   <header class="topbar">
@@ -24,7 +26,7 @@
         <span>Disponible réel</span>
         <strong id="availableValue">0,00 €</strong>
         <small id="forecastValue">Fin de mois estimée : 0,00 €</small>
-        <div id="weekIncome">Aucun revenu attendu cette semaine</div>
+        <div id="weekIncome">Aucun revenu attendu</div>
       </article>
 
       <article class="status-card">
@@ -39,27 +41,13 @@
         </div>
       </article>
 
-      <article class="card month-progress-card">
-        <div class="section-head">
-          <h2>Avancement du mois</h2>
-          <span id="monthProgressText">0 %</span>
-        </div>
-        <div class="progress-track">
-          <i id="monthProgressBar"></i>
-        </div>
-        <p id="monthProgressAdvice" class="progress-advice"></p>
-      </article>
-
-      <article class="card alerts-card">
-        <div class="section-head">
-          <h2>À surveiller</h2>
-          <span id="alertsCount">0</span>
-        </div>
+      <article class="card">
+        <div class="section-head"><h2>À surveiller</h2><span class="badge" id="alertsCount">0</span></div>
         <div id="alertsList"></div>
       </article>
 
       <article class="card">
-        <div class="section-head"><h2>Ce mois-ci</h2><span id="monthBadge"></span></div>
+        <div class="section-head"><h2>Ce mois-ci</h2><span class="badge" id="monthBadge"></span></div>
         <div class="grid-2">
           <div class="metric"><span>Revenus</span><b id="monthIncome">0,00 €</b></div>
           <div class="metric"><span>Dépenses</span><b id="monthExpense">0,00 €</b></div>
@@ -77,33 +65,39 @@
     <section id="add" class="screen">
       <article class="card">
         <h2>Ajouter une opération</h2>
-        <div class="segmented">
-          <button id="expenseBtn" class="active" type="button">Dépense</button>
-          <button id="incomeBtn" type="button">Revenu</button>
+        <div class="segmented three">
+          <button data-op-type="expense" class="active" type="button">Dépense</button>
+          <button data-op-type="income" type="button">Revenu</button>
+          <button data-op-type="transfer" type="button">Virement</button>
         </div>
 
-        <label>Montant</label>
-        <input id="amountInput" inputmode="decimal" placeholder="0,00">
+        <div id="standardOperationFields">
+          <label>Montant</label>
+          <input id="amountInput" inputmode="decimal" placeholder="0,00">
 
-        <label>Libellé</label>
-        <input id="labelInput" placeholder="Ex. Carrefour">
+          <label>Libellé</label>
+          <input id="labelInput" placeholder="Ex. Carrefour">
 
-        <label>Catégorie</label>
-        <select id="categoryInput">
-          <option>Alimentation</option>
-          <option>Maison</option>
-          <option>Transport</option>
-          <option>Santé</option>
-          <option>Loisirs</option>
-          <option>Enfants</option>
-          <option>Autre</option>
-        </select>
+          <label>Catégorie</label>
+          <select id="categoryInput">
+            <option>Alimentation</option><option>Maison</option><option>Transport</option>
+            <option>Santé</option><option>Loisirs</option><option>Enfants</option><option>Autre</option>
+          </select>
 
-        <label>Compte</label>
-        <select id="paymentInput">
-          <option value="current">Compte courant</option>
-          <option value="deferred">CB différée</option>
-        </select>
+          <label>Compte</label>
+          <select id="accountInput"></select>
+        </div>
+
+        <div id="transferFields" hidden>
+          <label>Depuis</label>
+          <select id="transferFrom"></select>
+          <label>Vers</label>
+          <select id="transferTo"></select>
+          <label>Montant</label>
+          <input id="transferAmount" inputmode="decimal" placeholder="0,00">
+          <label>Libellé</label>
+          <input id="transferLabel" placeholder="Ex. Vers Livret A">
+        </div>
 
         <label>Date</label>
         <input id="dateInput" type="date">
@@ -121,27 +115,44 @@
             <option value="all">Toutes</option>
             <option value="expense">Dépenses</option>
             <option value="income">Revenus</option>
+            <option value="transfer">Virements</option>
           </select>
         </div>
         <input id="searchInput" placeholder="Rechercher…">
+        <div class="filters">
+          <select id="monthFilter"><option value="all">Tous les mois</option></select>
+          <select id="accountFilter"><option value="all">Tous les comptes</option></select>
+          <select id="sortFilter">
+            <option value="date-desc">Plus récentes</option>
+            <option value="date-asc">Plus anciennes</option>
+            <option value="amount-desc">Montant décroissant</option>
+            <option value="amount-asc">Montant croissant</option>
+          </select>
+        </div>
         <div id="operationsList"></div>
       </article>
     </section>
 
     <section id="agenda" class="screen">
       <article class="card">
-        <h2>Agenda</h2>
+        <div class="section-head"><h2>Agenda intelligent</h2><button id="checkRecurringBtn" class="link-btn">Vérifier</button></div>
         <div id="agendaList"></div>
+      </article>
+      <article class="card">
+        <h2>Échéances automatiques</h2>
+        <div id="rulesList"></div>
+        <button id="addRuleBtn" class="secondary" type="button">Ajouter une échéance</button>
       </article>
     </section>
 
     <section id="accounts" class="screen">
       <article class="card">
-        <h2>Comptes</h2>
-        <div class="account-row"><span>Compte courant</span><b id="accountBalance">0,00 €</b></div>
-        <div class="account-row"><span>CB différée</span><b id="cardPending">0,00 €</b></div>
-        <div class="account-row"><span>Épargne</span><b id="accountSavings">0,00 €</b></div>
-        <div class="account-row total"><span>Disponible réel</span><b id="accountAvailable">0,00 €</b></div>
+        <div class="section-head"><h2>Comptes</h2><button id="addAccountBtn" class="link-btn">Ajouter</button></div>
+        <div id="accountsList"></div>
+      </article>
+      <article class="card">
+        <h2>Patrimoine suivi</h2>
+        <div class="account-row total"><span>Total</span><b id="netWorthValue">0,00 €</b></div>
       </article>
     </section>
 
@@ -151,24 +162,26 @@
         <div class="grid-2">
           <div class="metric"><span>Revenus</span><b id="statsIncome">0,00 €</b></div>
           <div class="metric"><span>Dépenses</span><b id="statsExpense">0,00 €</b></div>
+          <div class="metric"><span>Reste prévu</span><b id="statsForecast">0,00 €</b></div>
+          <div class="metric"><span>Mois précédent</span><b id="statsPrevious">0,00 €</b></div>
         </div>
       </article>
       <article class="card">
         <h2>Dépenses par catégorie</h2>
         <div id="categoryStats"></div>
       </article>
+      <article class="card">
+        <h2>Conseil du mois</h2>
+        <p id="statsAdvice"></p>
+      </article>
     </section>
 
     <section id="settings" class="screen">
       <article class="card">
-        <h2>Réglages</h2>
-        <label>Solde du compte</label>
-        <input id="balanceInput" inputmode="decimal">
-        <label>Épargne</label>
-        <input id="savingsInput" inputmode="decimal">
+        <h2>Réglages généraux</h2>
         <label>Jour de débit CB</label>
         <input id="cardDayInput" type="number" min="1" max="28">
-        <button id="saveSettingsBtn" class="primary" type="button">Enregistrer les réglages</button>
+        <button id="saveSettingsBtn" class="primary" type="button">Enregistrer</button>
       </article>
 
       <article class="card">
@@ -180,6 +193,12 @@
         <label class="secondary import-label">Importer une sauvegarde
           <input id="importInput" type="file" accept="application/json">
         </label>
+      </article>
+
+      <article class="card">
+        <h2>Application</h2>
+        <p id="offlineState">Mode hors connexion disponible après la première ouverture.</p>
+        <button id="installBtn" class="secondary" type="button" hidden>Installer l’application</button>
       </article>
     </section>
   </main>
@@ -194,7 +213,7 @@
     <button data-screen="settings"><span>⚙️</span><small>Réglages</small></button>
   </nav>
 
-  <div id="toast" class="toast"></div>
-  <script src="app.js?v=8.1.0"></script>
+  <div id="toast" class="toast" aria-live="polite"></div>
+  <script src="app.js?v=9.0.0"></script>
 </body>
 </html>
