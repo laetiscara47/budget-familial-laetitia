@@ -443,3 +443,10 @@ body{
 #migrationStatus{
   font-weight:650;
 }
+
+
+/* Mon Budget 2.2.2 Stable */
+#migrationStatus{
+  border-color:rgba(47,157,98,.28);
+  background:rgba(47,157,98,.10);
+}

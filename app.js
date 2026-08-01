@@ -373,6 +373,7 @@
         recovered.migratedFrom=best.source===KEY?"":best.source;
         recovered.restoredAt=new Date().toISOString();
 
+        recovered.lastSavedAt=new Date().toISOString();
         localStorage.setItem(KEY,JSON.stringify(recovered));
         pushBackup(recovered,"automatic-recovery");
         return recovered;
@@ -712,8 +713,9 @@
     `).join(""):"<p>Aucune alerte dans les 3 prochains jours.</p>";
     const upcoming=futureRules().slice(0,5);
     $("upcomingList").innerHTML=upcoming.length?upcoming.map(r=>`<div class="list-row"><div><b>${r.type==="income"?"💰":"🧾"} ${r.label}</b><small>${new Date(r.date+"T12:00:00").toLocaleDateString("fr-FR")}</small></div><b class="${r.type==="income"?"positive":"negative"}">${r.type==="income"?"+":"-"}${euro(r.amount)}</b></div>`).join(""):"<p>Aucune échéance à venir.</p>";
-    $("saveState").textContent=data.lastSavedAt
-      ? `🟢 Sauvegardé automatiquement à ${new Date(data.lastSavedAt).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}`
+    const displayedSaveDate=data.restoredAt||data.lastSavedAt;
+    $("saveState").textContent=displayedSaveDate
+      ? `🟢 Sauvegardé automatiquement à ${new Date(displayedSaveDate).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}`
       : "🟢 Sauvegarde automatique active";
   }
 
