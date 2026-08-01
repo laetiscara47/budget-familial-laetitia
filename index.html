@@ -9,7 +9,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css?v=infinity-2.1">
+  <link rel="stylesheet" href="./styles.css?v=infinity-2.0">
   <title>Mon Budget — Infinity</title>
 </head>
 <body>
@@ -17,7 +17,7 @@
   <div>
     <div class="brand-line"><h1>💙 Mon Budget</h1><span class="pro-badge infinity">∞ INFINITY 2.0</span></div>
     <p id="headerSubtitle">Laetitia</p>
-    <small>Infinity 2.1</small>
+    <small>Infinity 2.0</small>
   </div>
   <div class="header-actions">
     <select id="profileQuick" class="profile-quick" aria-label="Profil"></select>
@@ -369,11 +369,9 @@
       <label>Compte</label><select id="recurringIncomeAccount"></select>
       <label>Profil</label><select id="recurringIncomeProfile"></select>
       <label class="checkline"><input id="recurringIncomeEnabled" type="checkbox" checked> Actif</label>
-      <button id="saveRecurringIncome" class="primary recurring-save-button">✅ Enregistrer ce revenu récurrent</button>
-      <div id="recurringSaveStatus" class="recurring-save-status" hidden></div>
-      <div class="recurring-list-header"><h3>Revenus récurrents enregistrés</h3><span id="recurringIncomeCount" class="badge">0</span></div>
-      <div id="recurringIncomeSettings"></div>
+      <button id="saveRecurringIncome" type="button" class="primary">Enregistrer le revenu automatique</button>
     </article>
+    <article class="card"><h2>Revenus automatiques enregistrés</h2><div id="recurringIncomeSettings"></div></article>
 
     <article class="card">
       <h2>➕ Ajouter un revenu</h2>
@@ -606,7 +604,7 @@
   </section>
 
   <section id="settings" class="screen">
-    <article class="card"><div class="section-title"><h2>🧠 Moteur financier intelligent</h2><span class="badge">Infinity 2.1</span></div><label class="checkline"><input id="autoGenerateIncomeToggle" type="checkbox"> Générer automatiquement les revenus chaque mois</label><label class="checkline"><input id="showLateIncomeToggle" type="checkbox"> Signaler les revenus en retard</label><label class="checkline"><input id="detectAnomaliesToggle" type="checkbox"> Détecter les variations inhabituelles</label><label>Tolérance pour les anomalies (%)</label><input id="anomalyTolerance" type="number" min="5" max="100" step="5"><button id="saveEngineSettings" class="primary">Enregistrer le moteur</button></article>
+    <article class="card"><div class="section-title"><h2>🧠 Moteur financier intelligent</h2><span class="badge">Infinity 2.0</span></div><label class="checkline"><input id="autoGenerateIncomeToggle" type="checkbox"> Générer automatiquement les revenus chaque mois</label><label class="checkline"><input id="showLateIncomeToggle" type="checkbox"> Signaler les revenus en retard</label><label class="checkline"><input id="detectAnomaliesToggle" type="checkbox"> Détecter les variations inhabituelles</label><label>Tolérance pour les anomalies (%)</label><input id="anomalyTolerance" type="number" min="5" max="100" step="5"><button id="saveEngineSettings" class="primary">Enregistrer le moteur</button></article>
     <article class="card">
       <h2>👨‍👩‍👧‍👦 Profils familiaux</h2>
       <div id="profileSettings"></div>
@@ -734,6 +732,6 @@
   <button data-tab="settings"><span>⚙️</span><small>Réglages</small></button>
 </nav>
 
-<script src="./app.js?v=infinity-2.1"></script>
+<script src="./app.js?v=infinity-2.0"></script>
 </body>
 </html>

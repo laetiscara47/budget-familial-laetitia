@@ -1,6 +1,6 @@
 (()=>{
 "use strict";
-const STORAGE_KEY="budget-familial-laetitia-final-v1",BACKUP_KEY=STORAGE_KEY+"-backup",DATA_VERSION=8100;
+const STORAGE_KEY="budget-familial-laetitia-final-v1",BACKUP_KEY=STORAGE_KEY+"-backup",DATA_VERSION=9000;
 const $=id=>document.getElementById(id),clone=o=>JSON.parse(JSON.stringify(o));
 const euro=n=>Number(n||0).toLocaleString("fr-FR",{style:"currency",currency:"EUR"});
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
@@ -789,7 +789,7 @@ function renderInfinityFamilyTotals(){
 
 function monthDateForDay(y,m,d){const last=new Date(y,m+1,0).getDate();return new Date(y,m,Math.min(Math.max(1,Number(d||1)),last),12)}
 function recurringInstanceKey(r,y,m){return `${r.id}-${y}-${String(m+1).padStart(2,"0")}`}
-function ensureRecurringIncomeInstances(){if(!data.settings.autoGenerateIncome)return;const now=new Date(),months=[new Date(now.getFullYear(),now.getMonth(),1),new Date(now.getFullYear(),now.getMonth()+1,1)];let changed=false;data.recurringIncomes.filter(r=>r.enabled!==false).forEach(r=>months.forEach(base=>{const key=recurringInstanceKey(r,base.getFullYear(),base.getMonth());if(!data.incomeTransactions.some(x=>x.recurringInstanceKey===key)){const dt=monthDateForDay(base.getFullYear(),base.getMonth(),r.day);data.incomeTransactions.push({id:crypto.randomUUID(),amount:Number(r.amount||0),label:r.label,date:dt.toISOString().slice(0,10),future:dt>new Date(),received:false,accountId:r.accountId||"current",profileId:r.profileId||"p1",recurringIncomeId:r.id,recurringInstanceKey:key});changed=true}}));if(changed)localStorage.setItem(KEY,JSON.stringify(data))}
+function ensureRecurringIncomeInstances(){if(!data.settings.autoGenerateIncome)return;const now=new Date(),months=[new Date(now.getFullYear(),now.getMonth(),1),new Date(now.getFullYear(),now.getMonth()+1,1)];let changed=false;data.recurringIncomes.filter(r=>r.enabled!==false).forEach(r=>months.forEach(base=>{const key=recurringInstanceKey(r,base.getFullYear(),base.getMonth());if(!data.incomeTransactions.some(x=>x.recurringInstanceKey===key)){const dt=monthDateForDay(base.getFullYear(),base.getMonth(),r.day);data.incomeTransactions.push({id:crypto.randomUUID(),amount:Number(r.amount||0),label:r.label,date:dt.toISOString().slice(0,10),future:dt>new Date(),received:false,accountId:r.accountId||"current",profileId:r.profileId||"p1",recurringIncomeId:r.id,recurringInstanceKey:key});changed=true}}));if(changed)localStorage.setItem(STORAGE_KEY,JSON.stringify(data))}
 function recurringIncomeStatus(x){const dt=new Date(x.date+"T23:59:59");if(x.received||x.future===false)return "received";if(dt<new Date())return "late";return "expected"}
 function recurringIncomeTransactionsForMonth(){const key=new Date().toISOString().slice(0,7);return data.incomeTransactions.filter(x=>x.recurringIncomeId&&monthKey(x.date)===key)}
 function renderIncomeEngine(){const txs=recurringIncomeTransactionsForMonth();const sum=s=>txs.filter(x=>recurringIncomeStatus(x)===s).reduce((a,x)=>a+Number(x.amount||0),0);$("incomeReceivedView").textContent=euro(sum("received"));$("incomeExpectedView").textContent=euro(sum("expected"));$("incomeLateView").textContent=euro(sum("late"));$("incomeEngineList").innerHTML=txs.length?txs.sort((a,b)=>a.date.localeCompare(b.date)).map(x=>{const s=recurringIncomeStatus(x),labels={received:"Reçu",expected:"Attendu",late:"En retard"},icons={received:"✅",expected:"⏳",late:"❌"};return `<div class="income-status-row"><div class="income-status-icon">${icons[s]}</div><div><b>${esc(x.label)}</b><small>${fmtDate(x.date)} · ${euro(x.amount)}</small></div><button class="income-status-pill ${s}" data-income-status="${x.id}">${labels[s]}</button></div>`}).join(""):'<p class="muted">Aucun revenu automatique configuré.</p>'}
@@ -1157,7 +1157,7 @@ $("exportEncrypted").addEventListener("click",async()=>{
  const password=$("backupPassword").value;
  if(password.length<6)return alert("Choisis un mot de passe d’au moins 6 caractères.");
  try{
-  const container=await encryptPayload({app:"Budget Familial Laetitia",version:"infinity-2.1",data},password);
+  const container=await encryptPayload({app:"Budget Familial Laetitia",version:"infinity-3.0",data},password);
   const blob=new Blob([JSON.stringify(container,null,2)],{type:"application/json"}),a=document.createElement("a");
   a.href=URL.createObjectURL(blob);a.download="budget_laetitia_v300_chiffre.json";a.click();
  }catch{alert("La sauvegarde chiffrée n’a pas pu être créée.")}
@@ -1235,22 +1235,30 @@ $("exportUltimateDashboard").addEventListener("click",()=>{
 
 $("saveRecurringIncome").addEventListener("click",()=>{
  const status=$("recurringSaveStatus"),label=$("recurringIncomeLabel").value.trim();
- const amount=Number(String($("recurringIncomeAmount").value).replace(",",".")),day=Number($("recurringIncomeDay").value);
+ const rawAmount=String($("recurringIncomeAmount").value||"").replace(",",".");
+ const amount=Number(rawAmount),day=Number($("recurringIncomeDay").value);
  const fail=m=>{status.hidden=false;status.className="recurring-save-status error";status.textContent=m;status.scrollIntoView({behavior:"smooth",block:"center"})};
  if(!label)return fail("⚠️ Saisissez le nom du revenu.");
  if(!Number.isFinite(amount)||amount<=0)return fail("⚠️ Saisissez un montant valide.");
  if(!Number.isInteger(day)||day<1||day>31)return fail("⚠️ Saisissez un jour entre 1 et 31.");
  const duplicate=data.recurringIncomes.some(r=>r.label.trim().toLowerCase()===label.toLowerCase()&&Number(r.day)===day);
  if(duplicate&&!confirm("Ce revenu existe déjà ce jour-là. L’ajouter quand même ?"))return;
- data.recurringIncomes.push({id:crypto.randomUUID(),label,amount,day,accountId:$("recurringIncomeAccount").value||"current",profileId:$("recurringIncomeProfile").value||activeProfileId(),enabled:$("recurringIncomeEnabled").checked});
- ensureRecurringIncomeInstances();save();
+ const rule={id:crypto.randomUUID(),label,amount,day,accountId:$("recurringIncomeAccount").value||"current",profileId:$("recurringIncomeProfile").value||activeProfileId(),enabled:$("recurringIncomeEnabled").checked};
+ data.recurringIncomes.push(rule);
+ // Sauvegarde immédiate avant toute génération ou nouveau rendu.
+ data.dataVersion=DATA_VERSION;
+ localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+ localStorage.setItem(BACKUP_KEY,JSON.stringify({savedAt:new Date().toISOString(),data}));
+ try{ensureRecurringIncomeInstances()}catch(err){console.error("Génération revenu récurrent",err)}
+ localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
  $("recurringIncomeLabel").value="";$("recurringIncomeAmount").value="";$("recurringIncomeDay").value="";
- status.hidden=false;status.className="recurring-save-status";status.textContent=`✅ ${label} — ${euro(amount)} le ${day} de chaque mois est enregistré.`;
- setTimeout(()=>status.scrollIntoView({behavior:"smooth",block:"center"}),50);
+ status.hidden=false;status.className="recurring-save-status";status.textContent=`✅ ${label} — ${euro(amount)} le ${day} de chaque mois est bien enregistré.`;
+ render();
+ setTimeout(()=>status.scrollIntoView({behavior:"smooth",block:"center"}),80);
 });
 $("saveEngineSettings").addEventListener("click",()=>{data.settings.autoGenerateIncome=$("autoGenerateIncomeToggle").checked;data.settings.showLateIncome=$("showLateIncomeToggle").checked;data.settings.detectAnomalies=$("detectAnomaliesToggle").checked;data.settings.anomalyTolerance=Math.max(5,Math.min(100,Number($("anomalyTolerance").value||20)));ensureRecurringIncomeInstances();save();alert("Moteur financier enregistré.")});
 $("exportCsv").addEventListener("click",()=>{const rows=[["Date","Type","Libellé","Catégorie","Montant","Compte","Paiement"]];data.expenses.forEach(x=>rows.push([x.date,"Dépense",x.label,x.category,-x.amount,account(x.accountId)?.name||"",paymentLabel(x)]));data.incomeTransactions.forEach(x=>rows.push([x.date,"Revenu",x.label,"Revenu",x.amount,account(x.accountId)?.name||"",x.future?"Prévu":"Reçu"]));const csv="\ufeff"+rows.map(r=>r.map(csvEscape).join(";")).join("\n"),blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="budget_laetitia_operations.csv";a.click()});
-$("exportData").addEventListener("click",()=>{const blob=new Blob([JSON.stringify({app:"Budget Familial Laetitia",version:"infinity-2.1",data},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="mon_budget_infinity_2_1.json";a.click()});
+$("exportData").addEventListener("click",()=>{const blob=new Blob([JSON.stringify({app:"Budget Familial Laetitia",version:"infinity-3.0",data},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="mon_budget_infinity_3_0.json";a.click()});
 $("importDataBtn").addEventListener("click",()=>$("importDataFile").click());$("importDataFile").addEventListener("change",e=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const p=JSON.parse(String(r.result));data=migrate(p.data||p);save();alert("Sauvegarde restaurée.")}catch{alert("Fichier invalide.")}};r.readAsText(f)});
 $("restoreAutoBackup").addEventListener("click",()=>{try{const raw=localStorage.getItem(BACKUP_KEY);data=migrate(JSON.parse(raw).data);save();alert("Sauvegarde récupérée.")}catch{alert("Aucune sauvegarde.")}});
 $("removeDuplicates").addEventListener("click",()=>{
