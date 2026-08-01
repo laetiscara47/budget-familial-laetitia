@@ -1,7 +1,21 @@
-# Mon Budget 4.1 Test
+# Mon Budget Familial 2026
 
-Dans Comptes :
-- Modifier le solde
-- Synchroniser avec ma banque
+Une seule application, simple et adaptée à l’iPhone.
 
-Le nouveau solde crée automatiquement une opération d’ajustement.
+Accueil :
+- échéances du jour ;
+- prochaine échéance ;
+- revenus attendus ;
+- reste à vivre par jour ;
+- conseil court.
+
+Ajouter :
+- saisie en phrase naturelle ;
+- favoris ;
+- type, catégorie et compte proposés automatiquement.
+
+Comptes :
+- modifier le solde ;
+- synchroniser avec le solde affiché par la banque.
+
+La même clé de stockage est conservée.

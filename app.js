@@ -740,6 +740,145 @@
     return "Aucune échéance urgente détectée.";
   }
 
+
+  const SIMPLE_FAVORITES={
+    "Carrefour":{type:"expense",category:"Alimentation"},
+    "Orange":{type:"expense",category:"Téléphone"},
+    "Eau de Garonne":{type:"expense",category:"Maison"},
+    "Ergo":{type:"expense",category:"Santé"},
+    "Vinted":{type:"income",category:"Ventes"}
+  };
+
+  function applySimpleFavorite(name){
+    const favorite=SIMPLE_FAVORITES[name];
+    if(!favorite)return;
+
+    setType(favorite.type);
+    $("labelInput").value=name;
+    $("categoryInput").value=favorite.category;
+
+    const primary=data.accounts.find(account=>account.type==="current")||data.accounts[0];
+    if(primary)$("accountInput").value=primary.id;
+
+    $("amountInput").value="";
+    $("templateHint").textContent="Favori appliqué. Saisissez le montant.";
+    $("amountInput").focus();
+  }
+
+
+  function parseSmartEntry(text){
+    const raw=String(text||"").trim();
+    if(!raw)return null;
+
+    const normalized=normalizedText(raw);
+    const amountMatch=raw.match(/(\d+(?:[.,]\d{1,2})?)\s*(?:€|euros?)/i)
+      || raw.match(/(?:^|\s)(\d+(?:[.,]\d{1,2})?)(?:\s|$)/);
+
+    const amount=amountMatch ? money(amountMatch[1]) : 0;
+
+    let type="expense";
+    if(/recu|reçu|salaire|caf|remboursement|vente|vendu|vinted|revenu|versement/.test(normalized)){
+      type="income";
+    }
+    if(/paye|payé|achete|acheté|depense|dépense|preleve|prélevé|facture|courses/.test(normalized)){
+      type="expense";
+    }
+
+    let label=raw
+      .replace(/j['’]ai\s+(pay[eé]|re[cç]u|vendu|achet[eé])\s*/i,"")
+      .replace(/(\d+(?:[.,]\d{1,2})?)\s*(?:€|euros?)/i,"")
+      .replace(/\b(chez|de|pour|sur)\b\s*/i,"")
+      .replace(/\s+/g," ")
+      .trim();
+
+    if(!label){
+      label=type==="income"?"Revenu":"Dépense";
+    }
+
+    const knownLabels=[
+      "Carrefour","Orange","Eau de Garonne","Ergo","Vinted",
+      "CAF","Salaire","Assurance","Essence","Courses",
+      "Loyer","Crédit","Mutuelle","Cantine","Tennis"
+    ];
+    const found=knownLabels.find(item=>normalized.includes(normalizedText(item)));
+    if(found)label=found;
+
+    return {
+      type,
+      amount,
+      label,
+      category:smartCategoryFromText(label),
+      accountId:currentAccount().id
+    };
+  }
+
+  function applySmartEntry(){
+    const parsed=parseSmartEntry($("smartEntryInput").value);
+    const message=$("smartEntryMessage");
+
+    if(!parsed){
+      message.textContent="Écrivez une opération avant de continuer.";
+      return;
+    }
+
+    setType(parsed.type);
+    $("labelInput").value=parsed.label;
+    $("categoryInput").value=parsed.category;
+    $("accountInput").value=parsed.accountId;
+
+    if(parsed.amount>0){
+      $("amountInput").value=String(parsed.amount).replace(".",",");
+      message.textContent=`Prêt : ${parsed.type==="income"?"revenu":"dépense"} de ${euro(parsed.amount)} — ${parsed.label}.`;
+    }else{
+      $("amountInput").value="";
+      message.textContent=`Libellé reconnu : ${parsed.label}. Ajoutez le montant.`;
+      $("amountInput").focus();
+    }
+
+    $("templateHint").textContent="Opération préparée par l’assistant. Vérifiez puis enregistrez.";
+  }
+
+
+  function familyTodayItems(){
+    return futureRules().filter(rule=>rule.date===today());
+  }
+
+  function familyNextRule(){
+    return futureRules()
+      .filter(rule=>rule.date>=today())
+      .sort((a,b)=>a.date.localeCompare(b.date))[0]||null;
+  }
+
+  function familyExpectedIncome(){
+    return futureRules()
+      .filter(rule=>rule.type==="income")
+      .reduce((sum,rule)=>sum+Number(rule.amount||0),0);
+  }
+
+  function familySummaryAdvice(){
+    const todayItems=familyTodayItems();
+    const next=familyNextRule();
+    const daily=dailyBudget();
+
+    if(forecast()<0){
+      return "Attention : la fin de mois estimée est négative.";
+    }
+    if(todayItems.length){
+      const total=todayItems.reduce((sum,item)=>sum+Number(item.amount||0),0);
+      return `${todayItems.length} échéance(s) aujourd’hui pour ${euro(total)}.`;
+    }
+    if(next){
+      const diff=dueInDays(next.date);
+      if(diff<=3){
+        return `${next.label} arrive ${diff===0?"aujourd’hui":diff===1?"demain":`dans ${diff} jours`}.`;
+      }
+    }
+    if(daily<20){
+      return "Restez prudente : le budget conseillé par jour est assez bas.";
+    }
+    return "Aucune urgence détectée pour aujourd’hui.";
+  }
+
   function renderHome(){
     const now=new Date();
     $("monthLabel").textContent=`Budget familial · ${now.toLocaleDateString("fr-FR",{month:"long",year:"numeric"})}`;
@@ -770,6 +909,29 @@
     $("todayRiskBadge").textContent=risk.label;
     $("todayRiskBadge").className=`badge risk-${risk.className}`;
     $("todayAdvice").textContent=todayAdviceText();
+
+    const todayItems=familyTodayItems();
+    const todayTotal=todayItems.reduce((sum,item)=>sum+Number(item.amount||0),0);
+    $("familyTodayDue").textContent=todayItems.length
+      ? `${todayItems.length} · ${euro(todayTotal)}`
+      : "Rien";
+
+    const nextFamily=familyNextRule();
+    if(nextFamily){
+      const diff=dueInDays(nextFamily.date);
+      const when=diff===0?"Aujourd’hui":diff===1?"Demain":`Dans ${diff} jours`;
+      $("familyNextDue").textContent=`${nextFamily.label} · ${when}`;
+    }else{
+      $("familyNextDue").textContent="Aucune";
+    }
+
+    $("familyExpectedIncome").textContent=euro(familyExpectedIncome());
+    $("familyDailyLeft").textContent=euro(dailyBudget());
+
+    const familyRisk=riskLevel();
+    $("familyStatusBadge").textContent=familyRisk.label;
+    $("familyStatusBadge").className=`badge risk-${familyRisk.className}`;
+    $("familyAdvice").textContent=familySummaryAdvice();
 
     $("monthIncome").textContent=euro(monthIncome());
     $("monthExpense").textContent=euro(monthExpense());
@@ -1079,6 +1241,12 @@
   }
 
   document.addEventListener("click",e=>{
+    const favoriteButton=e.target.closest("[data-favorite]");
+    if(favoriteButton){
+      applySimpleFavorite(favoriteButton.dataset.favorite);
+      return;
+    }
+
     const quickTemplate=e.target.closest("[data-template-label]");
     if(quickTemplate){
       const template=findTemplate(quickTemplate.dataset.templateLabel);
@@ -1121,6 +1289,8 @@
     save();
     $("amountInput").value="";
     $("labelInput").value="";
+    $("smartEntryInput").value="";
+    $("smartEntryMessage").textContent="";
     $("templateHint").textContent="Le montant et la catégorie peuvent être proposés automatiquement.";
     $("addMessage").textContent="Opération enregistrée.";
     renderTemplateSuggestions();
@@ -1197,6 +1367,15 @@
   $("newBalanceInput").addEventListener("input",updateBalancePreview);
   $("confirmBalanceBtn").addEventListener("click",confirmBalanceUpdate);
   document.addEventListener("click",e=>{if(e.target.closest("[data-close-balance]"))closeBalanceModal();});
+
+
+  $("smartEntryBtn").addEventListener("click",applySmartEntry);
+  $("smartEntryInput").addEventListener("keydown",event=>{
+    if(event.key==="Enter" && !event.shiftKey){
+      event.preventDefault();
+      applySmartEntry();
+    }
+  });
 
   $("dateInput").value=today();
   materializeRecurring();

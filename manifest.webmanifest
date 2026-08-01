@@ -1,9 +1,9 @@
 {
-  "name": "Mon Budget 4.1 Test",
-  "short_name": "Budget Test",
-  "start_url": "./?v=4.1.0-test",
+  "name": "Mon Budget Familial 2026",
+  "short_name": "Mon Budget",
+  "start_url": "./",
   "display": "standalone",
-  "background_color": "#f4f7fc",
+  "background_color": "#f4f7fd",
   "theme_color": "#1768e8",
   "icons": [
     {
@@ -11,5 +11,6 @@
       "sizes": "any",
       "type": "image/svg+xml"
     }
-  ]
+  ],
+  "scope": "./"
 }

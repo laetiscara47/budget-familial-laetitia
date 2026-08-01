@@ -642,3 +642,145 @@ body{
 .balance-input-wrap span{padding-right:16px;color:var(--muted);font-size:21px;font-weight:800}
 .balance-preview{margin:12px 0;padding:11px 13px;border-radius:13px;background:rgba(23,104,232,.07);font-weight:750}
 .balance-confirm{width:100%;min-height:52px}
+
+
+/* Mon Budget 5.1 — Ajouter rapidement */
+.quick-favorites{
+  margin:0 0 16px;
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:rgba(23,104,232,.045);
+}
+.quick-favorites-head{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+.quick-favorites-head b{
+  font-size:17px;
+}
+.quick-favorites-head small{
+  color:var(--muted);
+  font-size:11px;
+}
+.quick-favorites-row{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+.quick-favorites-row::-webkit-scrollbar{
+  display:none;
+}
+.quick-favorite{
+  flex:0 0 auto;
+  min-height:42px;
+  padding:9px 12px;
+  border:1px solid rgba(23,104,232,.16);
+  border-radius:999px;
+  background:var(--card);
+  color:var(--text);
+  font-size:13px;
+  font-weight:750;
+}
+.quick-favorite:active{
+  transform:scale(.98);
+  background:rgba(23,104,232,.08);
+}
+
+
+/* Mon Budget 6.0 — Assistant de saisie */
+.smart-entry{
+  margin:14px 0 18px;
+  padding:15px;
+  border:1px solid rgba(23,104,232,.18);
+  border-radius:18px;
+  background:linear-gradient(145deg,rgba(23,104,232,.07),rgba(47,157,98,.045));
+}
+.smart-entry-head b{
+  display:block;
+  font-size:17px;
+}
+.smart-entry-head small{
+  display:block;
+  margin-top:4px;
+  color:var(--muted);
+  font-size:12px;
+}
+.smart-entry textarea{
+  width:100%;
+  box-sizing:border-box;
+  margin-top:12px;
+  padding:13px 14px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--card);
+  color:var(--text);
+  font:inherit;
+  resize:none;
+}
+.smart-entry-btn{
+  width:100%;
+  min-height:44px;
+  margin-top:9px;
+  border:0;
+  border-radius:13px;
+  background:var(--blue);
+  color:#fff;
+  font-weight:800;
+}
+.smart-entry-message{
+  min-height:18px;
+  margin:8px 2px 0;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.35;
+}
+
+
+/* Mon Budget Familial 2026 */
+.family-summary{
+  padding:17px;
+}
+.family-summary-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+  margin-top:13px;
+}
+.family-summary-grid>div{
+  min-height:78px;
+  padding:12px;
+  border:1px solid var(--line);
+  border-radius:15px;
+  background:rgba(23,104,232,.035);
+}
+.family-summary-grid span{
+  display:block;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.25;
+}
+.family-summary-grid b{
+  display:block;
+  margin-top:7px;
+  font-size:16px;
+  line-height:1.2;
+}
+.family-advice{
+  margin:12px 0 0;
+  padding:12px 14px;
+  border-radius:14px;
+  background:rgba(47,157,98,.08);
+  font-weight:700;
+  line-height:1.4;
+}
+@media(max-width:430px){
+  .family-summary-grid b{
+    font-size:15px;
+  }
+}
