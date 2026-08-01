@@ -165,6 +165,49 @@ function nextRecurring(){
   })[0];
 }
 
+
+function daysUntilDate(dateString){
+  const start=new Date(today()+'T12:00:00');
+  const end=new Date(dateString+'T12:00:00');
+  return Math.round((end-start)/86400000);
+}
+function renderDashboardAlerts(){
+  const box=document.querySelector('#dashboardAlerts');
+  if(!box)return;
+  document.querySelector('#daysLeftBadge').textContent=`${daysLeft()} jours restants`;
+
+  const future=allEvents().filter(x=>x.date>=today());
+  const close=future.filter(x=>daysUntilDate(x.date)<=3).slice(0,3);
+  const alerts=[];
+
+  close.forEach(x=>{
+    const days=daysUntilDate(x.date);
+    const when=days===0?"aujourd’hui":days===1?"demain":`dans ${days} jours`;
+    alerts.push({
+      level:x.signed<0?'warning':'good',
+      icon:x.signed<0?'🔔':'💰',
+      title:`${x.label} ${when}`,
+      text:`${x.signed>=0?'+':''}${euro(x.signed)}`
+    });
+  });
+
+  const totals=categoryTotals();
+  if(totals.length&&monthExpense()>0){
+    const [cat,amount]=totals[0];
+    const share=Math.round(amount/monthExpense()*100);
+    if(share>=45)alerts.push({level:'warning',icon:'🛒',title:`${cat} représente ${share} % des dépenses`,text:euro(amount)});
+  }
+
+  if(!alerts.length){
+    alerts.push({level:'good',icon:'✅',title:'Rien d’urgent dans les 3 prochains jours',text:`Budget du jour : ${euro(dailyBudget())}`});
+  }
+
+  box.innerHTML=alerts.slice(0,4).map(a=>`<div class="alert-line ${a.level}">
+    <span class="alert-icon">${a.icon}</span>
+    <div><b>${esc(a.title)}</b><small>${esc(a.text)}</small></div>
+  </div>`).join('');
+}
+
 function statusInfo(){
   const f=forecast(),d=dailyBudget();
   if(f<0)return {level:'danger',title:'Risque',text:`Fin de mois estimée à ${euro(f)}. Limitez les dépenses non essentielles.`};
@@ -206,6 +249,7 @@ function renderHome(){
   document.querySelector('#statusTextTop').textContent=st.text;
   document.querySelector('#statusDotTop').style.background=statusColor;
   drawEvents('#homeUpcoming',allEvents().filter(x=>x.date>=today()),5);
+  renderDashboardAlerts();
 }
 function renderAgenda(){
   const filter=document.querySelector('#agendaFilter').value;
@@ -216,6 +260,8 @@ function renderAccounts(){
   document.querySelector('#accountCard').textContent=euro(cardPending());
   document.querySelector('#accountSavings').textContent=euro(data.savings||0);
   document.querySelector('#accountAvailable').textContent=euro(available());
+  document.querySelector('#accountDebitDay').textContent=data.cardDebitDay;
+  document.querySelector('#accountPatrimony').textContent=euro(available()+(data.savings||0));
   document.querySelector('#monthIncome').textContent=euro(monthIncome());
   document.querySelector('#monthExpense').textContent=euro(monthExpense());
   document.querySelector('#monthForecast').textContent=euro(forecast());
@@ -267,25 +313,58 @@ function renderSettings(){
   document.querySelector('#themeToggle').textContent=data.theme==='dark'?'☀️':'🌙';
 }
 
+function populateOperationFilters(){
+  const monthSelect=document.querySelector('#operationsMonth');
+  const categorySelect=document.querySelector('#operationsCategory');
+  if(!monthSelect||!categorySelect)return;
+
+  const selectedMonth=monthSelect.value;
+  const selectedCategory=categorySelect.value;
+  const months=[...new Set(data.operations.map(op=>monthKey(op.date)))].sort().reverse();
+  monthSelect.innerHTML='<option value="all">Tous les mois</option>'+months.map(m=>{
+    const d=new Date(m+'-01T12:00:00');
+    return `<option value="${m}">${d.toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}</option>`;
+  }).join('');
+  if(months.includes(selectedMonth))monthSelect.value=selectedMonth;
+
+  const cats=[...new Set(data.operations.map(op=>op.category||'Autre'))].sort((a,b)=>a.localeCompare(b,'fr'));
+  categorySelect.innerHTML='<option value="all">Toutes les catégories</option>'+cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  if(cats.includes(selectedCategory))categorySelect.value=selectedCategory;
+}
 function renderOperations(){
+  populateOperationFilters();
   const search=(document.querySelector('#operationsSearch')?.value||'').trim().toLowerCase();
   const filter=document.querySelector('#operationsFilter')?.value||'all';
+  const month=document.querySelector('#operationsMonth')?.value||'all';
+  const categoryFilter=document.querySelector('#operationsCategory')?.value||'all';
+  const paymentFilter=document.querySelector('#operationsPayment')?.value||'all';
+  const sort=document.querySelector('#operationsSort')?.value||'date-desc';
+
   const list=data.operations
     .filter(op=>filter==='all'||op.type===filter)
+    .filter(op=>month==='all'||monthKey(op.date)===month)
+    .filter(op=>categoryFilter==='all'||(op.category||'Autre')===categoryFilter)
+    .filter(op=>paymentFilter==='all'||(op.payment||'current')===paymentFilter)
     .filter(op=>{
       if(!search)return true;
-      return `${op.label} ${op.category||''} ${op.date}`.toLowerCase().includes(search);
+      return `${op.label} ${op.category||''} ${op.date} ${op.note||''}`.toLowerCase().includes(search);
     })
-    .sort((a,b)=>b.date.localeCompare(a.date))
+    .sort((a,b)=>{
+      if(sort==='date-asc')return a.date.localeCompare(b.date);
+      if(sort==='amount-desc')return Number(b.amount)-Number(a.amount);
+      if(sort==='amount-asc')return Number(a.amount)-Number(b.amount);
+      return b.date.localeCompare(a.date);
+    })
     .map(op=>({...op,kind:op.type,signed:op.type==='income'?op.amount:-op.amount}));
 
   const target=document.querySelector('#operationsList');
   if(!target)return;
   target.innerHTML=list.length?list.map(op=>{
     const dt=new Date(op.date+'T12:00:00');
+    const paymentText=op.payment==='deferred'?'CB différée':'Compte courant';
     return `<div class="timeline-row operation-editable" data-operation-id="${op.id}">
       <div class="date-box">${dt.getDate()}<small>${dt.toLocaleDateString('fr-FR',{month:'short'})}</small></div>
-      <div><b>${icon(op.kind)} ${esc(op.label)}</b><small>${op.category||typeLabel(op.kind)}</small></div>
+      <div><b>${icon(op.kind)} ${esc(op.label)}</b><small>${esc(op.category||typeLabel(op.kind))} · ${paymentText}</small></div>
       <div class="amount ${op.signed>=0?'positive':'negative'}">${op.signed>=0?'+':''}${euro(op.signed)}</div>
     </div>`;
   }).join(''):'<p style="color:var(--muted)">Aucune opération trouvée.</p>';
@@ -512,6 +591,10 @@ document.addEventListener('click',e=>{
 });
 document.querySelector('#operationsSearch').addEventListener('input',renderOperations);
 document.querySelector('#operationsFilter').addEventListener('change',renderOperations);
+document.querySelector('#operationsMonth').addEventListener('change',renderOperations);
+document.querySelector('#operationsCategory').addEventListener('change',renderOperations);
+document.querySelector('#operationsPayment').addEventListener('change',renderOperations);
+document.querySelector('#operationsSort').addEventListener('change',renderOperations);
 
 
 document.querySelector('#checkRecurringNow').onclick=()=>{
@@ -521,37 +604,45 @@ document.querySelector('#checkRecurringNow').onclick=()=>{
 };
 
 
+function parseQuickLine(value){
+  const raw=String(value||'').trim();
+  const match=raw.match(/^(.*?)[\s]+(-?\d+(?:[.,]\d{1,2})?)\s*€?\s*$/);
+  if(!match)return null;
+  const label=match[1].trim();
+  const amount=money(match[2]);
+  if(!label||amount<=0)return null;
+  return {label,amount};
+}
 function refreshQuickSuggestion(){
-  const label=document.querySelector('#quickLabel').value.trim();
+  const parsed=parseQuickLine(document.querySelector('#quickLine').value);
   const target=document.querySelector('#quickSuggestion');
-  if(!label){
-    target.textContent='Dépense · catégorie habituelle · aujourd’hui';
+  if(!parsed){
+    target.textContent='Exemple : Carrefour 42,35';
     return;
   }
-  const s=smartSuggestion(label);
-  target.textContent=`${s.type==='income'?'Revenu':'Dépense'} · ${s.category} · aujourd’hui`;
+  const s=smartSuggestion(parsed.label);
+  target.textContent=`${s.type==='income'?'Revenu':'Dépense'} · ${s.category} · ${euro(parsed.amount)} · aujourd’hui`;
 }
-document.querySelector('#quickLabel').addEventListener('input',refreshQuickSuggestion);
+document.querySelector('#quickLine').addEventListener('input',refreshQuickSuggestion);
 
 document.querySelector('#quickSave').onclick=()=>{
-  const label=document.querySelector('#quickLabel').value.trim();
-  const amount=money(document.querySelector('#quickAmount').value);
+  const parsed=parseQuickLine(document.querySelector('#quickLine').value);
   const message=document.querySelector('#quickMessage');
 
-  if(!label||amount<=0){
-    message.textContent='Complétez le nom et le montant.';
+  if(!parsed){
+    message.textContent='Écrivez par exemple : Carrefour 42,35';
     return;
   }
 
-  const suggestion=smartSuggestion(label);
+  const suggestion=smartSuggestion(parsed.label);
   const operation={
     id:crypto.randomUUID(),
     type:suggestion.type,
-    label,
-    amount,
+    label:parsed.label,
+    amount:parsed.amount,
     date:today(),
     category:suggestion.category,
-    payment:suggestion.type==='income'?'current':'current',
+    payment:'current',
     cardDebited:false
   };
 
@@ -559,12 +650,10 @@ document.querySelector('#quickSave').onclick=()=>{
   applyOperationToBalance(operation);
   data.lastCategory=suggestion.category;
 
-  document.querySelector('#quickLabel').value='';
-  document.querySelector('#quickAmount').value='';
-  document.querySelector('#quickSuggestion').textContent='Dépense · catégorie habituelle · aujourd’hui';
+  document.querySelector('#quickLine').value='';
+  document.querySelector('#quickSuggestion').textContent='Écrivez le nom puis le montant.';
   message.textContent='Opération enregistrée.';
   save();
-
   setTimeout(()=>{message.textContent=''},1200);
 };
 

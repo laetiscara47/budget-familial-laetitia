@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#2f6fed">
-  <title>Mon Budget Essentiel V6.0</title>
+  <title>Mon Budget Essentiel V6.5</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=6.0.0">
+  <link rel="stylesheet" href="styles.css?v=6.5.0">
 </head>
 <body>
 <header class="topbar">
-  <div><h1>💙 Mon Budget</h1><p>V6.0</p></div>
+  <div><h1>💙 Mon Budget</h1><p>V6.5 Stable</p></div>
   <button id="themeToggle" class="round-btn">🌙</button>
 </header>
 
@@ -46,6 +46,11 @@
     <div><h2 id="statusTitle">Situation</h2><p id="statusText">Analyse en cours…</p></div>
   </article>
 
+  <article class="simple-card dashboard-alerts">
+    <div class="section-head"><h2>À surveiller</h2><span class="small-badge" id="daysLeftBadge">—</span></div>
+    <div id="dashboardAlerts"></div>
+  </article>
+
   <article class="simple-card home-month-summary">
     <div class="section-head"><h2>Résumé du mois</h2><span class="small-badge" id="homeMonthName">Mois</span></div>
     <div class="home-summary-grid">
@@ -56,13 +61,10 @@
   </article>
 
   <article class="simple-card quick-entry-card">
-    <div class="section-head"><h2>Saisie rapide</h2><span class="small-badge">2 champs</span></div>
-    <div class="quick-entry-grid">
-      <input id="quickLabel" placeholder="Ex. Carrefour">
-      <input id="quickAmount" inputmode="decimal" placeholder="0,00 €">
-    </div>
-    <div id="quickSuggestion" class="quick-suggestion">Dépense · catégorie habituelle · aujourd’hui</div>
-    <button id="quickSave" class="primary">Enregistrer rapidement</button>
+    <div class="section-head"><h2>Saisie express</h2><span class="small-badge">1 ligne</span></div>
+    <input id="quickLine" placeholder="Ex. Carrefour 42,35">
+    <div id="quickSuggestion" class="quick-suggestion">Écrivez le nom puis le montant.</div>
+    <button id="quickSave" class="primary">Enregistrer</button>
     <p id="quickMessage" class="success-message"></p>
   </article>
 
@@ -134,10 +136,26 @@
 <section id="accounts" class="screen">
   <article class="simple-card">
     <h2>Comptes</h2>
-    <div class="account-row"><span>🏦 Compte courant</span><b id="accountBalance">0,00 €</b></div>
-    <div class="account-row"><span>💳 Carte différée</span><b id="accountCard">0,00 €</b></div>
-    <div class="account-row"><span>💰 Épargne</span><b id="accountSavings">0,00 €</b></div>
-    <div class="account-row strong"><span>Disponible réel</span><b id="accountAvailable">0,00 €</b></div>
+    <div class="account-detail">
+      <div><span>🏦 Compte courant</span><small>Solde bancaire saisi</small></div>
+      <b id="accountBalance">0,00 €</b>
+    </div>
+    <div class="account-detail">
+      <div><span>💳 Carte différée</span><small>Débit prévu le <span id="accountDebitDay">4</span></small></div>
+      <b id="accountCard">0,00 €</b>
+    </div>
+    <div class="account-detail">
+      <div><span>💰 Épargne</span><small>Hors budget courant</small></div>
+      <b id="accountSavings">0,00 €</b>
+    </div>
+    <div class="account-detail strong">
+      <div><span>Disponible réel</span><small>Compte moins CB en attente</small></div>
+      <b id="accountAvailable">0,00 €</b>
+    </div>
+    <div class="account-detail patrimony">
+      <div><span>Patrimoine suivi</span><small>Disponible réel + épargne</small></div>
+      <b id="accountPatrimony">0,00 €</b>
+    </div>
   </article>
 
   <article class="simple-card">
@@ -168,6 +186,26 @@
 
     <label>Rechercher</label>
     <input id="operationsSearch" placeholder="Ex. Carrefour, Orange, CAF…">
+
+    <div class="operation-filters">
+      <select id="operationsMonth">
+        <option value="all">Tous les mois</option>
+      </select>
+      <select id="operationsCategory">
+        <option value="all">Toutes les catégories</option>
+      </select>
+      <select id="operationsPayment">
+        <option value="all">Tous les comptes</option>
+        <option value="current">Compte courant</option>
+        <option value="deferred">CB différée</option>
+      </select>
+      <select id="operationsSort">
+        <option value="date-desc">Plus récentes</option>
+        <option value="date-asc">Plus anciennes</option>
+        <option value="amount-desc">Montant décroissant</option>
+        <option value="amount-asc">Montant croissant</option>
+      </select>
+    </div>
 
     <div id="operationsList"></div>
     <p class="muted-note">Touchez une opération pour la modifier ou la supprimer.</p>
@@ -267,6 +305,6 @@
   <button data-tab="stats"><span>📊</span><small>Stats</small></button>
   <button data-tab="settings"><span>⚙️</span><small>Réglages</small></button>
 </nav>
-<script src="app.js?v=6.0.0"></script>
+<script src="app.js?v=6.5.0"></script>
 </body>
 </html>
