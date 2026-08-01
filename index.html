@@ -9,15 +9,15 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css?v=infinity-1.0">
+  <link rel="stylesheet" href="./styles.css?v=infinity-2.0">
   <title>Mon Budget — Infinity</title>
 </head>
 <body>
 <header class="app-header pro-header">
   <div>
-    <div class="brand-line"><h1>💙 Mon Budget</h1><span class="pro-badge infinity">∞ INFINITY</span></div>
+    <div class="brand-line"><h1>💙 Mon Budget</h1><span class="pro-badge infinity">∞ INFINITY 2.0</span></div>
     <p id="headerSubtitle">Laetitia</p>
-    <small>Infinity</small>
+    <small>Infinity 2.0</small>
   </div>
   <div class="header-actions">
     <select id="profileQuick" class="profile-quick" aria-label="Profil"></select>
@@ -78,6 +78,12 @@
       <div class="section-title"><h2>☀️ Briefing du jour</h2><span class="badge" id="briefingDate">Aujourd’hui</span></div>
       <p id="dailyBriefingText">Analyse en cours…</p>
       <div id="dailyBriefingActions" class="briefing-actions"></div>
+    </article>
+
+    <article class="card income-engine-card">
+      <div class="section-title"><h2>💰 Revenus automatiques</h2><span class="badge">Moteur 2.0</span></div>
+      <div class="income-engine-summary"><div><span>Déjà reçus</span><b id="incomeReceivedView">0 €</b></div><div><span>Encore attendus</span><b id="incomeExpectedView">0 €</b></div><div><span>En retard</span><b id="incomeLateView">0 €</b></div></div>
+      <div id="incomeEngineList"></div>
     </article>
 
     <article class="card">
@@ -355,6 +361,19 @@
     </article>
 
     <article class="card">
+      <div class="section-title"><h2>🔁 Revenu récurrent</h2><span class="badge">Automatique</span></div>
+      <p class="muted">Exemples : salaire tous les 28, CAF tous les 5, assurance Maëva tous les 10.</p>
+      <label>Nom</label><input id="recurringIncomeLabel" placeholder="Ex. Salaire Jean-François">
+      <label>Montant</label><input id="recurringIncomeAmount" type="number" step="0.01" placeholder="0,00">
+      <label>Jour habituel du mois</label><input id="recurringIncomeDay" type="number" min="1" max="31" placeholder="28">
+      <label>Compte</label><select id="recurringIncomeAccount"></select>
+      <label>Profil</label><select id="recurringIncomeProfile"></select>
+      <label class="checkline"><input id="recurringIncomeEnabled" type="checkbox" checked> Actif</label>
+      <button id="saveRecurringIncome" class="primary">Enregistrer le revenu automatique</button>
+    </article>
+    <article class="card"><h2>Revenus automatiques enregistrés</h2><div id="recurringIncomeSettings"></div></article>
+
+    <article class="card">
       <h2>➕ Ajouter un revenu</h2>
       <label>Montant</label><input id="incomeAmount" type="number" step="0.01" placeholder="0,00">
       <label>Libellé</label><input id="incomeLabel" placeholder="Ex. remboursement, prime">
@@ -388,6 +407,8 @@
       <div class="section-title"><h2>📋 Résumé du mois</h2><span class="badge">Vue rapide</span></div>
       <div id="monthOverview" class="month-overview"></div>
     </article>
+
+    <article class="card"><div class="section-title"><h2>🧠 Anomalies détectées</h2><span class="badge">Automatique</span></div><div id="anomalyList"></div></article>
     <article class="card">
       <div class="calendar-header">
         <button id="prevMonth" class="soft">←</button>
@@ -583,6 +604,7 @@
   </section>
 
   <section id="settings" class="screen">
+    <article class="card"><div class="section-title"><h2>🧠 Moteur financier intelligent</h2><span class="badge">Infinity 2.0</span></div><label class="checkline"><input id="autoGenerateIncomeToggle" type="checkbox"> Générer automatiquement les revenus chaque mois</label><label class="checkline"><input id="showLateIncomeToggle" type="checkbox"> Signaler les revenus en retard</label><label class="checkline"><input id="detectAnomaliesToggle" type="checkbox"> Détecter les variations inhabituelles</label><label>Tolérance pour les anomalies (%)</label><input id="anomalyTolerance" type="number" min="5" max="100" step="5"><button id="saveEngineSettings" class="primary">Enregistrer le moteur</button></article>
     <article class="card">
       <h2>👨‍👩‍👧‍👦 Profils familiaux</h2>
       <div id="profileSettings"></div>
@@ -710,6 +732,6 @@
   <button data-tab="settings"><span>⚙️</span><small>Réglages</small></button>
 </nav>
 
-<script src="./app.js?v=infinity-1.0"></script>
+<script src="./app.js?v=infinity-2.0"></script>
 </body>
 </html>

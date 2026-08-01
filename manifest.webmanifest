@@ -1,10 +1,10 @@
 {
-  "name": "Mon Budget Infinity",
-  "short_name": "Budget Infinity",
-  "start_url": "./?v=infinity-1.0",
+  "name": "Mon Budget Infinity 2.0",
+  "short_name": "Infinity 2.0",
+  "start_url": "./?v=infinity-2.0",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f3f6fb",
   "theme_color": "#2f6fed",
-  "description": "Gestionnaire financier familial Mon Budget Infinity"
+  "description": "Mon Budget Infinity 2.0 avec revenus automatiques"
 }
