@@ -625,22 +625,3 @@ body{
     transition:none !important;
   }
 }
-
-
-/* Mon Budget 4.0 Test — Agenda intelligent */
-.agenda-head-actions{display:flex;align-items:center;gap:8px}
-.agenda-filters{display:flex;gap:7px;overflow-x:auto;padding:3px 0 12px;scrollbar-width:none}
-.agenda-filters::-webkit-scrollbar{display:none}
-.agenda-filter{flex:0 0 auto;min-height:38px;padding:8px 13px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--muted);font-size:13px;font-weight:750}
-.agenda-filter.active{background:var(--blue);color:#fff;border-color:var(--blue)}
-.agenda-item{margin:8px 0;padding:13px;border:1px solid var(--line);border-radius:16px;background:var(--card)}
-.agenda-item.overdue{border-color:rgba(217,75,75,.30);background:rgba(217,75,75,.035)}
-.agenda-item-main{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:10px;align-items:center}
-.agenda-icon{display:grid;place-items:center;width:36px;height:36px;border-radius:12px;background:rgba(23,104,232,.07);font-size:18px}
-.agenda-copy{min-width:0}
-.agenda-copy b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:16px}
-.agenda-copy small{display:block;margin-top:4px;color:var(--muted);font-size:12px}
-.agenda-actions{display:flex;gap:8px;margin-top:11px}
-.agenda-action{min-height:36px;padding:7px 11px;border:0;border-radius:11px;font-size:12px;font-weight:800}
-.agenda-action.paid{background:rgba(47,157,98,.12);color:var(--green)}
-.agenda-action.postpone{background:rgba(229,139,39,.12);color:var(--orange)}

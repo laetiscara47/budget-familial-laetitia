@@ -1,13 +1,15 @@
 {
-  "version": "4.0.0-test-agenda",
+  "version": "3.0.0-final",
   "schema": 2,
-  "channel": "test",
-  "base": "3.0.0-final",
+  "channel": "stable",
+  "base": "3.0.0-rc",
   "storageKey": "mon_budget_v10_stable",
+  "validatedDataCompatibility": true,
   "changes": [
-    "agenda filters",
-    "grouped cards",
-    "mark paid",
-    "postpone one day"
+    "today cards equalized",
+    "risk badge reduced",
+    "days remaining wording adjusted",
+    "next due readability improved",
+    "same storage and recovery logic retained"
   ]
 }

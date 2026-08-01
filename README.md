@@ -1,10 +1,16 @@
-# Mon Budget 4.0 Test — Agenda intelligent
+# Mon Budget 3.0 Final
 
-Seul l’onglet Agenda évolue :
-- filtres Tout, Aujourd’hui, Semaine et Mois ;
-- cartes regroupées par période ;
-- bouton Payé ;
-- report d’une échéance d’un jour ;
-- échéances en retard mises en évidence.
+Version finale construite sur la 3.0 Candidate validée sur iPhone.
 
-La même clé de stockage et les protections existantes sont conservées.
+Aucune nouvelle fonction et aucun nouveau menu.
+
+Finitions :
+- badge de risque plus discret ;
+- quatre cartes « Aujourd’hui » harmonisées ;
+- prochaine échéance plus lisible ;
+- calcul des jours restants ajusté ;
+- espacements et typographie affinés ;
+- animations discrètes ;
+- compatibilité complète avec les données et sauvegardes existantes.
+
+La clé de stockage reste `mon_budget_v10_stable`.

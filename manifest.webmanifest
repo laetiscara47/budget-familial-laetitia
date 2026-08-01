@@ -1,7 +1,7 @@
 {
-  "name": "Mon Budget 4.0 Test",
-  "short_name": "Budget Test",
-  "start_url": "./?v=4.0.0-test",
+  "name": "Mon Budget 3.0",
+  "short_name": "Mon Budget",
+  "start_url": "./?v=3.0.0",
   "display": "standalone",
   "background_color": "#f4f7fc",
   "theme_color": "#1768e8",
