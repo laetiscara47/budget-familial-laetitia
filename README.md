@@ -1,14 +1,12 @@
-# Mon Budget Infinity 3.0
+# Mon Budget Essentiel 1.0
 
-## Correction principale
+Application simple pour iPhone :
+- solde du compte ;
+- dépenses et revenus ;
+- carte à débit différé, débit prévu le 4 ;
+- revenus fixes ;
+- prélèvements fixes ;
+- agenda ;
+- sauvegarde locale.
 
-- correction de la clé de stockage des revenus récurrents ;
-- sauvegarde immédiate avant la génération mensuelle ;
-- bouton explicitement défini comme bouton d’action ;
-- confirmation visible après l’enregistrement ;
-- liste actualisée immédiatement ;
-- génération du revenu pour le mois courant et le mois suivant.
-
-## Mise à jour GitHub
-
-Remplacer : index.html, styles.css, app.js, manifest.webmanifest, version.json et icon.svg.
+Pour GitHub Pages, remplace tout le contenu du dépôt par les fichiers de cette archive.

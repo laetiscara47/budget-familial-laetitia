@@ -1,10 +1,15 @@
 {
-  "name": "Mon Budget Infinity 3.0",
-  "short_name": "Infinity 3.0",
-  "start_url": "./?v=infinity-3.0",
-  "scope": "./",
+  "name": "Mon Budget Essentiel",
+  "short_name": "Mon Budget",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#f3f6fb",
   "theme_color": "#2f6fed",
-  "description": "Mon Budget Infinity 3.0 – revenus récurrents corrigés"
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
 }
