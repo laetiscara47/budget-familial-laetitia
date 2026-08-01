@@ -1,5 +1,5 @@
-const KEY='mon_budget_essentiel_v4';
-const LEGACY_KEYS=['budget_essentiel_v3','budget_essentiel_v2','budget_essentiel_v1'];
+const KEY='mon_budget_essentiel_v5';
+const LEGACY_KEYS=['mon_budget_essentiel_v4','budget_essentiel_v3','budget_essentiel_v2','budget_essentiel_v1'];
 const defaults={balance:2697.32,cardDebitDay:4,operations:[],incomeRules:[{id:'i1',label:'CAF',amount:867.92,day:5},{id:'i2',label:'Assurance Maëva',amount:130,day:10}],chargeRules:[{id:'c1',label:'Orange',amount:28.99,day:6},{id:'c2',label:'Eau de Garonne',amount:64,day:3}],theme:'light'};
 let data=load(),opType='expense',payment='deferred',category='Alimentation';
 
@@ -72,6 +72,10 @@ function renderHome(){
   document.querySelector('#homeCard').textContent=euro(cardPending());
   document.querySelector('#homeCardDay').textContent=data.cardDebitDay;
   document.querySelector('#homeDaily').textContent=euro(dailyBudget());
+  document.querySelector('#homeMonthName').textContent=new Date().toLocaleDateString('fr-FR',{month:'long'});
+  document.querySelector('#homeMonthIncome').textContent=euro(monthIncome());
+  document.querySelector('#homeMonthExpense').textContent=euro(monthExpense());
+  document.querySelector('#homeMonthForecast').textContent=euro(forecast());
   const ni=nextRule(data.incomeRules),nc=nextRule(data.chargeRules);
   document.querySelector('#homeNextIncome').textContent=ni?euro(ni.amount):'—';
   document.querySelector('#homeNextIncomeLabel').textContent=ni?`${ni.label} · le ${ni.day}`:'Aucun';
@@ -81,7 +85,7 @@ function renderHome(){
   document.querySelector('#statusTitle').textContent=st.title;
   document.querySelector('#statusText').textContent=st.text;
   document.querySelector('#statusDot').style.background=st.level==='danger'?'var(--red)':st.level==='warning'?'var(--orange)':'var(--green)';
-  drawEvents('#homeUpcoming',allEvents().filter(x=>x.date>=today()),4);
+  drawEvents('#homeUpcoming',allEvents().filter(x=>x.date>=today()),5);
 }
 function renderAgenda(){
   const filter=document.querySelector('#agendaFilter').value;
@@ -194,5 +198,6 @@ document.querySelector('#importData').onchange=async e=>{
 };
 document.querySelector('#resetData').onclick=()=>{if(confirm('Tout effacer et repartir de zéro ?')){data=structuredClone(defaults);save()}};
 
+document.querySelector('#quickAdd').onclick=()=>setTab('add');
 document.querySelector('#opDate').value=today();
 renderAll();

@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#2f6fed">
-  <title>Mon Budget Essentiel V4.0</title>
+  <title>Mon Budget Essentiel V5.0</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=4.0.0">
+  <link rel="stylesheet" href="styles.css?v=5.0.0">
 </head>
 <body>
 <header class="topbar">
-  <div><h1>💙 Mon Budget</h1><p>V4.0 Essentiel</p></div>
+  <div><h1>💙 Mon Budget</h1><p>V5.0 Essentiel</p></div>
   <button id="themeToggle" class="round-btn">🌙</button>
 </header>
 
@@ -33,6 +33,15 @@
   <article id="statusCard" class="status-card">
     <div class="status-dot" id="statusDot"></div>
     <div><h2 id="statusTitle">Situation</h2><p id="statusText">Analyse en cours…</p></div>
+  </article>
+
+  <article class="simple-card home-month-summary">
+    <div class="section-head"><h2>Résumé du mois</h2><span class="small-badge" id="homeMonthName">Mois</span></div>
+    <div class="home-summary-grid">
+      <div><span>Revenus</span><b id="homeMonthIncome">0,00 €</b></div>
+      <div><span>Dépenses</span><b id="homeMonthExpense">0,00 €</b></div>
+      <div><span>Reste prévu</span><b id="homeMonthForecast">0,00 €</b></div>
+    </div>
   </article>
 
   <article class="simple-card">
@@ -151,6 +160,7 @@
 </section>
 </main>
 
+<button id="quickAdd" class="floating-add" aria-label="Ajouter rapidement">+</button>
 <nav class="bottom-nav">
   <button data-tab="home" class="active"><span>🏠</span><small>Accueil</small></button>
   <button data-tab="add"><span>➕</span><small>Ajouter</small></button>
@@ -158,6 +168,6 @@
   <button data-tab="accounts"><span>💳</span><small>Comptes</small></button>
   <button data-tab="settings"><span>⚙️</span><small>Réglages</small></button>
 </nav>
-<script src="app.js?v=4.0.0"></script>
+<script src="app.js?v=5.0.0"></script>
 </body>
 </html>

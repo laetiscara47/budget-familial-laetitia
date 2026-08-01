@@ -36,3 +36,11 @@ body.dark{--bg:#111722;--card:#1a2230;--text:#eef2fb;--muted:#9fa9b9;--line:#303
 body.dark .choice,body.dark .category-btn,body.dark .month-summary div,body.dark .impact-preview{background:#141b27}
 body.dark .bottom-nav{background:#1a2230f2}
 @media(max-width:520px){.hero strong{font-size:37px}.month-summary{grid-template-columns:1fr}.category-grid{grid-template-columns:repeat(2,1fr)}}
+.small-badge{padding:5px 9px;border-radius:999px;background:#eaf1ff;color:var(--blue);font-weight:800;font-size:12px}
+.home-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}
+.home-summary-grid div{padding:13px;border:1px solid var(--line);border-radius:15px;background:#f9fbff}
+.home-summary-grid span{display:block;color:var(--muted);font-size:12px}
+.home-summary-grid b{display:block;margin-top:6px;font-size:18px}
+.floating-add{position:fixed;right:18px;bottom:92px;width:60px;height:60px;border-radius:50%;border:0;background:var(--blue);color:#fff;font-size:34px;line-height:1;box-shadow:0 12px 28px rgba(47,111,237,.4);z-index:25}
+body.dark .home-summary-grid div{background:#141b27}
+@media(max-width:520px){.home-summary-grid{grid-template-columns:1fr}.floating-add{right:14px;bottom:88px}}

@@ -1,16 +1,17 @@
-# Mon Budget Essentiel V4.0
+# Mon Budget Essentiel V5.0
 
-Version simplifiée et stable.
+Version complète basée sur la V4.0.
 
-Principales fonctions :
-- accueil compact ;
-- statut Confortable / Attention / Risque ;
-- ajout rapide d’une dépense ou d’un revenu ;
-- carte bancaire à débit différé ;
-- agenda chronologique ;
-- écran Comptes ;
+Améliorations :
+- bouton flottant pour ajouter rapidement une opération ;
+- cinq prochaines opérations sur l'accueil ;
+- résumé du mois directement sur l'accueil ;
+- toutes les fonctions de la V4 conservées ;
+- migration automatique des données de la V4 et des anciennes versions ;
 - revenus et prélèvements récurrents ;
-- sauvegarde locale et export JSON ;
-- reprise automatique des données des versions précédentes.
+- CB différée ;
+- agenda ;
+- comptes ;
+- sauvegarde, import et mode sombre.
 
 Pour GitHub Pages, remplacez tout le contenu du dépôt par les fichiers de cette archive.
