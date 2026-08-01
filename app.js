@@ -1,7 +1,5 @@
-const KEY='mon_budget_familial_v8';
-const BACKUP_KEY='mon_budget_familial_v8_backup';
-const DATA_VERSION=8;
-const KNOWN_KEYS=[
+const KEY='mon_budget_essentiel_v5';
+const LEGACY_KEYS=[
   'mon_budget_familial_v8',
   'mon_budget_familial_1_0',
   'mon_budget_essentiel_v7',
@@ -14,147 +12,66 @@ const KNOWN_KEYS=[
   'mon_budget_essentiel_v5_2_1',
   'mon_budget_essentiel_v5_2',
   'mon_budget_essentiel_v5_1',
-  'mon_budget_essentiel_v5',
   'mon_budget_essentiel_v4',
   'budget_essentiel_v3',
   'budget_essentiel_v2',
   'budget_essentiel_v1'
 ];
-const defaults={
-  balance:2697.32,
-  cardDebitDay:4,
-  operations:[],
-  incomeRules:[
-    {id:'i1',label:'CAF',amount:867.92,day:5,active:true},
-    {id:'i2',label:'Assurance Maëva',amount:130,day:10,active:true}
-  ],
-  chargeRules:[
-    {id:'c1',label:'Orange',amount:28.99,day:6,active:true},
-    {id:'c2',label:'Eau de Garonne',amount:64,day:3,active:true}
-  ],
-  theme:'light',
-  lastCategory:'Alimentation',
-  savings:0,
-  dataVersion:DATA_VERSION
-};
+const defaults={balance:2697.32,cardDebitDay:4,operations:[],incomeRules:[{id:'i1',label:'CAF',amount:867.92,day:5},{id:'i2',label:'Assurance Maëva',amount:130,day:10}],chargeRules:[{id:'c1',label:'Orange',amount:28.99,day:6},{id:'c2',label:'Eau de Garonne',amount:64,day:3}],theme:'light'};
+let data=load(),opType='expense',payment='deferred',category='Alimentation';
 
-function cloneDefaults(){
-  return JSON.parse(JSON.stringify(defaults));
-}
-function parseStored(key){
-  try{
-    const raw=localStorage.getItem(key);
-    if(!raw)return null;
-    const value=JSON.parse(raw);
-    return value&&typeof value==='object'?value:null;
-  }catch{
-    return null;
-  }
-}
-function dataScore(value){
-  if(!value)return -1;
-  let score=0;
-  const balance=Number(value.balance);
-  if(Number.isFinite(balance)&&balance!==0)score+=1000+Math.min(Math.abs(balance),100000)/100;
-  score+=(Array.isArray(value.operations)?value.operations.length:0)*20;
-  score+=(Array.isArray(value.incomeRules)?value.incomeRules.length:0)*5;
-  score+=(Array.isArray(value.chargeRules)?value.chargeRules.length:0)*5;
-  if(value.lastSavedAt)score+=2;
-  return score;
-}
-function normalizeData(value){
-  const base=cloneDefaults();
-  const result={...base,...(value||{})};
-  result.balance=Number(result.balance)||0;
-  result.cardDebitDay=Math.max(1,Math.min(28,Number(result.cardDebitDay)||4));
-  result.savings=Number(result.savings)||0;
-  result.operations=Array.isArray(result.operations)?result.operations:[];
-  result.incomeRules=Array.isArray(result.incomeRules)?result.incomeRules:[];
-  result.chargeRules=Array.isArray(result.chargeRules)?result.chargeRules:[];
-  result.incomeRules=result.incomeRules.map(r=>({...r,active:r.active!==false}));
-  result.chargeRules=result.chargeRules.map(r=>({...r,active:r.active!==false}));
-  result.dataVersion=DATA_VERSION;
-  return result;
-}
-function findBestStoredData(){
-  let best=null;
-  let bestKey='';
-  let bestScore=-1;
-  KNOWN_KEYS.forEach(key=>{
-    const candidate=parseStored(key);
-    const score=dataScore(candidate);
-    if(score>bestScore){
-      best=candidate;
-      bestKey=key;
-      bestScore=score;
-    }
-  });
-  return {data:best,key:bestKey,score:bestScore};
-}
-function writeLocalBackup(value){
-  try{
-    localStorage.setItem(BACKUP_KEY,JSON.stringify({
-      savedAt:new Date().toISOString(),
-      data:normalizeData(value)
-    }));
-    return true;
-  }catch{
-    return false;
-  }
-}
 function load(){
-  const current=parseStored(KEY);
-  if(current){
-    const normalized=normalizeData(current);
-    writeLocalBackup(normalized);
-    return normalized;
+  function parse(key){
+    try{
+      const raw=localStorage.getItem(key);
+      return raw?JSON.parse(raw):null;
+    }catch{return null}
+  }
+  function score(value){
+    if(!value||typeof value!=='object')return -1;
+    let total=0;
+    if(Number(value.balance)!==0)total+=1000;
+    total+=(Array.isArray(value.operations)?value.operations.length:0)*20;
+    total+=(Array.isArray(value.incomeRules)?value.incomeRules.length:0)*5;
+    total+=(Array.isArray(value.chargeRules)?value.chargeRules.length:0)*5;
+    return total;
   }
 
-  const found=findBestStoredData();
-  if(found.data){
-    const migrated=normalizeData(found.data);
-    migrated.migratedFrom=found.key;
-    migrated.lastSavedAt=new Date().toISOString();
+  const keys=[KEY,KEY+'_backup',...LEGACY_KEYS];
+  let best=null,bestScore=-1;
+  for(const key of keys){
+    const candidate=parse(key);
+    const candidateScore=score(candidate);
+    if(candidateScore>bestScore){
+      best=candidate;
+      bestScore=candidateScore;
+    }
+  }
+
+  if(best){
+    const migrated={...structuredClone(defaults),...best};
     localStorage.setItem(KEY,JSON.stringify(migrated));
-    writeLocalBackup(migrated);
     return migrated;
   }
-
-  return cloneDefaults();
+  return structuredClone(defaults)
 }
-let data=load(),opType='expense',payment='deferred',category=data.lastCategory||'Alimentation';
+
+function normalizeRules(){
+  data.incomeRules=(data.incomeRules||[]).map(r=>({...r,active:r.active!==false}));
+  data.chargeRules=(data.chargeRules||[]).map(r=>({...r,active:r.active!==false}));
+}
 
 function save(){
-  const previous=parseStored(KEY);
-  if(previous)writeLocalBackup(previous);
-  data=normalizeData(data);
-  data.lastSavedAt=new Date().toISOString();
-  localStorage.setItem(KEY,JSON.stringify(data));
+  try{
+    const previous=localStorage.getItem(KEY);
+    if(previous)localStorage.setItem(KEY+'_backup',previous);
+    localStorage.setItem(KEY,JSON.stringify(data));
+  }catch(error){
+    alert("La sauvegarde locale a échoué.");
+  }
   renderAll()
 }
 function euro(n){return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(Number(n||0))}
-
-function animateAmount(selector,value){
-  const el=document.querySelector(selector);
-  if(!el)return;
-  const end=Number(value||0);
-  const start=Number(el.dataset.current||0);
-  const duration=320;
-  const begin=performance.now();
-  function step(now){
-    const p=Math.min(1,(now-begin)/duration);
-    const eased=1-Math.pow(1-p,3);
-    const current=start+(end-start)*eased;
-    el.textContent=euro(current);
-    if(p<1)requestAnimationFrame(step);
-    else{
-      el.textContent=euro(end);
-      el.dataset.current=String(end);
-    }
-  }
-  requestAnimationFrame(step);
-}
-
 function money(v){return Number(String(v||'').replace(/\s/g,'').replace(',','.'))||0}
 function today(){return new Date().toISOString().slice(0,10)}
 function monthKey(v){return String(v).slice(0,7)}
@@ -296,31 +213,6 @@ function nextRecurring(){
 
 
 
-
-function remainingIncomeAmount(){
-  return allEvents()
-    .filter(x=>x.kind==='income'&&x.date>=today())
-    .reduce((sum,x)=>sum+Number(x.signed||0),0);
-}
-function remainingChargeAmount(){
-  return allEvents()
-    .filter(x=>['charge','card'].includes(x.kind)&&x.date>=today())
-    .reduce((sum,x)=>sum+Math.abs(Number(x.signed||0)),0);
-}
-function daysToNextIncome(){
-  const next=allEvents().find(x=>x.kind==='income'&&x.date>=today());
-  if(!next)return null;
-  return Math.max(0,daysUntilDate(next.date));
-}
-function monthTimePercent(){
-  const now=new Date();
-  return Math.min(100,Math.round((now.getDate()/daysInMonth())*100));
-}
-function monthSpendPercent(){
-  const totalResources=Math.max(1,monthIncome()+remainingIncomeAmount());
-  return Math.min(100,Math.round((monthExpense()/totalResources)*100));
-}
-
 function weekExpectedIncome(){
   const limit=new Date(today()+'T12:00:00');
   limit.setDate(limit.getDate()+7);
@@ -423,28 +315,17 @@ function drawEvents(selector,items,limit){
   }).join(''):'<p style="color:var(--muted)">Aucune opération.</p>'
 }
 function renderHome(){
-  animateAmount('#homeAvailable',available());
-  document.querySelector('#familyMonthLabel').textContent=new Date().toLocaleDateString('fr-FR',{month:'long'});
-  document.querySelector('#monthOverviewLabel').textContent=new Date().toLocaleDateString('fr-FR',{month:'long'});
-  document.querySelector('#monthOverviewIncome').textContent=euro(monthIncome());
-  document.querySelector('#monthOverviewExpense').textContent=euro(monthExpense());
-  document.querySelector('#monthOverviewSavings').textContent=euro(savingsPossible());
-  document.querySelector('#monthOverviewForecast').textContent=euro(forecast());
-  document.querySelector('#remainingIncomeKpi').textContent=euro(remainingIncomeAmount());
-  document.querySelector('#remainingChargesKpi').textContent=euro(remainingChargeAmount());
-  const dti=daysToNextIncome();
-  document.querySelector('#daysToIncomeKpi').textContent=dti===null?'—':dti===0?"Aujourd’hui":dti===1?'1 jour':`${dti} jours`;
-  document.querySelector('#monthExpenseKpi').textContent=euro(monthExpense());
+  document.querySelector('#homeAvailable').textContent=euro(available());
   const hour=new Date().getHours();
-  document.querySelector('#greetingTitle').textContent=`Bonjour Laetitia 👋`;
-  document.querySelector('#greetingSubtitle').textContent=`Budget familial · ${new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}`;
+  document.querySelector('#greetingTitle').textContent=`${hour<12?'Bonjour':hour<18?'Bon après-midi':'Bonsoir'} Laetitia 👋`;
+  document.querySelector('#greetingSubtitle').textContent='Voici votre situation financière';
   document.querySelector('#weekExpected').textContent=weekExpectedIncome()>0?`↗ ${euro(weekExpectedIncome())} attendus cette semaine`:'Aucun revenu attendu cette semaine';
   document.querySelector('#homeForecast').textContent=`Fin de mois estimée : ${euro(forecast())}`;
   document.querySelector('#homeCard').textContent=euro(cardPending());
   document.querySelector('#homeCardDay').textContent=data.cardDebitDay;
   const todayBudget=dailyBudget();
-  animateAmount('#homeDaily',todayBudget);
-  animateAmount('#homeDailyTop',todayBudget);
+  document.querySelector('#homeDaily').textContent=euro(todayBudget);
+  document.querySelector('#homeDailyTop').textContent=euro(todayBudget);
   document.querySelector('#homeDailyHint').textContent=`Fin de mois prévue : ${euro(forecast())}`;
   document.querySelector('#homeMonthName').textContent=new Date().toLocaleDateString('fr-FR',{month:'long'});
   document.querySelector('#homeMonthIncome').textContent=euro(monthIncome());
@@ -456,11 +337,6 @@ function renderHome(){
   document.querySelector('#homeNextCharge').textContent=nc?euro(nc.amount):'—';
   document.querySelector('#homeNextChargeLabel').textContent=nc?`${nc.label} · le ${nc.day}`:'Aucun';
   const st=statusInfo();
-  document.querySelector('#statusStripText').textContent=st.title;
-  document.querySelector('#statusStripDaily').textContent=euro(dailyBudget());
-  const nextIncome=nextRule(data.incomeRules);
-  document.querySelector('#statusStripIncome').textContent=nextIncome?`${nextIncome.day} · ${euro(nextIncome.amount)}`:'—';
-  document.querySelector('#statusStripDot').style.background=st.level==='danger'?'var(--red)':st.level==='warning'?'var(--orange)':'var(--green)';
   const statusColor=st.level==='danger'?'var(--red)':st.level==='warning'?'var(--orange)':'var(--green)';
   document.querySelector('#statusTitle').textContent=st.title;
   document.querySelector('#statusText').textContent=st.text;
@@ -509,19 +385,6 @@ function renderStats(){
   document.querySelector('#statsSavings').textContent=euro(savingsPossible());
   document.querySelector('#smartAdvice').textContent=buildSmartAdvice();
 
-  const timePct=monthTimePercent();
-  const spendPct=monthSpendPercent();
-  document.querySelector('#timeProgressLabel').textContent=timePct+' %';
-  document.querySelector('#timeProgressBar').style.width=timePct+'%';
-  document.querySelector('#spendingProgressLabel').textContent=spendPct+' %';
-  document.querySelector('#spendingProgressBar').style.width=spendPct+'%';
-  document.querySelector('#monthProgressAdvice').textContent=
-    spendPct>timePct+15
-      ? 'Les dépenses avancent plus vite que le mois : soyez prudente.'
-      : spendPct<timePct-15
-        ? 'Vous dépensez moins vite que le mois : bonne marge.'
-        : 'Le rythme des dépenses suit correctement l’avancement du mois.';
-
   const totals=categoryTotals();
   const max=totals.length?totals[0][1]:1;
   document.querySelector('#categoryStats').innerHTML=totals.length?totals.map(([cat,amount])=>{
@@ -543,11 +406,6 @@ function renderSettings(){
   document.querySelector('#activeChargeCount').textContent=data.chargeRules.filter(r=>r.active!==false).length;
   const nr=nextRecurring();
   document.querySelector('#nextRecurringLabel').textContent=nr?`${nr.label} · le ${nr.day}`:'Aucune';
-  const saved=data.lastSavedAt?new Date(data.lastSavedAt):null;
-  const savedText=saved
-    ? `Dernière sauvegarde locale : ${saved.toLocaleDateString('fr-FR')} à ${saved.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}`
-    : 'Données enregistrées automatiquement sur cet iPhone';
-  document.querySelector('#lastSavedText').textContent=savedText;
   document.body.classList.toggle('dark',data.theme==='dark');
   document.querySelector('#themeToggle').textContent=data.theme==='dark'?'☀️':'🌙';
 }
@@ -612,8 +470,13 @@ function renderOperations(){
 function renderAll(){renderHome();renderAgenda();renderAccounts();renderOperations();renderStats();renderSettings();updateImpact()}
 
 function setTab(tab){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===tab));
-  document.querySelectorAll('.bottom-nav [data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  const target=document.getElementById(tab);
+  if(!target)return;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s===target));
+  document.querySelectorAll('.bottom-nav [data-tab]').forEach(
+    b=>b.classList.toggle('active',b.dataset.tab===tab)
+  );
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
 
@@ -780,9 +643,12 @@ document.querySelector('#exportData').onclick=()=>{
 };
 document.querySelector('#importData').onchange=async e=>{
   const file=e.target.files[0];if(!file)return;
-  try{writeLocalBackup(data);data=normalizeData(JSON.parse(await file.text()));save();alert('Sauvegarde importée.')}catch{alert('Fichier invalide.')}
+  try{data={...structuredClone(defaults),...JSON.parse(await file.text())};save();alert('Sauvegarde importée.')}catch{alert('Fichier invalide.')}
 };
 document.querySelector('#resetData').onclick=()=>{if(confirm('Tout effacer et repartir de zéro ?')){data=structuredClone(defaults);save()}};
+
+const quickAdd=document.querySelector('#quickAdd');
+if(quickAdd)quickAdd.onclick=()=>setTab('add');
 
 const quickIncomeAction=document.querySelector('#quickIncomeAction');
 if(quickIncomeAction){
@@ -908,57 +774,6 @@ document.querySelector('#quickSave').onclick=()=>{
   showToast('Opération enregistrée',`${parsed.label} · ${euro(parsed.amount)}`);
   setTimeout(()=>{message.textContent=''},1200);
 };
-
-
-function updateSafetyStatus(message){
-  const el=document.querySelector('#dataSafetyStatus');
-  if(el)el.textContent=message;
-}
-document.querySelector('#createLocalBackup').onclick=()=>{
-  if(writeLocalBackup(data)){
-    updateSafetyStatus('Sauvegarde locale créée maintenant.');
-    alert('Votre budget a été sauvegardé sur cet iPhone.');
-  }else{
-    alert('La sauvegarde locale a échoué.');
-  }
-};
-document.querySelector('#restoreLocalBackup').onclick=()=>{
-  const wrapper=parseStored(BACKUP_KEY);
-  if(!wrapper||!wrapper.data){
-    alert('Aucune sauvegarde locale disponible.');
-    return;
-  }
-  if(confirm('Restaurer la dernière sauvegarde locale ?')){
-    data=normalizeData(wrapper.data);
-    data.lastSavedAt=new Date().toISOString();
-    localStorage.setItem(KEY,JSON.stringify(data));
-    renderAll();
-    updateSafetyStatus('Dernière sauvegarde restaurée.');
-  }
-};
-document.querySelector('#searchOldData').onclick=()=>{
-  const found=findBestStoredData();
-  if(!found.data){
-    alert('Aucune ancienne donnée trouvée sur cet iPhone.');
-    return;
-  }
-  const recovered=normalizeData(found.data);
-  const description=`${euro(recovered.balance)} et ${recovered.operations.length} opération(s)`;
-  if(confirm(`Anciennes données trouvées : ${description}. Les restaurer ?`)){
-    writeLocalBackup(data);
-    data=recovered;
-    data.lastSavedAt=new Date().toISOString();
-    localStorage.setItem(KEY,JSON.stringify(data));
-    renderAll();
-    updateSafetyStatus(`Données restaurées depuis ${found.key}.`);
-  }
-};
-const migratedFrom=data.migratedFrom;
-updateSafetyStatus(
-  migratedFrom
-    ? `Anciennes données récupérées automatiquement depuis ${migratedFrom}.`
-    : 'Vos données sont protégées par une sauvegarde locale automatique.'
-);
 
 document.querySelector('#opDate').value=today();
 normalizeRules();

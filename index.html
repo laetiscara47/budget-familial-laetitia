@@ -4,21 +4,21 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#2f6fed">
-  <title>Mon Budget Familial V8 Sécurisée</title>
+  <title>Mon Budget V7.1 Stable</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=8.0.0">
+  <link rel="stylesheet" href="styles.css?v=7.1.0">
 </head>
 <body>
-<header class="topbar compact-topbar">
+<header class="topbar">
   <div>
     <h1 id="greetingTitle">Bonjour Laetitia 👋</h1>
-    <p id="greetingSubtitle">Budget familial · Août 2026</p><small id="lastSavedText" class="last-saved">Données enregistrées sur cet iPhone</small>
+    <p id="greetingSubtitle">Voici votre situation financière</p>
   </div>
   <button id="themeToggle" class="round-btn">🌙</button>
 </header>
 
-<main class="app-main">
+<main>
 <section id="home" class="screen active">
   <article class="hero">
     <span>Disponible réel</span>
@@ -27,47 +27,22 @@
     <div id="weekExpected" class="week-expected">Aucun revenu attendu cette semaine</div>
   </article>
 
-  <article class="status-strip">
-    <div><span id="statusStripDot" class="status-strip-dot"></span><b id="statusStripText">Situation</b></div>
-    <div><small>Budget du jour</small><b id="statusStripDaily">0,00 €</b></div>
-    <div><small>Prochain revenu</small><b id="statusStripIncome">—</b></div>
-  </article>
-
   <article class="daily-highlight">
     <span>Aujourd’hui, vous pouvez dépenser</span>
     <strong id="homeDailyTop">0,00 €</strong>
     <small id="homeDailyHint">Budget conseillé</small>
   </article>
 
-  <article class="simple-card month-overview-card">
-    <div class="section-head">
-      <h2>Ce mois-ci</h2>
-      <span class="small-badge" id="monthOverviewLabel">Mois</span>
-    </div>
-    <div class="month-overview-grid">
-      <div><span>Revenus</span><b id="monthOverviewIncome">0,00 €</b></div>
-      <div><span>Dépenses</span><b id="monthOverviewExpense">0,00 €</b></div>
-      <div><span>Épargne possible</span><b id="monthOverviewSavings">0,00 €</b></div>
-      <div><span>Reste prévu</span><b id="monthOverviewForecast">0,00 €</b></div>
-    </div>
-  </article>
+  <div class="quick-actions">
+    <button data-tab="add" class="quick-action"><span>➕</span><b>Ajouter</b><small>Dépense</small></button>
+    <button id="quickIncomeAction" class="quick-action income"><span>⬇️</span><b>Ajouter</b><small>Revenu</small></button>
+    <button data-tab="agenda" class="quick-action agenda"><span>📅</span><b>Agenda</b><small>Échéances</small></button>
+    <button data-tab="stats" class="quick-action stats"><span>📊</span><b>Stats</b><small>Rapides</small></button>
+  </div>
 
   <article id="statusCardTop" class="status-card compact-status">
     <div class="status-dot" id="statusDotTop"></div>
     <div><h2 id="statusTitleTop">Situation</h2><p id="statusTextTop">Analyse en cours…</p></div>
-  </article>
-
-  <article class="simple-card family-summary">
-    <div class="section-head">
-      <h2>Ce mois-ci</h2>
-      <span class="small-badge" id="familyMonthLabel">Mois</span>
-    </div>
-    <div class="family-kpis">
-      <div><span>Revenus restants</span><b id="remainingIncomeKpi">0,00 €</b></div>
-      <div><span>Prélèvements restants</span><b id="remainingChargesKpi">0,00 €</b></div>
-      <div><span>Jours avant prochain revenu</span><b id="daysToIncomeKpi">—</b></div>
-      <div><span>Dépenses du mois</span><b id="monthExpenseKpi">0,00 €</b></div>
-    </div>
   </article>
 
   <div class="quick-grid">
@@ -256,7 +231,7 @@
 <section id="stats" class="screen">
   <article class="simple-card">
     <div class="section-head">
-      <h2>Vue du mois</h2>
+      <h2>Statistiques du mois</h2>
       <span class="small-badge" id="statsMonth">Mois</span>
     </div>
     <div class="stats-grid">
@@ -269,19 +244,6 @@
   <article class="simple-card">
     <h2>Dépenses par catégorie</h2>
     <div id="categoryStats"></div>
-  </article>
-
-  <article class="simple-card">
-    <h2>Progression du mois</h2>
-    <div class="month-progress-line">
-      <div><span>Temps écoulé</span><b id="timeProgressLabel">0 %</b></div>
-      <div class="month-progress-track"><i id="timeProgressBar"></i></div>
-    </div>
-    <div class="month-progress-line">
-      <div><span>Budget dépensé</span><b id="spendingProgressLabel">0 %</b></div>
-      <div class="month-progress-track"><i id="spendingProgressBar"></i></div>
-    </div>
-    <p id="monthProgressAdvice" class="muted-note"></p>
   </article>
 
   <article class="simple-card">
@@ -340,17 +302,6 @@
     <div id="chargeRules"></div>
   </article>
 
-  <article class="simple-card secure-backup-card">
-    <div class="section-head">
-      <h2>Protection des données</h2>
-      <span class="small-badge">V8</span>
-    </div>
-    <p id="dataSafetyStatus" class="muted-note">Vérification des anciennes données…</p>
-    <button id="createLocalBackup" class="secondary full">Créer une sauvegarde locale</button>
-    <button id="restoreLocalBackup" class="secondary full">Restaurer la dernière sauvegarde</button>
-    <button id="searchOldData" class="secondary full">Rechercher mes anciennes données</button>
-  </article>
-
   <article class="simple-card">
     <h2>Sauvegarde</h2>
     <button id="exportData" class="secondary full">Exporter mes données</button>
@@ -376,15 +327,16 @@
   <div><b id="toastTitle">Opération enregistrée</b><small id="toastText"></small></div>
 </div>
 
+<button id="quickAdd" class="floating-add" aria-label="Ajouter rapidement">+</button>
 <nav class="bottom-nav">
   <button data-tab="home" class="active"><span>🏠</span><small>Accueil</small></button>
   <button data-tab="add"><span>➕</span><small>Ajouter</small></button>
   <button data-tab="operations"><span>🧾</span><small>Opérations</small></button>
   <button data-tab="agenda"><span>📅</span><small>Agenda</small></button>
   <button data-tab="accounts"><span>💳</span><small>Comptes</small></button>
-  <button data-tab="stats"><span>📊</span><small>Mois</small></button>
+  <button data-tab="stats"><span>📊</span><small>Stats</small></button>
   <button data-tab="settings"><span>⚙️</span><small>Réglages</small></button>
 </nav>
-<script src="app.js?v=8.0.0"></script>
+<script src="app.js?v=7.1.0"></script>
 </body>
 </html>

@@ -1,16 +1,13 @@
-# Mon Budget Familial V8 Sécurisée
+# Mon Budget V7.1 Stable
 
-Cette version corrige le blocage de la RC5 et protège les données.
+Cette version repart de la V7.0 qui fonctionnait correctement.
 
-Fonctions de sécurité :
-- recherche automatique des données des anciennes versions ;
-- sélection de la sauvegarde la plus complète ;
-- migration automatique vers le format V8 ;
-- sauvegarde locale avant chaque modification ;
-- bouton pour créer une sauvegarde ;
-- bouton pour restaurer la dernière sauvegarde ;
-- bouton pour rechercher les anciennes données ;
-- aucun retour à zéro causé par un bouton supprimé ;
-- toutes les fonctions de la RC5 conservées.
+Corrections :
+- navigation Accueil et tous les onglets sécurisée ;
+- récupération de la sauvegarde la plus complète ;
+- conservation de la clé historique contenant les vraies données ;
+- boutons facultatifs incapables de bloquer l’application ;
+- sauvegarde locale de secours avant chaque modification ;
+- aucune nouvelle fonctionnalité ajoutée.
 
-Après installation, ouvrez Réglages > Protection des données si les anciens montants ne reviennent pas automatiquement.
+Cette V7.1 devient la nouvelle base stable.
