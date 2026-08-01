@@ -1,14 +1,12 @@
-# Mon Budget Familial 2026 — RC1
+# Mon Budget Familial 2026 — RC2
 
-Cette version n'ajoute pas de nouvelles fonctions.
+Cette version corrige uniquement l’affichage sur iPhone :
 
-Finitions :
-- bouton flottant plus discret ;
-- cartes Dépense / Revenu plus élégantes ;
-- fond en dégradé plus doux ;
-- animations légères ;
-- montants animés ;
-- navigation plus fluide ;
-- toutes les fonctions de la version Familiale 1.0 conservées.
+- bouton flottant plus petit et moins gênant ;
+- cartes d’ajout plus compactes ;
+- quatre raccourcis entièrement visibles ;
+- meilleure lisibilité des textes ;
+- animations légèrement plus discrètes ;
+- toutes les fonctions de la RC1 conservées.
 
-Cette RC1 est destinée aux derniers tests avant la version officielle.
+Cette RC2 sert de base de test avant la version finale.

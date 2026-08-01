@@ -228,3 +228,66 @@ body{
   .quick-action{min-height:102px}
   .floating-add{right:12px;bottom:100px}
 }
+
+/* RC2 — finitions iPhone */
+.quick-actions{
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.quick-action{
+  min-height:82px;
+  padding:12px 13px;
+  flex-direction:row;
+  justify-content:flex-start;
+  text-align:left;
+  align-items:center;
+  gap:11px;
+}
+.quick-action span{
+  flex:0 0 auto;
+  font-size:25px;
+}
+.quick-action div{
+  min-width:0;
+}
+.quick-action b{
+  display:block;
+  font-size:15px;
+  line-height:1.15;
+}
+.quick-action small{
+  display:block;
+  margin-top:3px;
+  font-size:11px;
+}
+.floating-add{
+  width:46px;
+  height:46px;
+  right:10px;
+  bottom:calc(92px + env(safe-area-inset-bottom));
+  font-size:25px;
+  opacity:.86;
+  box-shadow:0 8px 18px rgba(47,111,237,.28);
+}
+.family-summary,
+.quick-actions,
+.status-card{
+  scroll-margin-top:110px;
+}
+@media(max-width:520px){
+  .quick-actions{
+    grid-template-columns:1fr 1fr;
+  }
+  .quick-action{
+    min-height:78px;
+    padding:11px 12px;
+  }
+  .floating-add{
+    right:9px;
+    bottom:calc(88px + env(safe-area-inset-bottom));
+  }
+}
+
+.hero,.simple-card,.mini-card,.status-card,.daily-highlight{
+  animation-duration:.28s;
+}
