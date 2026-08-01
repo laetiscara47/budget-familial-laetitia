@@ -1,27 +1,86 @@
 (() => {
   "use strict";
 
-  const {
-    KEY,
-    BACKUP_KEY,
-    HISTORY_KEY,
-    MAX_BACKUPS,
-    DATA_SCHEMA_VERSION,
-    OLD_KEYS,
-    defaults
-  } = window.MonBudgetConfig;
+  const KEY = "mon_budget_v10_stable";
+  const BACKUP_KEY = "mon_budget_v10_backup";
+  const HISTORY_KEY = "mon_budget_v2_backup_history";
+  const MAX_BACKUPS = 10;
+  const DATA_SCHEMA_VERSION = 2;
+  const OLD_KEYS = ["mon_budget_v9_premium","mon_budget_v9_backup",
+    "mon_budget_v8_foundation","mon_budget_familial_v8","mon_budget_familial_1_0",
+    "mon_budget_essentiel_v7","mon_budget_essentiel_v6_5","mon_budget_essentiel_v6",
+    "mon_budget_essentiel_v5_2_5","mon_budget_essentiel_v5_2_4","mon_budget_essentiel_v5_2_3",
+    "mon_budget_essentiel_v5_2_2","mon_budget_essentiel_v5_2_1","mon_budget_essentiel_v5_2",
+    "mon_budget_essentiel_v5_1","mon_budget_essentiel_v5","mon_budget_essentiel_v4",
+    "budget_essentiel_v3","budget_essentiel_v2","budget_essentiel_v1"
+  ];
 
+  const defaults = {
+    version: DATA_SCHEMA_VERSION,
+    theme: "light",
+    cardDebitDay: 4,
+    accounts: [
+      {id:"current",name:"Compte courant",type:"current",balance:2697.32,icon:"🏦"},
+      {id:"savings",name:"Épargne",type:"savings",balance:0,icon:"💰"},
+      {id:"cash",name:"Espèces",type:"cash",balance:0,icon:"💵"},
+      {id:"deferred",name:"CB différée",type:"deferred",balance:0,icon:"💳"}
+    ],
+    operations: [],
+    rules: [
+      {id:"caf",type:"income",label:"CAF",amount:867.92,day:5,accountId:"current",active:true},
+      {id:"eau",type:"expense",label:"Eau de Garonne",amount:64,day:3,accountId:"current",active:true},
+      {id:"orange",type:"expense",label:"Orange",amount:28.99,day:6,accountId:"current",active:true}
+    ],
+    lastSavedAt: null
+  };
 
-  const {
-    $,
-    euro,
-    animateNumber,
-    today,
-    monthKey,
-    money,
-    clone,
-    uid
-  } = window.MonBudgetUtils;
+  const $ = id => document.getElementById(id);
+  const euro = value => new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR"}).format(Number(value||0));
+  function animateNumber(id,value){
+    const element=$(id);
+    if(!element)return;
+    const end=Number(value||0);
+    const start=Number(element.dataset.value||0);
+    const duration=240;
+    const begin=performance.now();
+
+    function frame(now){
+      const progress=Math.min(1,(now-begin)/duration);
+      const eased=1-Math.pow(1-progress,3);
+      const current=start+(end-start)*eased;
+      element.textContent=euro(current);
+      if(progress<1){
+        requestAnimationFrame(frame);
+      }else{
+        element.textContent=euro(end);
+        element.dataset.value=String(end);
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  const today = () => new Date().toISOString().slice(0,10);
+  const monthKey = date => String(date).slice(0,7);
+  const money = value => Number(String(value||"").replace(/\s/g,"").replace(",", ".")) || 0;
+  const clone = value => JSON.parse(JSON.stringify(value));
+  const uid = () => crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+
+  async function cleanOldApplicationCaches(){
+    try{
+      if("serviceWorker" in navigator){
+        const registrations=await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map(registration=>registration.unregister()));
+      }
+      if("caches" in window){
+        const names=await caches.keys();
+        await Promise.all(names.map(name=>caches.delete(name)));
+      }
+      localStorage.setItem("mon_budget_cache_cleaned_10_2","yes");
+    }catch(error){
+      console.warn("Nettoyage du cache non bloquant",error);
+    }
+  }
+
 
   function parseStore(key){
     try{

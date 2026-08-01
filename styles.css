@@ -1,2 +1,418 @@
-/* Mon Budget 3.0 — point d'entrée CSS */
-@import url("./css/app.css?v=3.0.0");
+:root{
+  --blue:#1768e8;--blue2:#2f77ef;--bg:#f4f7fc;--card:#fff;--text:#172033;
+  --muted:#748096;--line:#dfe5ef;--green:#2f9d62;--orange:#e58b27;--red:#d94b4b;
+  --shadow:0 10px 28px rgba(35,61,110,.09)
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#f8fbff,#eef4ff);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);padding-bottom:calc(110px + env(safe-area-inset-bottom))}
+body.dark{--bg:#0c111b;--card:#151c28;--text:#f4f7fb;--muted:#9ca7b8;--line:#293345;background:#0c111b}
+.topbar{background:linear-gradient(135deg,#0e49b5,var(--blue2));color:#fff;padding:28px 28px 24px;display:flex;justify-content:space-between;align-items:center}
+.topbar h1{margin:0;font-size:30px}.topbar p{margin:6px 0 0;font-size:17px}.topbar small{display:block;margin-top:6px;opacity:.85}
+.theme-btn{border:0;border-radius:17px;width:58px;height:58px;font-size:28px;background:rgba(255,255,255,.16)}
+main{padding:18px 16px 70px}
+.screen{display:none}.screen.active{display:block}
+.hero,.card,.status-card{background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);margin-bottom:16px}
+.hero{background:linear-gradient(135deg,#174fbc,#2f77ef);color:#fff;padding:26px}
+.hero span,.hero small{display:block}.hero span{font-size:20px;opacity:.9}.hero strong{display:block;font-size:52px;margin:14px 0}.hero small{font-size:16px}.hero div{margin-top:16px;font-weight:800;font-size:16px}
+.card{padding:20px}.card h2{margin:0 0 16px}.status-card{padding:15px 17px;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
+.status-dot{width:18px;height:18px;border-radius:50%;background:var(--green);box-shadow:0 0 0 7px rgba(47,157,98,.12)}
+.status-card small{display:block;color:var(--muted);margin-top:4px}.status-kpi{text-align:right}
+.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.section-head h2{margin:0}
+.badge{background:#eaf1ff;color:var(--blue);padding:5px 9px;border-radius:999px;font-size:12px;font-weight:800}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.metric{padding:14px;border:1px solid var(--line);border-radius:16px;background:#f9fbff}.dark .metric{background:#111824}.metric span{display:block;color:var(--muted);font-size:12px}.metric b{display:block;margin-top:6px;font-size:19px}
+label{display:block;font-weight:800;margin:16px 0 7px}input,select{width:100%;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--text);font-size:17px}
+.primary,.secondary,.link-btn{border:0;border-radius:14px;font-weight:800}.primary{width:100%;padding:15px;background:var(--blue);color:#fff;font-size:17px;margin-top:18px}.secondary{width:100%;padding:13px;background:#eaf1ff;color:var(--blue);margin-top:9px}.link-btn{background:none;color:var(--blue);padding:6px}
+.segmented{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.segmented.three{grid-template-columns:repeat(3,1fr)}.segmented button{padding:14px 8px;border:1px solid var(--line);border-radius:14px;background:var(--card);font-weight:800;font-size:15px}.segmented button.active{background:var(--blue);color:#fff}
+.filters{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0 14px}
+.message{color:var(--green);font-weight:700}
+.list-row,.account-row,.rule-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}.list-row:last-child,.account-row:last-child,.rule-row:last-child{border-bottom:0}.list-row small,.rule-row small{display:block;color:var(--muted);margin-top:4px}.positive{color:var(--green)}.negative{color:var(--red)}.account-row.total{font-size:20px;color:var(--blue)}
+.account-chip{display:flex;align-items:center;gap:10px}.account-icon{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:#eef3ff}
+.stat-row{margin:15px 0}.stat-row>div:first-child{display:flex;justify-content:space-between}.bar{height:10px;background:#e7ecf3;border-radius:999px;overflow:hidden;margin-top:7px}.bar i{display:block;height:100%;background:var(--blue);border-radius:999px}
+.alert-row{display:grid;grid-template-columns:40px 1fr auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}.alert-row:last-child{border-bottom:0}.alert-icon{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:#fff3e6}.alert-row small{display:block;color:var(--muted);margin-top:3px}
+.import-label{text-align:center}.import-label input{display:none}
+.bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:50;display:grid;grid-template-columns:repeat(7,1fr);background:rgba(255,255,255,.96);border-top:1px solid var(--line);padding:8px 4px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -8px 24px rgba(20,38,75,.06)}
+.dark .bottom-nav{background:rgba(21,28,40,.96)}
+.bottom-nav button{border:0;background:none;color:#8a94a5;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 0}.bottom-nav button.active{color:var(--blue)}.bottom-nav span{font-size:21px}.bottom-nav small{font-size:9px}
+.toast{display:none;position:fixed;left:18px;right:18px;bottom:calc(100px + env(safe-area-inset-bottom));background:#172033;color:#fff;padding:14px 16px;border-radius:16px;z-index:70}.toast.show{display:block}
+@media(max-width:430px){.topbar h1{font-size:27px}.hero strong{font-size:46px}.status-card{grid-template-columns:auto 1fr}.status-kpi{grid-column:2;text-align:left}.grid-2{grid-template-columns:1fr 1fr}.filters{grid-template-columns:1fr}.segmented.three button{font-size:13px;padding:12px 4px}}
+/* V10 — finition stable */
+.account-row{
+  align-items:center;
+}
+.account-chip{
+  min-width:0;
+  flex:1;
+}
+.account-name{
+  min-width:0;
+}
+.account-name b{
+  display:block;
+  font-size:18px;
+  line-height:1.2;
+}
+.account-name small{
+  display:block;
+  margin-top:4px;
+  color:var(--muted);
+  font-size:12px;
+}
+.account-amount{
+  flex:0 0 auto;
+  font-size:19px;
+  white-space:nowrap;
+  text-align:right;
+}
+.operation-help{
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.4;
+  margin:14px 0 0;
+}
+.list-row[data-op-id]{
+  cursor:pointer;
+  border-radius:12px;
+  padding-left:5px;
+  padding-right:5px;
+}
+.list-row[data-op-id]:active{
+  background:rgba(23,104,232,.07);
+}
+.grid-2{
+  align-items:stretch;
+}
+.metric{
+  min-height:76px;
+}
+main{
+  padding-bottom:120px;
+}
+@media(max-width:430px){
+  .account-name b{font-size:17px}
+  .account-amount{font-size:18px}
+}
+
+/* V10.1 — finition finale iPhone */
+html{
+  scroll-padding-bottom:calc(190px + env(safe-area-inset-bottom));
+  -webkit-text-size-adjust:100%;
+}
+body{
+  min-height:100dvh;
+  padding-bottom:calc(190px + env(safe-area-inset-bottom));
+  overscroll-behavior-y:none;
+}
+main{
+  padding:18px 16px calc(210px + env(safe-area-inset-bottom));
+}
+.screen{
+  padding-bottom:28px;
+}
+.screen > :last-child{
+  margin-bottom:30px;
+}
+.hero,.card,.status-card{
+  box-shadow:0 8px 22px rgba(35,61,110,.075);
+}
+.bottom-nav{
+  background:#fff;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  min-height:72px;
+  padding:8px 5px calc(10px + env(safe-area-inset-bottom));
+  box-shadow:0 -7px 22px rgba(20,38,75,.11);
+  isolation:isolate;
+}
+.dark .bottom-nav{
+  background:#151c28;
+}
+.bottom-nav button{
+  min-width:0;
+  min-height:54px;
+  padding:6px 1px;
+  border-radius:12px;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+.bottom-nav button:active{
+  background:rgba(23,104,232,.08);
+  transform:scale(.97);
+}
+.bottom-nav button.active{
+  background:rgba(23,104,232,.07);
+}
+.bottom-nav span{
+  font-size:24px;
+  line-height:1;
+}
+.bottom-nav small{
+  font-size:10px;
+  line-height:1.05;
+  font-weight:650;
+  white-space:nowrap;
+}
+.card h2{
+  line-height:1.18;
+}
+input,select,.primary,.secondary,.link-btn{
+  touch-action:manipulation;
+}
+.toast{
+  bottom:calc(96px + env(safe-area-inset-bottom));
+}
+@media(max-width:430px){
+  body{
+    padding-bottom:calc(200px + env(safe-area-inset-bottom));
+  }
+  main{
+    padding-bottom:calc(220px + env(safe-area-inset-bottom));
+  }
+  .bottom-nav{
+    min-height:74px;
+  }
+  .bottom-nav span{
+    font-size:23px;
+  }
+  .bottom-nav small{
+    font-size:9px;
+  }
+}
+
+/* V10 Finale — nettoyage visuel définitif */
+.bottom-nav{
+  background:#ffffff !important;
+  opacity:1 !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  border-top:1px solid #dfe5ef !important;
+  box-shadow:0 -10px 28px rgba(20,38,75,.14) !important;
+}
+body.dark .bottom-nav{
+  background:#151c28 !important;
+}
+main{
+  padding-bottom:calc(240px + env(safe-area-inset-bottom)) !important;
+}
+body{
+  padding-bottom:calc(220px + env(safe-area-inset-bottom)) !important;
+}
+.screen > :last-child{
+  margin-bottom:70px !important;
+}
+
+/* Version 1.0 Production — finition compacte */
+.topbar{
+  padding:22px 24px 20px;
+}
+.topbar h1{
+  font-size:28px;
+  line-height:1.15;
+}
+.topbar p{
+  margin-top:5px;
+  font-size:15px;
+  opacity:.92;
+}
+.topbar small{
+  margin-top:4px;
+  font-size:12px;
+  opacity:.72;
+}
+.theme-btn{
+  width:52px;
+  height:52px;
+  font-size:25px;
+}
+main{
+  padding:14px 14px calc(175px + env(safe-area-inset-bottom)) !important;
+}
+.hero,.card,.status-card{
+  margin-bottom:12px;
+}
+.hero{
+  padding:22px;
+}
+.hero span{
+  font-size:18px;
+}
+.hero strong{
+  font-size:48px;
+  margin:12px 0;
+}
+.hero small{
+  font-size:15px;
+}
+.hero div{
+  margin-top:12px;
+  font-size:15px;
+}
+.status-card{
+  padding:13px 15px;
+  border-radius:20px;
+}
+.status-card b{
+  font-size:18px;
+}
+.status-card small{
+  font-size:13px;
+}
+.card{
+  padding:18px;
+  border-radius:20px;
+}
+.card h2{
+  font-size:22px;
+  margin-bottom:13px;
+}
+.grid-2{
+  gap:8px;
+}
+.metric{
+  padding:12px;
+  min-height:70px;
+}
+.metric b{
+  font-size:18px;
+}
+.bottom-nav{
+  min-height:64px !important;
+  padding:6px 4px calc(7px + env(safe-area-inset-bottom)) !important;
+}
+.bottom-nav button{
+  min-height:48px !important;
+  padding:4px 1px !important;
+}
+.bottom-nav span{
+  font-size:22px !important;
+}
+.bottom-nav small{
+  font-size:9px !important;
+}
+body{
+  padding-bottom:calc(175px + env(safe-area-inset-bottom)) !important;
+}
+.screen > :last-child{
+  margin-bottom:35px !important;
+}
+@media(max-width:430px){
+  .topbar h1{font-size:26px}
+  .hero strong{font-size:44px}
+  main{padding-bottom:calc(185px + env(safe-area-inset-bottom)) !important}
+  body{padding-bottom:calc(185px + env(safe-area-inset-bottom)) !important}
+}
+
+/* Version 1.1 Stable */
+.topbar{
+  padding-top:18px !important;
+  padding-bottom:17px !important;
+}
+.topbar h1{
+  font-size:27px !important;
+}
+.topbar p{
+  font-size:14px !important;
+}
+.topbar small{
+  font-size:11px !important;
+}
+.hero{
+  padding:20px !important;
+}
+.hero strong{
+  font-size:52px !important;
+  line-height:1;
+}
+.status-card-simple{
+  grid-template-columns:auto 1fr !important;
+  padding:14px 16px !important;
+}
+.status-card-simple .status-daily{
+  display:block;
+  margin-top:8px;
+  font-size:22px;
+  color:var(--text);
+  line-height:1.2;
+}
+.alert-row{
+  grid-template-columns:42px minmax(0,1fr) auto;
+  gap:12px;
+  padding:13px 0;
+}
+.alert-main{
+  min-width:0;
+}
+.alert-main b{
+  display:block;
+  font-size:17px;
+  line-height:1.2;
+}
+.alert-main small{
+  display:block;
+  margin-top:4px;
+  font-size:12px;
+  color:var(--muted);
+}
+.alert-row > b:last-child{
+  font-size:18px;
+  white-space:nowrap;
+}
+.bottom-nav span{
+  font-size:25px !important;
+}
+.bottom-nav button{
+  min-height:50px !important;
+}
+@media(max-width:430px){
+  .hero strong{
+    font-size:48px !important;
+  }
+  .status-card-simple .status-daily{
+    font-size:21px;
+  }
+}
+
+
+/* Mon Budget 2.0 – Phase 1 Stabilité */
+#migrationStatus{
+  padding:12px 14px;
+  border-radius:14px;
+  background:rgba(47,157,98,.08);
+  border:1px solid rgba(47,157,98,.18);
+  color:var(--text);
+  line-height:1.45;
+}
+
+
+/* Mon Budget 2.0 Final */
+.topbar small#saveState{
+  color:rgba(255,255,255,.94);
+  font-weight:650;
+}
+.hero strong{
+  font-variant-numeric:tabular-nums;
+}
+.alert-row > b:last-child{
+  font-weight:900 !important;
+  letter-spacing:-.02em;
+}
+.card,.hero,.status-card{
+  transition:transform .18s ease,box-shadow .18s ease;
+}
+.card:active,.status-card:active{
+  transform:scale(.997);
+}
+.screen.active{
+  animation:screenFade .18s ease both;
+}
+@keyframes screenFade{
+  from{opacity:.72;transform:translateY(3px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+    scroll-behavior:auto !important;
+  }
+}

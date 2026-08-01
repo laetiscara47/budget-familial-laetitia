@@ -1,7 +1,7 @@
 {
-  "name": "Mon Budget 3.0",
+  "name": "Mon Budget 2.0",
   "short_name": "Mon Budget",
-  "start_url": "./?v=3.0.0",
+  "start_url": "./?v=2.0.0-final",
   "display": "standalone",
   "background_color": "#f4f7fc",
   "theme_color": "#1768e8",

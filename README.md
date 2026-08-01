@@ -1,8 +1,24 @@
-# Structure JavaScript
+# Mon Budget 2.0 Final
 
-- `config.js` : clés de stockage, version du schéma, valeurs par défaut.
-- `utils.js` : fonctions génériques de formatage, dates et identifiants.
-- `../app.js` : moteur budgétaire, sauvegardes, écrans et événements.
+Version finale stable, construite directement à partir du projet 1.1 Stable.
 
-Cette séparation permet de modifier les réglages ou les utilitaires sans toucher
-au moteur principal.
+Fonctions conservées :
+- accueil, comptes, opérations, agenda et statistiques ;
+- modification, duplication et suppression des opérations ;
+- sauvegarde, import et export ;
+- mode sombre.
+
+Stabilité :
+- vérification d’intégrité au démarrage ;
+- restauration automatique si nécessaire ;
+- historique des 10 dernières sauvegardes ;
+- sauvegarde avant et après chaque modification ;
+- validation des fichiers importés ;
+- échéances triées et récurrences sécurisées.
+
+Finitions :
+- indicateur « Sauvegardé automatiquement » ;
+- animation discrète du disponible réel ;
+- montants des alertes mieux visibles ;
+- rendu optimisé pour éviter les recalculs multiples ;
+- interface principale inchangée.

@@ -1,12 +1,10 @@
 {
-  "version": "3.0.0-architecture-stable",
+  "version": "2.0.0-final",
   "schema": 2,
   "channel": "stable",
-  "dataCompatibility": "2.0",
-  "changes": [
-    "configuration module",
-    "utilities module",
-    "css entry point",
-    "documentation"
+  "focus": [
+    "stability",
+    "performance",
+    "data-integrity"
   ]
 }
