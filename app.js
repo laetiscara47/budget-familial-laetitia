@@ -100,6 +100,26 @@ function dailyBudget(){return Math.max(0,forecast()/daysLeft())}
 function monthOps(){return data.operations.filter(x=>monthKey(x.date)===currentMonth())}
 function monthIncome(){return monthOps().filter(x=>x.type==='income').reduce((s,x)=>s+x.amount,0)}
 function monthExpense(){return monthOps().filter(x=>x.type==='expense').reduce((s,x)=>s+x.amount,0)}
+
+function savingsPossible(){return Math.max(0,forecast()-300)}
+function categoryTotals(){
+  const totals={};
+  monthOps().filter(x=>x.type==='expense').forEach(op=>{
+    const cat=op.category||'Autre';
+    totals[cat]=(totals[cat]||0)+Number(op.amount);
+  });
+  return Object.entries(totals).sort((a,b)=>b[1]-a[1]);
+}
+function buildSmartAdvice(){
+  const totals=categoryTotals(),f=forecast(),d=dailyBudget();
+  if(f<0)return `Attention : la fin de mois est estimée à ${euro(f)}. Réduisez les dépenses non essentielles.`;
+  if(!totals.length)return `Aucune dépense enregistrée ce mois-ci. Votre budget conseillé est de ${euro(d)} par jour.`;
+  const [topCat,topAmount]=totals[0];
+  const share=monthExpense()>0?Math.round((topAmount/monthExpense())*100):0;
+  if(share>=50)return `${topCat} représente ${share} % de vos dépenses ce mois-ci. C’est la catégorie principale à surveiller.`;
+  return `Votre situation reste confortable. Vous pouvez viser environ ${euro(d)} aujourd’hui et mettre de côté jusqu’à ${euro(savingsPossible())}.`;
+}
+
 function nextRule(rules){const day=new Date().getDate();return [...rules].filter(r=>r.active!==false).sort((a,b)=>(a.day>=day?a.day:a.day+31)-(b.day>=day?b.day:b.day+31))[0]}
 function icon(kind){return {income:'💰',charge:'🧾',expense:'🛒',card:'💳'}[kind]||'•'}
 function typeLabel(kind){return {income:'Revenu',charge:'Prélèvement',expense:'Dépense',card:'CB différée'}[kind]||''}
@@ -194,6 +214,7 @@ function renderAgenda(){
 function renderAccounts(){
   document.querySelector('#accountBalance').textContent=euro(data.balance);
   document.querySelector('#accountCard').textContent=euro(cardPending());
+  document.querySelector('#accountSavings').textContent=euro(data.savings||0);
   document.querySelector('#accountAvailable').textContent=euro(available());
   document.querySelector('#monthIncome').textContent=euro(monthIncome());
   document.querySelector('#monthExpense').textContent=euro(monthExpense());
@@ -211,9 +232,31 @@ function ruleRow(rule,type){
     </div>
   </div>`
 }
+
+function renderStats(){
+  const statsMonth=document.querySelector('#statsMonth');
+  if(!statsMonth)return;
+  statsMonth.textContent=new Date().toLocaleDateString('fr-FR',{month:'long'});
+  document.querySelector('#statsIncome').textContent=euro(monthIncome());
+  document.querySelector('#statsExpense').textContent=euro(monthExpense());
+  document.querySelector('#statsSavings').textContent=euro(savingsPossible());
+  document.querySelector('#smartAdvice').textContent=buildSmartAdvice();
+
+  const totals=categoryTotals();
+  const max=totals.length?totals[0][1]:1;
+  document.querySelector('#categoryStats').innerHTML=totals.length?totals.map(([cat,amount])=>{
+    const width=Math.max(3,Math.round((amount/max)*100));
+    return `<div class="category-stat">
+      <div><b>${esc(cat)}</b><span>${euro(amount)}</span></div>
+      <div class="category-bar"><i style="width:${width}%"></i></div>
+    </div>`;
+  }).join(''):'<p style="color:var(--muted)">Aucune dépense ce mois-ci.</p>';
+}
+
 function renderSettings(){
   document.querySelector('#settingBalance').value=String(data.balance).replace('.',',');
   document.querySelector('#settingCardDay').value=data.cardDebitDay;
+  document.querySelector('#settingSavings').value=String(data.savings||0).replace('.',',');
   document.querySelector('#incomeRules').innerHTML=data.incomeRules.map(r=>ruleRow(r,'income')).join('')||'<p>Aucun revenu.</p>';
   document.querySelector('#chargeRules').innerHTML=data.chargeRules.map(r=>ruleRow(r,'charge')).join('')||'<p>Aucun prélèvement.</p>';
   document.querySelector('#activeIncomeCount').textContent=data.incomeRules.filter(r=>r.active!==false).length;
@@ -248,7 +291,7 @@ function renderOperations(){
   }).join(''):'<p style="color:var(--muted)">Aucune opération trouvée.</p>';
 }
 
-function renderAll(){renderHome();renderAgenda();renderAccounts();renderOperations();renderSettings();updateImpact()}
+function renderAll(){renderHome();renderAgenda();renderAccounts();renderOperations();renderStats();renderSettings();updateImpact()}
 
 function setTab(tab){
   document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===tab));
@@ -318,6 +361,25 @@ function updateImpact(){
   if(opType==='income')box.innerHTML=`Après ce revenu, le compte afficherait <b>${euro(data.balance+amount)}</b>`;
   else box.innerHTML=`Après cette dépense, le budget conseillé serait d’environ <b>${euro(Math.max(0,(forecast()-amount)/daysLeft()))}</b><small>${payment==='deferred'?'Ajouté à la CB différée':'Débit immédiat du compte'}</small>`;
 }
+
+let ticketData='';
+document.querySelector('#opTicket').addEventListener('change',e=>{
+  const file=e.target.files[0];
+  const preview=document.querySelector('#ticketPreview');
+  if(!file){ticketData='';preview.innerHTML='';return}
+  if(file.size>1500000){
+    alert('Photo trop lourde. Choisissez une image plus légère.');
+    e.target.value='';
+    return;
+  }
+  const reader=new FileReader();
+  reader.onload=()=>{
+    ticketData=reader.result;
+    preview.innerHTML=`<img src="${ticketData}" alt="Ticket">`;
+  };
+  reader.readAsDataURL(file);
+});
+
 document.querySelector('#opAmount').addEventListener('input',updateImpact);
 document.querySelector('#opLabel').addEventListener('input',()=>{
   clearTimeout(window.__smartTimer);
@@ -328,12 +390,16 @@ document.querySelector('#saveOperation').onclick=()=>{
   applySmartSuggestion();
   const amount=money(document.querySelector('#opAmount').value),label=document.querySelector('#opLabel').value.trim(),date=document.querySelector('#opDate').value||today();
   if(amount<=0||!label){document.querySelector('#saveMessage').textContent='Complétez le montant et le libellé.';return}
-  const op={id:crypto.randomUUID(),type:opType,label,amount,date,category,payment:opType==='expense'?payment:'current',cardDebited:false};
+  const op={id:crypto.randomUUID(),type:opType,label,amount,date,category,payment:opType==='expense'?payment:'current',cardDebited:false,note:document.querySelector('#opNote').value.trim(),ticket:ticketData};
   data.operations.push(op);
   if(opType==='income')data.balance=Number((data.balance+amount).toFixed(2));
   if(opType==='expense'&&payment==='current')data.balance=Number((data.balance-amount).toFixed(2));
   document.querySelector('#opAmount').value='';
   document.querySelector('#opLabel').value='';
+  document.querySelector('#opNote').value='';
+  document.querySelector('#opTicket').value='';
+  document.querySelector('#ticketPreview').innerHTML='';
+  ticketData='';
   document.querySelector('#autoHint').textContent='La catégorie sera proposée automatiquement.';
   document.querySelector('#saveMessage').textContent='Opération enregistrée.';
   save();
@@ -344,6 +410,7 @@ document.querySelector('#agendaFilter').addEventListener('change',renderAgenda);
 document.querySelector('#saveSettings').onclick=()=>{
   data.balance=money(document.querySelector('#settingBalance').value);
   data.cardDebitDay=Math.max(1,Math.min(28,Number(document.querySelector('#settingCardDay').value||4)));
+  data.savings=money(document.querySelector('#settingSavings').value);
   save()
 };
 function addRule(type){
@@ -373,6 +440,21 @@ document.addEventListener('click',e=>{
   save()
 });
 document.querySelector('#themeToggle').onclick=()=>{data.theme=data.theme==='dark'?'light':'dark';save()};
+
+document.querySelector('#exportCsv').onclick=()=>{
+  const rows=[['Date','Type','Libellé','Catégorie','Montant','Paiement','Note']];
+  data.operations.slice().sort((a,b)=>a.date.localeCompare(b.date)).forEach(op=>{
+    rows.push([op.date,op.type,op.label,op.category||'',String(op.amount).replace('.',','),op.payment||'',op.note||'']);
+  });
+  const csv=rows.map(row=>row.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';')).join('\n');
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='mon_budget_operations.csv';
+  a.click();
+};
+document.querySelector('#printReport').onclick=()=>window.print();
+
 document.querySelector('#exportData').onclick=()=>{
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download='mon_budget_essentiel_v4.json';a.click()

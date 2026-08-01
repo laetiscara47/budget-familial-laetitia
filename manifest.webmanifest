@@ -1,7 +1,7 @@
 {
-  "name": "Mon Budget Essentiel V5.2.5",
+  "name": "Mon Budget Essentiel V6.0",
   "short_name": "Mon Budget",
-  "start_url": "./?v=5.2.5",
+  "start_url": "./?v=6.0.0",
   "display": "standalone",
   "background_color": "#f3f6fb",
   "theme_color": "#2f6fed",

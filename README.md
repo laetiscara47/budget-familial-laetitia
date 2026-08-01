@@ -1,14 +1,14 @@
-# Mon Budget Essentiel V5.1
+# Mon Budget Essentiel V6.0
 
-Mise à jour ciblée de la V5.0.
+Nouveautés :
+- statistiques mensuelles simples ;
+- dépenses par catégorie ;
+- conseil automatique ;
+- montant d’épargne ;
+- photo de ticket facultative ;
+- note sur une opération ;
+- export CSV ;
+- impression / PDF ;
+- toutes les fonctions stables de la V5.2.5 conservées.
 
-Améliorations :
-- budget du jour remonté en haut de l’accueil ;
-- statut financier visible immédiatement ;
-- cinq prochaines opérations clairement affichées ;
-- écran Ajouter simplifié ;
-- dernière catégorie mémorisée ;
-- toutes les fonctions de la V5.0 conservées ;
-- migration automatique des données des versions précédentes.
-
-Pour GitHub Pages, remplacez tout le contenu du dépôt par les fichiers de cette archive.
+Pour GitHub Pages, remplacez les fichiers du dépôt par ceux de cette archive.

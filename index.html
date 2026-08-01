@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#2f6fed">
-  <title>Mon Budget Essentiel V5.2.5</title>
+  <title>Mon Budget Essentiel V6.0</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=5.2.5">
+  <link rel="stylesheet" href="styles.css?v=6.0.0">
 </head>
 <body>
 <header class="topbar">
-  <div><h1>💙 Mon Budget</h1><p>V5.2.5 Stable</p></div>
+  <div><h1>💙 Mon Budget</h1><p>V6.0</p></div>
   <button id="themeToggle" class="round-btn">🌙</button>
 </header>
 
@@ -93,6 +93,14 @@
     <label>Date</label>
     <input id="opDate" type="date">
 
+    <label>Note facultative</label>
+    <input id="opNote" placeholder="Ex. Courses semaine">
+
+    <label class="ticket-label">📸 Ajouter une photo du ticket
+      <input id="opTicket" type="file" accept="image/*" capture="environment">
+    </label>
+    <div id="ticketPreview" class="ticket-preview"></div>
+
     <div id="paymentBox">
       <label>Paiement</label>
       <div class="choice-row">
@@ -128,6 +136,7 @@
     <h2>Comptes</h2>
     <div class="account-row"><span>🏦 Compte courant</span><b id="accountBalance">0,00 €</b></div>
     <div class="account-row"><span>💳 Carte différée</span><b id="accountCard">0,00 €</b></div>
+    <div class="account-row"><span>💰 Épargne</span><b id="accountSavings">0,00 €</b></div>
     <div class="account-row strong"><span>Disponible réel</span><b id="accountAvailable">0,00 €</b></div>
   </article>
 
@@ -165,6 +174,36 @@
   </article>
 </section>
 
+<section id="stats" class="screen">
+  <article class="simple-card">
+    <div class="section-head">
+      <h2>Statistiques du mois</h2>
+      <span class="small-badge" id="statsMonth">Mois</span>
+    </div>
+    <div class="stats-grid">
+      <div><span>Revenus</span><b id="statsIncome">0,00 €</b></div>
+      <div><span>Dépenses</span><b id="statsExpense">0,00 €</b></div>
+      <div><span>Épargne possible</span><b id="statsSavings">0,00 €</b></div>
+    </div>
+  </article>
+
+  <article class="simple-card">
+    <h2>Dépenses par catégorie</h2>
+    <div id="categoryStats"></div>
+  </article>
+
+  <article class="simple-card">
+    <h2>Conseil automatique</h2>
+    <p id="smartAdvice" class="smart-advice">Analyse en cours…</p>
+  </article>
+
+  <article class="simple-card">
+    <h2>Exporter</h2>
+    <button id="exportCsv" class="secondary full">Exporter en CSV</button>
+    <button id="printReport" class="secondary full">Imprimer / enregistrer en PDF</button>
+  </article>
+</section>
+
 <section id="settings" class="screen">
   <article class="simple-card recurring-overview">
     <div class="section-head">
@@ -186,6 +225,8 @@
     <input id="settingBalance" inputmode="decimal">
     <label>Jour du débit CB</label>
     <input id="settingCardDay" type="number" min="1" max="28">
+    <label>Montant épargne</label>
+    <input id="settingSavings" inputmode="decimal" placeholder="0,00">
     <button id="saveSettings" class="primary">Enregistrer</button>
   </article>
 
@@ -223,8 +264,9 @@
   <button data-tab="operations"><span>🧾</span><small>Opérations</small></button>
   <button data-tab="agenda"><span>📅</span><small>Agenda</small></button>
   <button data-tab="accounts"><span>💳</span><small>Comptes</small></button>
+  <button data-tab="stats"><span>📊</span><small>Stats</small></button>
   <button data-tab="settings"><span>⚙️</span><small>Réglages</small></button>
 </nav>
-<script src="app.js?v=5.2.5"></script>
+<script src="app.js?v=6.0.0"></script>
 </body>
 </html>
