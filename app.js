@@ -24,11 +24,7 @@ function normalizeRules(){
   data.chargeRules=(data.chargeRules||[]).map(r=>({...r,active:r.active!==false}));
 }
 
-function save(){
-  data.lastSavedAt=new Date().toISOString();
-  localStorage.setItem(KEY,JSON.stringify(data));
-  renderAll()
-}
+function save(){localStorage.setItem(KEY,JSON.stringify(data));renderAll()}
 function euro(n){return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(Number(n||0))}
 
 function animateAmount(selector,value){
@@ -322,11 +318,6 @@ function drawEvents(selector,items,limit){
 function renderHome(){
   animateAmount('#homeAvailable',available());
   document.querySelector('#familyMonthLabel').textContent=new Date().toLocaleDateString('fr-FR',{month:'long'});
-  document.querySelector('#monthOverviewLabel').textContent=new Date().toLocaleDateString('fr-FR',{month:'long'});
-  document.querySelector('#monthOverviewIncome').textContent=euro(monthIncome());
-  document.querySelector('#monthOverviewExpense').textContent=euro(monthExpense());
-  document.querySelector('#monthOverviewSavings').textContent=euro(savingsPossible());
-  document.querySelector('#monthOverviewForecast').textContent=euro(forecast());
   document.querySelector('#remainingIncomeKpi').textContent=euro(remainingIncomeAmount());
   document.querySelector('#remainingChargesKpi').textContent=euro(remainingChargeAmount());
   const dti=daysToNextIncome();
@@ -440,11 +431,6 @@ function renderSettings(){
   document.querySelector('#activeChargeCount').textContent=data.chargeRules.filter(r=>r.active!==false).length;
   const nr=nextRecurring();
   document.querySelector('#nextRecurringLabel').textContent=nr?`${nr.label} · le ${nr.day}`:'Aucune';
-  const saved=data.lastSavedAt?new Date(data.lastSavedAt):null;
-  const savedText=saved
-    ? `Dernière sauvegarde locale : ${saved.toLocaleDateString('fr-FR')} à ${saved.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}`
-    : 'Données enregistrées automatiquement sur cet iPhone';
-  document.querySelector('#lastSavedText').textContent=savedText;
   document.body.classList.toggle('dark',data.theme==='dark');
   document.querySelector('#themeToggle').textContent=data.theme==='dark'?'☀️':'🌙';
 }
@@ -681,6 +667,7 @@ document.querySelector('#importData').onchange=async e=>{
 };
 document.querySelector('#resetData').onclick=()=>{if(confirm('Tout effacer et repartir de zéro ?')){data=structuredClone(defaults);save()}};
 
+document.querySelector('#quickAdd').onclick=()=>setTab('add');
 document.querySelector('#quickIncomeAction').onclick=()=>{
   setType('income');
   setTab('add');

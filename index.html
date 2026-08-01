@@ -4,16 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#2f6fed">
-  <title>Mon Budget Familial 2026 RC5</title>
+  <title>Mon Budget Familial 2026 RC4</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=1.0.5">
+  <link rel="stylesheet" href="styles.css?v=1.0.4">
 </head>
 <body>
 <header class="topbar compact-topbar">
   <div>
     <h1 id="greetingTitle">Bonjour Laetitia 👋</h1>
-    <p id="greetingSubtitle">Budget familial · Août 2026</p><small id="lastSavedText" class="last-saved">Données enregistrées sur cet iPhone</small>
+    <p id="greetingSubtitle">Budget familial · Août 2026</p>
   </div>
   <button id="themeToggle" class="round-btn">🌙</button>
 </header>
@@ -39,18 +39,12 @@
     <small id="homeDailyHint">Budget conseillé</small>
   </article>
 
-  <article class="simple-card month-overview-card">
-    <div class="section-head">
-      <h2>Ce mois-ci</h2>
-      <span class="small-badge" id="monthOverviewLabel">Mois</span>
-    </div>
-    <div class="month-overview-grid">
-      <div><span>Revenus</span><b id="monthOverviewIncome">0,00 €</b></div>
-      <div><span>Dépenses</span><b id="monthOverviewExpense">0,00 €</b></div>
-      <div><span>Épargne possible</span><b id="monthOverviewSavings">0,00 €</b></div>
-      <div><span>Reste prévu</span><b id="monthOverviewForecast">0,00 €</b></div>
-    </div>
-  </article>
+  <div class="quick-actions">
+    <button data-tab="add" class="quick-action"><span>➕</span><div><b>Nouvelle dépense</b><small>Ajouter rapidement</small></div></button>
+    <button id="quickIncomeAction" class="quick-action income"><span>💰</span><div><b>Nouveau revenu</b><small>Ajouter un revenu</small></div></button>
+    <button data-tab="agenda" class="quick-action agenda"><span>📅</span><div><b>Agenda</b><small>Échéances</small></div></button>
+    <button data-tab="stats" class="quick-action stats"><span>📊</span><div><b>Statistiques</b><small>Vue rapide</small></div></button>
+  </div>
 
   <article id="statusCardTop" class="status-card compact-status">
     <div class="status-dot" id="statusDotTop"></div>
@@ -365,6 +359,7 @@
   <div><b id="toastTitle">Opération enregistrée</b><small id="toastText"></small></div>
 </div>
 
+<button id="quickAdd" class="floating-add floating-add-pill" aria-label="Ajouter une opération"><span>＋</span> Ajouter une opération</button>
 <nav class="bottom-nav">
   <button data-tab="home" class="active"><span>🏠</span><small>Accueil</small></button>
   <button data-tab="add"><span>➕</span><small>Ajouter</small></button>
@@ -374,6 +369,6 @@
   <button data-tab="stats"><span>📊</span><small>Mois</small></button>
   <button data-tab="settings"><span>⚙️</span><small>Réglages</small></button>
 </nav>
-<script src="app.js?v=1.0.5"></script>
+<script src="app.js?v=1.0.4"></script>
 </body>
 </html>
