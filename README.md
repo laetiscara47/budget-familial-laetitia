@@ -1,13 +1,13 @@
-# Mon Budget V7.1 Stable
+# Mon Budget V8 Foundation
 
-Cette version repart de la V7.0 qui fonctionnait correctement.
+Reconstruction complète et propre.
 
-Corrections :
-- navigation Accueil et tous les onglets sécurisée ;
-- récupération de la sauvegarde la plus complète ;
-- conservation de la clé historique contenant les vraies données ;
-- boutons facultatifs incapables de bloquer l’application ;
-- sauvegarde locale de secours avant chaque modification ;
-- aucune nouvelle fonctionnalité ajoutée.
+- Navigation réécrite et testée.
+- Données séparées de l’interface.
+- Récupération automatique des anciennes versions.
+- Sauvegarde locale de secours.
+- Aucun bouton manquant ne peut arrêter toute l’application.
+- Accueil, Ajouter, Opérations, Agenda, Comptes, Mois et Réglages.
+- Compatible Safari iPhone et GitHub Pages.
 
-Cette V7.1 devient la nouvelle base stable.
+Pour GitHub, remplacez tous les fichiers du dépôt par ceux de cette archive.
