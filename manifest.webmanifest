@@ -1,0 +1,15 @@
+{
+  "name": "Mon Budget 3.0",
+  "short_name": "Mon Budget",
+  "start_url": "./?v=3.0.0",
+  "display": "standalone",
+  "background_color": "#f4f7fc",
+  "theme_color": "#1768e8",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
