@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#1768e8">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <title>Mon Budget 2.2.2 Stable</title>
-  <link rel="manifest" href="manifest.webmanifest?v=2.2.2-stable">
-  <link rel="stylesheet" href="styles.css?v=2.2.2-stable">
+  <title>Mon Budget 2.3 Test</title>
+  <link rel="manifest" href="manifest.webmanifest?v=2.3.0-test">
+  <link rel="stylesheet" href="styles.css?v=2.3.0-test">
 </head>
 <body>
   <header class="topbar">
@@ -78,6 +78,7 @@
           <input id="labelInput" list="operationTemplates" placeholder="Ex. Carrefour" autocomplete="off">
           <datalist id="operationTemplates"></datalist>
           <small id="templateHint" class="field-hint">Le montant et la catégorie peuvent être proposés automatiquement.</small>
+          <div id="quickTemplates" class="quick-templates" aria-label="Opérations rapides"></div>
 
           <label>Catégorie</label>
           <select id="categoryInput">
@@ -215,6 +216,6 @@
   </nav>
 
   <div id="toast" class="toast" aria-live="polite"></div>
-  <script src="app.js?v=2.2.2-stable"></script>
+  <script src="app.js?v=2.3.0-test"></script>
 </body>
 </html>

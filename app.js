@@ -813,6 +813,37 @@
     $("operationTemplates").innerHTML=templates
       .map(template=>`<option value="${template.label}">${euro(template.amount)} · ${template.category}</option>`)
       .join("");
+
+    const quick=templates.slice(0,6);
+    $("quickTemplates").innerHTML=quick.length
+      ? quick.map(template=>`
+          <button
+            class="quick-template"
+            type="button"
+            data-template-label="${template.label.replace(/"/g,"&quot;")}"
+          >
+            <span>${template.type==="income"?"💰":"⚡"}</span>
+            <b>${template.label}</b>
+            <small>${euro(template.amount)}</small>
+          </button>
+        `).join("")
+      : "";
+  }
+
+  function fillFromTemplate(template){
+    if(!template)return;
+
+    setType(template.type);
+    $("labelInput").value=template.label;
+    $("amountInput").value=String(template.amount).replace(".",",");
+    $("categoryInput").value=template.category;
+
+    if(data.accounts.some(item=>item.id===template.accountId)){
+      $("accountInput").value=template.accountId;
+    }
+
+    $("templateHint").textContent=`Prêt à enregistrer : ${template.source}.`;
+    $("amountInput").focus();
   }
 
   function applyTemplateSuggestion(){
@@ -909,6 +940,13 @@
   }
 
   document.addEventListener("click",e=>{
+    const quickTemplate=e.target.closest("[data-template-label]");
+    if(quickTemplate){
+      const template=findTemplate(quickTemplate.dataset.templateLabel);
+      fillFromTemplate(template);
+      return;
+    }
+
     const nav=e.target.closest("[data-screen]");if(nav){showScreen(nav.dataset.screen);return}
     const go=e.target.closest("[data-go]");if(go){showScreen(go.dataset.go);return}
     const typeBtn=e.target.closest("[data-op-type]");if(typeBtn){setType(typeBtn.dataset.opType);return}
@@ -946,6 +984,7 @@
     $("labelInput").value="";
     $("templateHint").textContent="Le montant et la catégorie peuvent être proposés automatiquement.";
     $("addMessage").textContent="Opération enregistrée.";
+    renderTemplateSuggestions();
     toast("Opération enregistrée");
     showScreen("home");
   });

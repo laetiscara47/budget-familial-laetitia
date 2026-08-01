@@ -1,14 +1,13 @@
 {
-  "version": "2.2.2-stable",
+  "version": "2.3.0-test-quick-entry",
   "schema": 2,
-  "channel": "stable",
-  "base": "2.2.1-test-recovery-safe",
+  "channel": "test",
+  "base": "2.2.2-stable",
   "storageKey": "mon_budget_v10_stable",
-  "validatedOnDevice": true,
   "changes": [
-    "safe recovery promoted to stable",
-    "recovery timestamp refresh",
-    "empty-database protection retained",
-    "assistant and templates retained"
+    "one-tap operation templates",
+    "same stable storage key",
+    "no new screen",
+    "recovery protection retained"
   ]
 }

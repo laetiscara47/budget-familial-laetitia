@@ -1,17 +1,11 @@
-# Mon Budget 2.2.2 Stable
+# Mon Budget 2.3 Test — Saisie rapide
 
-Cette version est issue de la 2.2.1 Test validée sur l’iPhone avec récupération correcte des données.
+Construite sur la 2.2.2 Stable.
 
-Elle devient la nouvelle version stable.
+Une seule amélioration :
+- sous le champ Libellé, jusqu’à 6 opérations connues apparaissent en raccourcis ;
+- un toucher remplit le type, le libellé, le montant, la catégorie et le compte ;
+- vous vérifiez puis appuyez sur Enregistrer.
 
-Conservé :
-- même clé de stockage que la 2.0 ;
-- récupération automatique de la base la plus complète ;
-- protection contre une base vide ;
-- historique des sauvegardes ;
-- assistant d’accueil ;
-- modèles automatiques ;
-- agenda regroupé ;
-- détection des doublons.
-
-Aucun nouveau menu n’a été ajouté.
+La même clé de stockage et la récupération sûre sont conservées.
+Aucun nouveau menu ni nouvel écran.
