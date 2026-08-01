@@ -1,13 +1,6 @@
 {
-  "version": "4.0.0-test-agenda",
+  "version": "4.1.0-test-balance",
   "schema": 2,
   "channel": "test",
-  "base": "3.0.0-final",
-  "storageKey": "mon_budget_v10_stable",
-  "changes": [
-    "agenda filters",
-    "grouped cards",
-    "mark paid",
-    "postpone one day"
-  ]
+  "storageKey": "mon_budget_v10_stable"
 }

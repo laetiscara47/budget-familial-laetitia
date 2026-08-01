@@ -1,10 +1,7 @@
-# Mon Budget 4.0 Test — Agenda intelligent
+# Mon Budget 4.1 Test
 
-Seul l’onglet Agenda évolue :
-- filtres Tout, Aujourd’hui, Semaine et Mois ;
-- cartes regroupées par période ;
-- bouton Payé ;
-- report d’une échéance d’un jour ;
-- échéances en retard mises en évidence.
+Dans Comptes :
+- Modifier le solde
+- Synchroniser avec ma banque
 
-La même clé de stockage et les protections existantes sont conservées.
+Le nouveau solde crée automatiquement une opération d’ajustement.
