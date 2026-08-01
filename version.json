@@ -1,15 +1,16 @@
 {
-  "version": "3.0.0-final",
+  "version": "2026.1-family",
   "schema": 2,
-  "channel": "stable",
-  "base": "3.0.0-rc",
+  "channel": "stable-candidate",
   "storageKey": "mon_budget_v10_stable",
-  "validatedDataCompatibility": true,
   "changes": [
-    "today cards equalized",
-    "risk badge reduced",
-    "days remaining wording adjusted",
-    "next due readability improved",
-    "same storage and recovery logic retained"
+    "family dashboard summary",
+    "today dues",
+    "next due",
+    "expected income",
+    "daily remainder",
+    "natural language entry retained",
+    "quick favorites retained",
+    "balance adjustment retained"
   ]
 }
