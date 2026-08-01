@@ -344,6 +344,11 @@ function renderHome(){
   document.querySelector('#homeNextCharge').textContent=nc?euro(nc.amount):'—';
   document.querySelector('#homeNextChargeLabel').textContent=nc?`${nc.label} · le ${nc.day}`:'Aucun';
   const st=statusInfo();
+  document.querySelector('#statusStripText').textContent=st.title;
+  document.querySelector('#statusStripDaily').textContent=euro(dailyBudget());
+  const nextIncome=nextRule(data.incomeRules);
+  document.querySelector('#statusStripIncome').textContent=nextIncome?`${nextIncome.day} · ${euro(nextIncome.amount)}`:'—';
+  document.querySelector('#statusStripDot').style.background=st.level==='danger'?'var(--red)':st.level==='warning'?'var(--orange)':'var(--green)';
   const statusColor=st.level==='danger'?'var(--red)':st.level==='warning'?'var(--orange)':'var(--green)';
   document.querySelector('#statusTitle').textContent=st.title;
   document.querySelector('#statusText').textContent=st.text;

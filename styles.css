@@ -350,3 +350,58 @@ body{
     font-size:14px;
   }
 }
+
+/* RC4 — bouton et barre d'état */
+.floating-add-pill{
+  bottom:calc(70px + env(safe-area-inset-bottom));
+  z-index:19;
+}
+.status-strip{
+  display:grid;
+  grid-template-columns:1.2fr 1fr 1fr;
+  gap:10px;
+  align-items:center;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:12px 14px;
+  margin-bottom:14px;
+  box-shadow:var(--shadow);
+}
+.status-strip>div{min-width:0}
+.status-strip>div:first-child{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.status-strip small{
+  display:block;
+  color:var(--muted);
+  font-size:11px;
+}
+.status-strip b{
+  display:block;
+  font-size:14px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.status-strip-dot{
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 0 5px rgba(47,157,98,.12);
+  flex:0 0 auto;
+}
+@media(max-width:520px){
+  .floating-add-pill{
+    bottom:calc(68px + env(safe-area-inset-bottom));
+  }
+  .status-strip{
+    grid-template-columns:1fr 1fr;
+  }
+  .status-strip>div:first-child{
+    grid-column:1 / -1;
+  }
+}
