@@ -1,9 +1,9 @@
 (() => {
   "use strict";
 
-  const KEY = "mon_budget_v9_premium";
-  const BACKUP_KEY = "mon_budget_v9_backup";
-  const OLD_KEYS = [
+  const KEY = "mon_budget_v10_stable";
+  const BACKUP_KEY = "mon_budget_v10_backup";
+  const OLD_KEYS = ["mon_budget_v9_premium","mon_budget_v9_backup",
     "mon_budget_v8_foundation","mon_budget_familial_v8","mon_budget_familial_1_0",
     "mon_budget_essentiel_v7","mon_budget_essentiel_v6_5","mon_budget_essentiel_v6",
     "mon_budget_essentiel_v5_2_5","mon_budget_essentiel_v5_2_4","mon_budget_essentiel_v5_2_3",
@@ -116,10 +116,29 @@
   }
 
   function save(){
-    backup();
-    data.lastSavedAt=new Date().toISOString();
-    localStorage.setItem(KEY,JSON.stringify(data));
+    try{
+      const current=localStorage.getItem(KEY);
+      const previous=localStorage.getItem(BACKUP_KEY);
+      if(previous)localStorage.setItem(BACKUP_KEY+"_previous",previous);
+      if(current)localStorage.setItem(BACKUP_KEY,current);
+      data.lastSavedAt=new Date().toISOString();
+      localStorage.setItem(KEY,JSON.stringify(data));
+    }catch(error){
+      alert("La sauvegarde locale a échoué.");
+      return;
+    }
     renderAll();
+  }
+
+  function accountTypeLabel(type){
+    const labels={
+      current:"Compte principal",
+      savings:"Épargne",
+      cash:"Espèces",
+      deferred:"Carte à débit différé",
+      other:"Autre compte"
+    };
+    return labels[type] || "Compte";
   }
 
   function account(id){ return data.accounts.find(a=>a.id===id); }
@@ -201,6 +220,8 @@
     $("monthExpense").textContent=euro(monthExpense());
     $("remainingCharges").textContent=euro(remainingCharges());
     $("savingsValue").textContent=euro(data.accounts.filter(a=>a.type==="savings").reduce((s,a)=>s+Number(a.balance),0));
+    $("operationsCount").textContent=monthOps().length;
+    $("monthProgress").textContent=`${Math.round((new Date().getDate()/daysInMonth())*100)} %`;
     const st=statusInfo(); $("statusTitle").textContent=st.title;$("statusText").textContent=st.text;$("statusDot").style.background=st.color;
     const alerts=futureRules().filter(r=>{
       const diff=Math.round((new Date(r.date+"T12:00:00")-new Date(today()+"T12:00:00"))/86400000);
@@ -246,7 +267,7 @@
 
   function renderAccounts(){
     populateAccounts();
-    $("accountsList").innerHTML=data.accounts.map(a=>`<div class="account-row"><div class="account-chip"><span class="account-icon">${a.icon||"💳"}</span><div><b>${a.name}</b><small>${a.type}</small></div></div><b class="${Number(a.balance)<0?"negative":""}">${euro(a.balance)}</b></div>`).join("");
+    $("accountsList").innerHTML=data.accounts.map(a=>`<div class="account-row"><div class="account-chip"><span class="account-icon">${a.icon||"💳"}</span><div class="account-name"><b>${a.name}</b><small>${accountTypeLabel(a.type)}</small></div></div><b class="account-amount ${Number(a.balance)<0?"negative":""}">${euro(a.balance)}</b></div>`).join("");
     $("netWorthValue").textContent=euro(totalNetWorth());
   }
 
@@ -276,6 +297,52 @@
     $("standardOperationFields").hidden=type==="transfer";
     $("transferFields").hidden=type!=="transfer";
   }
+  function manageOperation(id){
+    const op=data.operations.find(item=>item.id===id);
+    if(!op)return;
+
+    const action=prompt(
+      `Que voulez-vous faire avec « ${op.label} » ?\n\n1 = Modifier\n2 = Dupliquer\n3 = Supprimer`
+    );
+
+    if(action==="1"){
+      const newLabel=prompt("Libellé",op.label);
+      if(newLabel===null)return;
+      const newAmountText=prompt("Montant",String(op.amount).replace(".",","));
+      if(newAmountText===null)return;
+      const newAmount=money(newAmountText);
+      if(!newLabel.trim()||newAmount<=0){
+        alert("Libellé ou montant invalide.");
+        return;
+      }
+
+      applyOperation(op,-1);
+      op.label=newLabel.trim();
+      op.amount=newAmount;
+      if(op.type!=="transfer")op.category=smartCategory(op.label);
+      applyOperation(op,1);
+      save();
+      toast("Opération modifiée");
+      return;
+    }
+
+    if(action==="2"){
+      const copy={...op,id:uid(),date:today(),recurringKey:null};
+      data.operations.push(copy);
+      applyOperation(copy,1);
+      save();
+      toast("Opération dupliquée");
+      return;
+    }
+
+    if(action==="3"&&confirm(`Supprimer « ${op.label} » ?`)){
+      applyOperation(op,-1);
+      data.operations=data.operations.filter(item=>item.id!==id);
+      save();
+      toast("Opération supprimée");
+    }
+  }
+
   function smartCategory(label){
     const t=label.toLowerCase();
     if(/carrefour|leclerc|lidl|aldi|courses/.test(t))return "Alimentation";
@@ -289,7 +356,11 @@
     const nav=e.target.closest("[data-screen]");if(nav){showScreen(nav.dataset.screen);return}
     const go=e.target.closest("[data-go]");if(go){showScreen(go.dataset.go);return}
     const typeBtn=e.target.closest("[data-op-type]");if(typeBtn){setType(typeBtn.dataset.opType);return}
-    const opRow=e.target.closest("[data-op-id]");if(opRow&&confirm("Supprimer cette opération ?")){const op=data.operations.find(o=>o.id===opRow.dataset.opId);if(op){applyOperation(op,-1);data.operations=data.operations.filter(o=>o.id!==op.id);save()}return}
+    const opRow=e.target.closest("[data-op-id]");
+    if(opRow){
+      manageOperation(opRow.dataset.opId);
+      return;
+    }
     const ruleBtn=e.target.closest("[data-rule-id]");if(ruleBtn){const r=data.rules.find(x=>x.id===ruleBtn.dataset.ruleId);if(r){r.active=r.active===false;save()}return}
   });
 
