@@ -1,14 +1,11 @@
-# Mon Budget 1.1 Stable
+# Mon Budget 2.0 – Phase 1
 
-Mise à jour visuelle légère, sans nouvelle fonctionnalité.
+Base de travail issue de votre véritable projet.
 
-Améliorations :
-- bandeau bleu plus compact ;
-- montant principal mieux mis en valeur ;
-- carte Situation simplifiée ;
-- budget du jour affiché directement dans la phrase ;
-- alertes plus lisibles ;
-- icônes de navigation légèrement agrandies ;
-- toutes les données et fonctions de la version 1.0 conservées.
+Objectif :
+- stabilité
+- fiabilité des sauvegardes
+- optimisation du code
+- aucune modification de l'interface utilisateur
 
-Cette version devient la nouvelle base stable.
+Cette archive devient la nouvelle base de développement.
