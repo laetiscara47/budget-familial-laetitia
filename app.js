@@ -167,6 +167,31 @@ function nextRecurring(){
 
 
 
+
+function remainingIncomeAmount(){
+  return allEvents()
+    .filter(x=>x.kind==='income'&&x.date>=today())
+    .reduce((sum,x)=>sum+Number(x.signed||0),0);
+}
+function remainingChargeAmount(){
+  return allEvents()
+    .filter(x=>['charge','card'].includes(x.kind)&&x.date>=today())
+    .reduce((sum,x)=>sum+Math.abs(Number(x.signed||0)),0);
+}
+function daysToNextIncome(){
+  const next=allEvents().find(x=>x.kind==='income'&&x.date>=today());
+  if(!next)return null;
+  return Math.max(0,daysUntilDate(next.date));
+}
+function monthTimePercent(){
+  const now=new Date();
+  return Math.min(100,Math.round((now.getDate()/daysInMonth())*100));
+}
+function monthSpendPercent(){
+  const totalResources=Math.max(1,monthIncome()+remainingIncomeAmount());
+  return Math.min(100,Math.round((monthExpense()/totalResources)*100));
+}
+
 function weekExpectedIncome(){
   const limit=new Date(today()+'T12:00:00');
   limit.setDate(limit.getDate()+7);
@@ -270,9 +295,15 @@ function drawEvents(selector,items,limit){
 }
 function renderHome(){
   document.querySelector('#homeAvailable').textContent=euro(available());
+  document.querySelector('#familyMonthLabel').textContent=new Date().toLocaleDateString('fr-FR',{month:'long'});
+  document.querySelector('#remainingIncomeKpi').textContent=euro(remainingIncomeAmount());
+  document.querySelector('#remainingChargesKpi').textContent=euro(remainingChargeAmount());
+  const dti=daysToNextIncome();
+  document.querySelector('#daysToIncomeKpi').textContent=dti===null?'—':dti===0?"Aujourd’hui":dti===1?'1 jour':`${dti} jours`;
+  document.querySelector('#monthExpenseKpi').textContent=euro(monthExpense());
   const hour=new Date().getHours();
-  document.querySelector('#greetingTitle').textContent=`${hour<12?'Bonjour':hour<18?'Bon après-midi':'Bonsoir'} Laetitia 👋`;
-  document.querySelector('#greetingSubtitle').textContent='Voici votre situation financière';
+  document.querySelector('#greetingTitle').textContent=`Bonjour Laetitia 👋`;
+  document.querySelector('#greetingSubtitle').textContent=`Budget familial · ${new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}`;
   document.querySelector('#weekExpected').textContent=weekExpectedIncome()>0?`↗ ${euro(weekExpectedIncome())} attendus cette semaine`:'Aucun revenu attendu cette semaine';
   document.querySelector('#homeForecast').textContent=`Fin de mois estimée : ${euro(forecast())}`;
   document.querySelector('#homeCard').textContent=euro(cardPending());
@@ -338,6 +369,19 @@ function renderStats(){
   document.querySelector('#statsExpense').textContent=euro(monthExpense());
   document.querySelector('#statsSavings').textContent=euro(savingsPossible());
   document.querySelector('#smartAdvice').textContent=buildSmartAdvice();
+
+  const timePct=monthTimePercent();
+  const spendPct=monthSpendPercent();
+  document.querySelector('#timeProgressLabel').textContent=timePct+' %';
+  document.querySelector('#timeProgressBar').style.width=timePct+'%';
+  document.querySelector('#spendingProgressLabel').textContent=spendPct+' %';
+  document.querySelector('#spendingProgressBar').style.width=spendPct+'%';
+  document.querySelector('#monthProgressAdvice').textContent=
+    spendPct>timePct+15
+      ? 'Les dépenses avancent plus vite que le mois : soyez prudente.'
+      : spendPct<timePct-15
+        ? 'Vous dépensez moins vite que le mois : bonne marge.'
+        : 'Le rythme des dépenses suit correctement l’avancement du mois.';
 
   const totals=categoryTotals();
   const max=totals.length?totals[0][1]:1;

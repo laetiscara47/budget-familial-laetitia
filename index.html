@@ -4,16 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#2f6fed">
-  <title>Mon Budget Essentiel V7.0</title>
+  <title>Mon Budget Familial 1.0</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=7.0.0">
+  <link rel="stylesheet" href="styles.css?v=1.0.0">
 </head>
 <body>
-<header class="topbar">
+<header class="topbar compact-topbar">
   <div>
     <h1 id="greetingTitle">Bonjour Laetitia 👋</h1>
-    <p id="greetingSubtitle">Voici votre situation financière</p>
+    <p id="greetingSubtitle">Budget familial · Août 2026</p>
   </div>
   <button id="themeToggle" class="round-btn">🌙</button>
 </header>
@@ -43,6 +43,19 @@
   <article id="statusCardTop" class="status-card compact-status">
     <div class="status-dot" id="statusDotTop"></div>
     <div><h2 id="statusTitleTop">Situation</h2><p id="statusTextTop">Analyse en cours…</p></div>
+  </article>
+
+  <article class="simple-card family-summary">
+    <div class="section-head">
+      <h2>Ce mois-ci</h2>
+      <span class="small-badge" id="familyMonthLabel">Mois</span>
+    </div>
+    <div class="family-kpis">
+      <div><span>Revenus restants</span><b id="remainingIncomeKpi">0,00 €</b></div>
+      <div><span>Prélèvements restants</span><b id="remainingChargesKpi">0,00 €</b></div>
+      <div><span>Jours avant prochain revenu</span><b id="daysToIncomeKpi">—</b></div>
+      <div><span>Dépenses du mois</span><b id="monthExpenseKpi">0,00 €</b></div>
+    </div>
   </article>
 
   <div class="quick-grid">
@@ -231,7 +244,7 @@
 <section id="stats" class="screen">
   <article class="simple-card">
     <div class="section-head">
-      <h2>Statistiques du mois</h2>
+      <h2>Vue du mois</h2>
       <span class="small-badge" id="statsMonth">Mois</span>
     </div>
     <div class="stats-grid">
@@ -244,6 +257,19 @@
   <article class="simple-card">
     <h2>Dépenses par catégorie</h2>
     <div id="categoryStats"></div>
+  </article>
+
+  <article class="simple-card">
+    <h2>Progression du mois</h2>
+    <div class="month-progress-line">
+      <div><span>Temps écoulé</span><b id="timeProgressLabel">0 %</b></div>
+      <div class="month-progress-track"><i id="timeProgressBar"></i></div>
+    </div>
+    <div class="month-progress-line">
+      <div><span>Budget dépensé</span><b id="spendingProgressLabel">0 %</b></div>
+      <div class="month-progress-track"><i id="spendingProgressBar"></i></div>
+    </div>
+    <p id="monthProgressAdvice" class="muted-note"></p>
   </article>
 
   <article class="simple-card">
@@ -334,9 +360,9 @@
   <button data-tab="operations"><span>🧾</span><small>Opérations</small></button>
   <button data-tab="agenda"><span>📅</span><small>Agenda</small></button>
   <button data-tab="accounts"><span>💳</span><small>Comptes</small></button>
-  <button data-tab="stats"><span>📊</span><small>Stats</small></button>
+  <button data-tab="stats"><span>📊</span><small>Mois</small></button>
   <button data-tab="settings"><span>⚙️</span><small>Réglages</small></button>
 </nav>
-<script src="app.js?v=7.0.0"></script>
+<script src="app.js?v=1.0.0"></script>
 </body>
 </html>
