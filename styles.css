@@ -68,3 +68,11 @@ body.dark .home-summary-grid div{background:#141b27}
   .rule-row{align-items:flex-start}
   .rule-actions{flex-direction:column}
 }
+
+.quick-entry-card{border-left:5px solid var(--blue)}
+.quick-entry-grid{display:grid;grid-template-columns:1.4fr .8fr;gap:10px;margin-top:12px}
+.quick-suggestion{margin-top:10px;padding:10px 12px;background:#f5f9ff;border:1px solid #d8e5ff;border-radius:12px;color:var(--muted);font-size:13px}
+body.dark .quick-suggestion{background:#141b27}
+@media(max-width:520px){
+  .quick-entry-grid{grid-template-columns:1fr}
+}

@@ -438,6 +438,54 @@ document.querySelector('#checkRecurringNow').onclick=()=>{
   alert('Vérification terminée. Aucune échéance ne sera créée deux fois.');
 };
 
+
+function refreshQuickSuggestion(){
+  const label=document.querySelector('#quickLabel').value.trim();
+  const target=document.querySelector('#quickSuggestion');
+  if(!label){
+    target.textContent='Dépense · catégorie habituelle · aujourd’hui';
+    return;
+  }
+  const s=smartSuggestion(label);
+  target.textContent=`${s.type==='income'?'Revenu':'Dépense'} · ${s.category} · aujourd’hui`;
+}
+document.querySelector('#quickLabel').addEventListener('input',refreshQuickSuggestion);
+
+document.querySelector('#quickSave').onclick=()=>{
+  const label=document.querySelector('#quickLabel').value.trim();
+  const amount=money(document.querySelector('#quickAmount').value);
+  const message=document.querySelector('#quickMessage');
+
+  if(!label||amount<=0){
+    message.textContent='Complétez le nom et le montant.';
+    return;
+  }
+
+  const suggestion=smartSuggestion(label);
+  const operation={
+    id:crypto.randomUUID(),
+    type:suggestion.type,
+    label,
+    amount,
+    date:today(),
+    category:suggestion.category,
+    payment:suggestion.type==='income'?'current':'current',
+    cardDebited:false
+  };
+
+  data.operations.push(operation);
+  applyOperationToBalance(operation);
+  data.lastCategory=suggestion.category;
+
+  document.querySelector('#quickLabel').value='';
+  document.querySelector('#quickAmount').value='';
+  document.querySelector('#quickSuggestion').textContent='Dépense · catégorie habituelle · aujourd’hui';
+  message.textContent='Opération enregistrée.';
+  save();
+
+  setTimeout(()=>{message.textContent=''},1200);
+};
+
 document.querySelector('#opDate').value=today();
 normalizeRules();
 materializeRecurring();
