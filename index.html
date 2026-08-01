@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#2f6fed">
-  <title>Mon Budget Essentiel V5.2.3</title>
+  <title>Mon Budget Essentiel V5.2.4</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=5.2.3">
+  <link rel="stylesheet" href="styles.css?v=5.2.4">
 </head>
 <body>
 <header class="topbar">
-  <div><h1>💙 Mon Budget</h1><p>V5.2.3 Stable</p></div>
+  <div><h1>💙 Mon Budget</h1><p>V5.2.4 Stable</p></div>
   <button id="themeToggle" class="round-btn">🌙</button>
 </header>
 
@@ -155,6 +155,20 @@
 </section>
 
 <section id="settings" class="screen">
+  <article class="simple-card recurring-overview">
+    <div class="section-head">
+      <h2>Échéances automatiques</h2>
+      <span class="small-badge">Mensuelles</span>
+    </div>
+    <p class="muted-note">Les opérations sont créées automatiquement le jour prévu, une seule fois par mois.</p>
+    <div class="home-summary-grid">
+      <div><span>Revenus actifs</span><b id="activeIncomeCount">0</b></div>
+      <div><span>Prélèvements actifs</span><b id="activeChargeCount">0</b></div>
+      <div><span>Prochaine échéance</span><b id="nextRecurringLabel">Aucune</b></div>
+    </div>
+    <button id="checkRecurringNow" class="secondary full">Vérifier les échéances maintenant</button>
+  </article>
+
   <article class="simple-card">
     <h2>Réglages essentiels</h2>
     <label>Solde actuel du compte</label>
@@ -165,7 +179,7 @@
   </article>
 
   <article class="simple-card">
-    <h2>Revenus récurrents</h2>
+    <h2>Revenus automatiques</h2>
     <input id="incomeLabel" placeholder="Nom">
     <input id="incomeAmount" inputmode="decimal" placeholder="Montant">
     <input id="incomeDay" type="number" min="1" max="31" placeholder="Jour du mois">
@@ -174,7 +188,7 @@
   </article>
 
   <article class="simple-card">
-    <h2>Prélèvements récurrents</h2>
+    <h2>Prélèvements automatiques</h2>
     <input id="chargeLabel" placeholder="Nom">
     <input id="chargeAmount" inputmode="decimal" placeholder="Montant">
     <input id="chargeDay" type="number" min="1" max="31" placeholder="Jour du mois">
@@ -200,6 +214,6 @@
   <button data-tab="accounts"><span>💳</span><small>Comptes</small></button>
   <button data-tab="settings"><span>⚙️</span><small>Réglages</small></button>
 </nav>
-<script src="app.js?v=5.2.3"></script>
+<script src="app.js?v=5.2.4"></script>
 </body>
 </html>

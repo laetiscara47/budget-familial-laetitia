@@ -18,6 +18,12 @@ function load(){
   }catch{}
   return structuredClone(defaults)
 }
+
+function normalizeRules(){
+  data.incomeRules=(data.incomeRules||[]).map(r=>({...r,active:r.active!==false}));
+  data.chargeRules=(data.chargeRules||[]).map(r=>({...r,active:r.active!==false}));
+}
+
 function save(){localStorage.setItem(KEY,JSON.stringify(data));renderAll()}
 function euro(n){return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(Number(n||0))}
 function money(v){return Number(String(v||'').replace(/\s/g,'').replace(',','.'))||0}
@@ -38,6 +44,7 @@ function materializeRecurring(){
   let changed=false;
 
   data.incomeRules.forEach(rule=>{
+    if(rule.active===false)return;
     if(Number(rule.day)>todayDay)return;
     const key=recurringKey('income',rule.id,year,month);
     if(data.operations.some(op=>op.recurringKey===key))return;
@@ -59,6 +66,7 @@ function materializeRecurring(){
   });
 
   data.chargeRules.forEach(rule=>{
+    if(rule.active===false)return;
     if(Number(rule.day)>todayDay)return;
     const key=recurringKey('charge',rule.id,year,month);
     if(data.operations.some(op=>op.recurringKey===key))return;
@@ -84,15 +92,15 @@ function materializeRecurring(){
   }
 }
 
-function expectedIncome(){const day=new Date().getDate();return data.incomeRules.filter(r=>r.day>=day).reduce((s,r)=>s+r.amount,0)}
-function remainingCharges(){const day=new Date().getDate();return data.chargeRules.filter(r=>r.day>=day).reduce((s,r)=>s+r.amount,0)}
+function expectedIncome(){const day=new Date().getDate();return data.incomeRules.filter(r=>r.active!==false&&r.day>=day).reduce((s,r)=>s+r.amount,0)}
+function remainingCharges(){const day=new Date().getDate();return data.chargeRules.filter(r=>r.active!==false&&r.day>=day).reduce((s,r)=>s+r.amount,0)}
 function available(){return data.balance-cardPending()}
 function forecast(){return data.balance-cardPending()+expectedIncome()-remainingCharges()}
 function dailyBudget(){return Math.max(0,forecast()/daysLeft())}
 function monthOps(){return data.operations.filter(x=>monthKey(x.date)===currentMonth())}
 function monthIncome(){return monthOps().filter(x=>x.type==='income').reduce((s,x)=>s+x.amount,0)}
 function monthExpense(){return monthOps().filter(x=>x.type==='expense').reduce((s,x)=>s+x.amount,0)}
-function nextRule(rules){const day=new Date().getDate();return [...rules].sort((a,b)=>(a.day>=day?a.day:a.day+31)-(b.day>=day?b.day:b.day+31))[0]}
+function nextRule(rules){const day=new Date().getDate();return [...rules].filter(r=>r.active!==false).sort((a,b)=>(a.day>=day?a.day:a.day+31)-(b.day>=day?b.day:b.day+31))[0]}
 function icon(kind){return {income:'💰',charge:'🧾',expense:'🛒',card:'💳'}[kind]||'•'}
 function typeLabel(kind){return {income:'Revenu',charge:'Prélèvement',expense:'Dépense',card:'CB différée'}[kind]||''}
 function esc(v){return String(v).replace(/[&<>\"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[s]))}
@@ -101,13 +109,13 @@ function allEvents(){
   const list=[];
   data.operations.forEach(o=>list.push({...o,kind:o.type,signed:o.type==='income'?o.amount:-o.amount}));
   const now=new Date(),year=now.getFullYear(),month=now.getMonth();
-  data.incomeRules.forEach(r=>{
+  data.incomeRules.filter(r=>r.active!==false).forEach(r=>{
     const key=recurringKey('income',r.id,year,month);
     if(!data.operations.some(op=>op.recurringKey===key)){
       list.push({id:'ri'+r.id,kind:'income',label:r.label,date:safeDate(r.day),signed:r.amount,rule:true});
     }
   });
-  data.chargeRules.forEach(r=>{
+  data.chargeRules.filter(r=>r.active!==false).forEach(r=>{
     const key=recurringKey('charge',r.id,year,month);
     if(!data.operations.some(op=>op.recurringKey===key)){
       list.push({id:'rc'+r.id,kind:'charge',label:r.label,date:safeDate(r.day),signed:-r.amount,rule:true});
@@ -119,6 +127,24 @@ function allEvents(){
   }
   return list.sort((a,b)=>a.date.localeCompare(b.date))
 }
+
+function nextRecurring(){
+  const now=new Date(),todayDay=now.getDate();
+  const candidates=[];
+  data.incomeRules.filter(r=>r.active!==false).forEach(r=>{
+    candidates.push({label:r.label,day:Number(r.day),type:'income',amount:Number(r.amount)});
+  });
+  data.chargeRules.filter(r=>r.active!==false).forEach(r=>{
+    candidates.push({label:r.label,day:Number(r.day),type:'charge',amount:Number(r.amount)});
+  });
+  if(!candidates.length)return null;
+  return candidates.sort((a,b)=>{
+    const da=a.day>=todayDay?a.day:a.day+31;
+    const db=b.day>=todayDay?b.day:b.day+31;
+    return da-db;
+  })[0];
+}
+
 function statusInfo(){
   const f=forecast(),d=dailyBudget();
   if(f<0)return {level:'danger',title:'Risque',text:`Fin de mois estimée à ${euro(f)}. Limitez les dépenses non essentielles.`};
@@ -176,13 +202,24 @@ function renderAccounts(){
   drawEvents('#recentList',recent);
 }
 function ruleRow(rule,type){
-  return `<div class="rule-row"><div><b>${esc(rule.label)}</b><small>${euro(rule.amount)} · le ${rule.day}</small></div><button data-delete-rule="${type}:${rule.id}">Supprimer</button></div>`
+  const state=rule.active===false?'Désactivé':'Actif';
+  return `<div class="rule-row">
+    <div><b>${esc(rule.label)}</b><small>${euro(rule.amount)} · le ${rule.day} · ${state}</small></div>
+    <div class="rule-actions">
+      <button class="toggle-rule ${rule.active===false?'off':''}" data-toggle-rule="${type}:${rule.id}">${rule.active===false?'Activer':'Désactiver'}</button>
+      <button data-delete-rule="${type}:${rule.id}">Supprimer</button>
+    </div>
+  </div>`
 }
 function renderSettings(){
   document.querySelector('#settingBalance').value=String(data.balance).replace('.',',');
   document.querySelector('#settingCardDay').value=data.cardDebitDay;
   document.querySelector('#incomeRules').innerHTML=data.incomeRules.map(r=>ruleRow(r,'income')).join('')||'<p>Aucun revenu.</p>';
   document.querySelector('#chargeRules').innerHTML=data.chargeRules.map(r=>ruleRow(r,'charge')).join('')||'<p>Aucun prélèvement.</p>';
+  document.querySelector('#activeIncomeCount').textContent=data.incomeRules.filter(r=>r.active!==false).length;
+  document.querySelector('#activeChargeCount').textContent=data.chargeRules.filter(r=>r.active!==false).length;
+  const nr=nextRecurring();
+  document.querySelector('#nextRecurringLabel').textContent=nr?`${nr.label} · le ${nr.day}`:'Aucune';
   document.body.classList.toggle('dark',data.theme==='dark');
   document.querySelector('#themeToggle').textContent=data.theme==='dark'?'☀️':'🌙';
 }
@@ -313,13 +350,21 @@ function addRule(type){
   const p=type==='income'?'income':'charge';
   const label=document.querySelector('#'+p+'Label').value.trim(),amount=money(document.querySelector('#'+p+'Amount').value),day=Number(document.querySelector('#'+p+'Day').value);
   if(!label||amount<=0||day<1||day>31)return alert('Complétez le nom, le montant et le jour.');
-  (type==='income'?data.incomeRules:data.chargeRules).push({id:crypto.randomUUID(),label,amount,day});
+  (type==='income'?data.incomeRules:data.chargeRules).push({id:crypto.randomUUID(),label,amount,day,active:true});
   document.querySelector('#'+p+'Label').value='';document.querySelector('#'+p+'Amount').value='';document.querySelector('#'+p+'Day').value='';
   save()
 }
 document.querySelector('#addIncomeRule').onclick=()=>addRule('income');
 document.querySelector('#addChargeRule').onclick=()=>addRule('charge');
 document.addEventListener('click',e=>{
+  const toggle=e.target.dataset.toggleRule;
+  if(toggle){
+    const [type,id]=toggle.split(':');
+    const list=type==='income'?data.incomeRules:data.chargeRules;
+    const rule=list.find(r=>r.id===id);
+    if(rule){rule.active=rule.active===false;save();}
+    return;
+  }
   const val=e.target.dataset.deleteRule;
   if(!val)return;
   const [type,id]=val.split(':');
@@ -386,6 +431,14 @@ document.addEventListener('click',e=>{
 document.querySelector('#operationsSearch').addEventListener('input',renderOperations);
 document.querySelector('#operationsFilter').addEventListener('change',renderOperations);
 
+
+document.querySelector('#checkRecurringNow').onclick=()=>{
+  materializeRecurring();
+  renderAll();
+  alert('Vérification terminée. Aucune échéance ne sera créée deux fois.');
+};
+
 document.querySelector('#opDate').value=today();
+normalizeRules();
 materializeRecurring();
 requestAnimationFrame(()=>renderAll());

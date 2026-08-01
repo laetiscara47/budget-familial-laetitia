@@ -59,3 +59,12 @@ body.dark .home-summary-grid div{background:#141b27}
   .bottom-nav small{font-size:9px}
   .bottom-nav span{font-size:20px}
 }
+
+.recurring-overview{border-left:5px solid var(--blue)}
+.rule-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.rule-actions .toggle-rule{background:#eaf1ff;color:var(--blue)}
+.rule-actions .toggle-rule.off{background:#e9f7ef;color:var(--green)}
+@media(max-width:520px){
+  .rule-row{align-items:flex-start}
+  .rule-actions{flex-direction:column}
+}
