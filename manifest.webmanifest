@@ -1,7 +1,7 @@
 {
-  "name": "Mon Budget Familial 2026 RC2",
+  "name": "Mon Budget Familial 2026 RC3",
   "short_name": "Mon Budget",
-  "start_url": "./?v=1.0.2",
+  "start_url": "./?v=1.0.3",
   "display": "standalone",
   "background_color": "#f3f6fb",
   "theme_color": "#2f6fed",
