@@ -740,87 +740,6 @@
     return "Aucune échéance urgente détectée.";
   }
 
-
-  let agendaFilter="all";
-
-  function agendaFilteredItems(items){
-    if(agendaFilter==="all")return items;
-    return items.filter(item=>{
-      const difference=dueInDays(item.date);
-      if(agendaFilter==="today")return difference===0;
-      if(agendaFilter==="week")return difference>=0&&difference<=7;
-      if(agendaFilter==="month")return difference>=0&&monthKey(item.date)===monthKey(today());
-      return true;
-    });
-  }
-
-  function agendaItemActions(item){
-    if(!item.ruleId)return "";
-    return `
-      <div class="agenda-actions">
-        <button type="button" class="agenda-action paid"
-          data-agenda-paid="${item.ruleId}" data-agenda-date="${item.date}">✓ Payé</button>
-        <button type="button" class="agenda-action postpone"
-          data-agenda-postpone="${item.ruleId}">+1 jour</button>
-      </div>`;
-  }
-
-  function renderGroupedAgenda(items){
-    const filtered=agendaFilteredItems(items);
-    const badge=$("agendaCountBadge");
-    if(badge)badge.textContent=filtered.length;
-    if(!filtered.length)return "<p>Aucune opération pour ce filtre.</p>";
-
-    let currentGroup="";
-    return filtered.map(item=>{
-      const group=agendaGroupLabel(item.date);
-      const heading=group!==currentGroup?`<h3 class="agenda-group">${group}</h3>`:"";
-      currentGroup=group;
-      const overdue=item.date<today()?" overdue":"";
-      return `${heading}
-        <div class="agenda-item${overdue}">
-          <div class="agenda-item-main">
-            <span class="agenda-icon">${item.type==="income"?"💰":item.type==="transfer"?"🔁":"🧾"}</span>
-            <div class="agenda-copy">
-              <b>${item.label}</b>
-              <small>${item.date<today()?"En retard · ":""}${new Date(`${item.date}T12:00:00`).toLocaleDateString("fr-FR")}</small>
-            </div>
-            <b class="${item.type==="income"?"positive":item.type==="expense"?"negative":""}">
-              ${item.type==="income"?"+":item.type==="expense"?"-":""}${euro(item.amount)}
-            </b>
-          </div>
-          ${agendaItemActions(item)}
-        </div>`;
-    }).join("");
-  }
-
-  function markRulePaid(ruleId,date){
-    const rule=data.rules.find(item=>item.id===ruleId);
-    if(!rule)return;
-    const recurringKey=`${rule.id}:${monthKey(date)}`;
-    if(data.operations.some(operation=>operation.recurringKey===recurringKey)){
-      toast("Cette échéance est déjà enregistrée");
-      return;
-    }
-    const operation={
-      id:uid(),type:rule.type,label:rule.label,amount:Number(rule.amount)||0,
-      date,category:smartCategoryFromText(rule.label),
-      accountId:rule.accountId||currentAccount().id,toAccountId:null,recurringKey
-    };
-    data.operations.push(operation);
-    applyOperation(operation,1);
-    save();
-    toast("Échéance marquée comme payée");
-  }
-
-  function postponeRule(ruleId){
-    const rule=data.rules.find(item=>item.id===ruleId);
-    if(!rule)return;
-    rule.day=Math.min(28,Number(rule.day||1)+1);
-    save();
-    toast("Échéance reportée d’un jour");
-  }
-
   function renderHome(){
     const now=new Date();
     $("monthLabel").textContent=`Budget familial · ${now.toLocaleDateString("fr-FR",{month:"long",year:"numeric"})}`;
@@ -910,7 +829,7 @@
   }
 
   function renderAgenda(){
-    const upcomingRules=futureRules().map(rule=>({...rule,ruleId:rule.id}));
+    const upcomingRules=futureRules();
     const upcomingOperations=data.operations
       .filter(op=>op.date>=today())
       .map(op=>({...op,active:true}));
@@ -927,6 +846,61 @@
       .concat(recentOperations);
     $("agendaList").innerHTML=renderGroupedAgenda(list);
     $("rulesList").innerHTML=data.rules.length?data.rules.map(r=>`<div class="rule-row"><div><b>${r.type==="income"?"💰":"🧾"} ${r.label}</b><small>${euro(r.amount)} · le ${r.day} · ${r.active===false?"Désactivée":"Active"}</small></div><button class="link-btn" data-rule-id="${r.id}">${r.active===false?"Activer":"Désactiver"}</button></div>`).join(""):"<p>Aucune échéance.</p>";
+  }
+
+
+  let balanceUpdateMode="manual";
+
+  function parseBalanceInput(value){
+    const n=Number(String(value||"").replace(/\s/g,"").replace(",",".").replace(/[^\d.-]/g,""));
+    return Number.isFinite(n)?Math.round(n*100)/100:null;
+  }
+
+  function openBalanceModal(mode){
+    balanceUpdateMode=mode;
+    const bank=mode==="bank";
+    $("balanceModalTitle").textContent=bank?"Synchroniser avec ma banque":"Modifier le solde";
+    $("balanceModalText").textContent=bank
+      ?"Saisissez le solde actuellement affiché par votre banque."
+      :"Saisissez le nouveau solde souhaité.";
+    $("newBalanceInput").value=String(Number(currentAccount().balance||0).toFixed(2)).replace(".",",");
+    $("balanceModalMessage").textContent="";
+    updateBalancePreview();
+    $("balanceModal").classList.add("open");
+  }
+
+  function closeBalanceModal(){ $("balanceModal").classList.remove("open"); }
+
+  function updateBalancePreview(){
+    const target=parseBalanceInput($("newBalanceInput").value);
+    if(target===null){ $("balanceDifferencePreview").textContent="Montant invalide"; return; }
+    const diff=Math.round((target-Number(currentAccount().balance||0))*100)/100;
+    $("balanceDifferencePreview").textContent=`Ajustement : ${diff>0?"+":""}${euro(diff)}`;
+  }
+
+  function confirmBalanceUpdate(){
+    const account=currentAccount();
+    const target=parseBalanceInput($("newBalanceInput").value);
+    if(target===null){ $("balanceModalMessage").textContent="Montant invalide."; return; }
+    const diff=Math.round((target-Number(account.balance||0))*100)/100;
+    if(diff===0){ $("balanceModalMessage").textContent="Le solde est déjà identique."; return; }
+
+    const op={
+      id:uid(),
+      type:diff>0?"income":"expense",
+      label:balanceUpdateMode==="bank"?"Synchronisation bancaire":"Ajustement manuel du solde",
+      amount:Math.abs(diff),
+      date:today(),
+      category:"Ajustement",
+      accountId:account.id,
+      toAccountId:null,
+      adjustment:true
+    };
+    data.operations.push(op);
+    applyOperation(op,1);
+    save();
+    closeBalanceModal();
+    toast(balanceUpdateMode==="bank"?"Solde synchronisé":"Solde modifié");
   }
 
   function renderAccounts(){
@@ -1105,25 +1079,6 @@
   }
 
   document.addEventListener("click",e=>{
-    const paidButton=e.target.closest("[data-agenda-paid]");
-    if(paidButton){
-      markRulePaid(paidButton.dataset.agendaPaid,paidButton.dataset.agendaDate);
-      return;
-    }
-    const postponeButton=e.target.closest("[data-agenda-postpone]");
-    if(postponeButton){
-      postponeRule(postponeButton.dataset.agendaPostpone);
-      return;
-    }
-    const agendaFilterButton=e.target.closest("[data-agenda-filter]");
-    if(agendaFilterButton){
-      agendaFilter=agendaFilterButton.dataset.agendaFilter;
-      document.querySelectorAll("[data-agenda-filter]").forEach(button=>
-        button.classList.toggle("active",button===agendaFilterButton)
-      );
-      renderAgenda();
-      return;
-    }
     const quickTemplate=e.target.closest("[data-template-label]");
     if(quickTemplate){
       const template=findTemplate(quickTemplate.dataset.templateLabel);
@@ -1234,6 +1189,14 @@
     }
   });
 
+
+
+  $("editBalanceBtn").addEventListener("click",()=>openBalanceModal("manual"));
+  $("syncBankBtn").addEventListener("click",()=>openBalanceModal("bank"));
+  $("closeBalanceModalBtn").addEventListener("click",closeBalanceModal);
+  $("newBalanceInput").addEventListener("input",updateBalancePreview);
+  $("confirmBalanceBtn").addEventListener("click",confirmBalanceUpdate);
+  document.addEventListener("click",e=>{if(e.target.closest("[data-close-balance]"))closeBalanceModal();});
 
   $("dateInput").value=today();
   materializeRecurring();
