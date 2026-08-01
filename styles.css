@@ -381,3 +381,38 @@ body{
   color:var(--text);
   line-height:1.45;
 }
+
+
+/* Mon Budget 2.0 Final */
+.topbar small#saveState{
+  color:rgba(255,255,255,.94);
+  font-weight:650;
+}
+.hero strong{
+  font-variant-numeric:tabular-nums;
+}
+.alert-row > b:last-child{
+  font-weight:900 !important;
+  letter-spacing:-.02em;
+}
+.card,.hero,.status-card{
+  transition:transform .18s ease,box-shadow .18s ease;
+}
+.card:active,.status-card:active{
+  transform:scale(.997);
+}
+.screen.active{
+  animation:screenFade .18s ease both;
+}
+@keyframes screenFade{
+  from{opacity:.72;transform:translateY(3px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+    scroll-behavior:auto !important;
+  }
+}

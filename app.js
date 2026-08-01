@@ -36,6 +36,29 @@
 
   const $ = id => document.getElementById(id);
   const euro = value => new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR"}).format(Number(value||0));
+  function animateNumber(id,value){
+    const element=$(id);
+    if(!element)return;
+    const end=Number(value||0);
+    const start=Number(element.dataset.value||0);
+    const duration=240;
+    const begin=performance.now();
+
+    function frame(now){
+      const progress=Math.min(1,(now-begin)/duration);
+      const eased=1-Math.pow(1-progress,3);
+      const current=start+(end-start)*eased;
+      element.textContent=euro(current);
+      if(progress<1){
+        requestAnimationFrame(frame);
+      }else{
+        element.textContent=euro(end);
+        element.dataset.value=String(end);
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
   const today = () => new Date().toISOString().slice(0,10);
   const monthKey = date => String(date).slice(0,7);
   const money = value => Number(String(value||"").replace(/\s/g,"").replace(",", ".")) || 0;
@@ -446,7 +469,7 @@
     const now=new Date();
     $("monthLabel").textContent=`Budget familial · ${now.toLocaleDateString("fr-FR",{month:"long",year:"numeric"})}`;
     $("monthBadge").textContent=now.toLocaleDateString("fr-FR",{month:"long"});
-    $("availableValue").textContent=euro(available());
+    animateNumber("availableValue",available());
     $("forecastValue").textContent=`Fin de mois estimée : ${euro(forecast())}`;
     $("weekIncome").textContent=remainingIncome()?`${euro(remainingIncome())} attendus ce mois-ci`:"Aucun revenu attendu ce mois-ci";
     $("dailyBudgetValue").textContent=`${euro(dailyBudget())} aujourd’hui`;
@@ -474,7 +497,9 @@
     `).join(""):"<p>Aucune alerte dans les 3 prochains jours.</p>";
     const upcoming=futureRules().slice(0,5);
     $("upcomingList").innerHTML=upcoming.length?upcoming.map(r=>`<div class="list-row"><div><b>${r.type==="income"?"💰":"🧾"} ${r.label}</b><small>${new Date(r.date+"T12:00:00").toLocaleDateString("fr-FR")}</small></div><b class="${r.type==="income"?"positive":"negative"}">${r.type==="income"?"+":"-"}${euro(r.amount)}</b></div>`).join(""):"<p>Aucune échéance à venir.</p>";
-    $("saveState").textContent=data.lastSavedAt?`Dernière sauvegarde : ${new Date(data.lastSavedAt).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}`:"Données enregistrées localement";
+    $("saveState").textContent=data.lastSavedAt
+      ? `🟢 Sauvegardé automatiquement à ${new Date(data.lastSavedAt).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}`
+      : "🟢 Sauvegarde automatique active";
   }
 
   function populateAccounts(){
@@ -564,7 +589,20 @@
 
   const renderOperationsDebounced=debounce(renderOperations,100);
 
-  function renderAll(){renderHome();renderOperations();renderAgenda();renderAccounts();renderStats();renderSettings()}
+  let renderScheduled=false;
+  function renderAll(){
+    if(renderScheduled)return;
+    renderScheduled=true;
+    requestAnimationFrame(()=>{
+      renderScheduled=false;
+      renderHome();
+      renderOperations();
+      renderAgenda();
+      renderAccounts();
+      renderStats();
+      renderSettings();
+    });
+  }
   function setType(type){
     operationType=type;
     document.querySelectorAll("[data-op-type]").forEach(b=>b.classList.toggle("active",b.dataset.opType===type));
