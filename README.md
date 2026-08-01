@@ -1,12 +1,12 @@
-# Mon Budget Essentiel 1.0
+# Mon Budget Essentiel V2.0
 
-Application simple pour iPhone :
-- solde du compte ;
-- dépenses et revenus ;
-- carte à débit différé, débit prévu le 4 ;
-- revenus fixes ;
-- prélèvements fixes ;
-- agenda ;
-- sauvegarde locale.
+Nouveautés :
+- simulateur avant achat ;
+- alerte simple selon la fin de mois ;
+- écran Comptes ;
+- modification et suppression des opérations ;
+- prévision de fin de mois ;
+- budget du jour recalculé ;
+- CB différée conservée avec débit prévu le 4.
 
-Pour GitHub Pages, remplace tout le contenu du dépôt par les fichiers de cette archive.
+Remplace tout le contenu du dépôt GitHub par les fichiers de cette archive.
