@@ -173,10 +173,55 @@
 
   function showToast(text){
     const toast = $("toast");
+    if(!toast || !text) return;
     toast.textContent = text;
     toast.classList.add("show");
     clearTimeout(window.__toastTimer);
-    window.__toastTimer = setTimeout(()=>toast.classList.remove("show"),1800);
+    window.__toastTimer = setTimeout(()=>{
+      toast.classList.remove("show");
+      toast.textContent = "";
+    },1800);
+  }
+
+
+  function monthProgress(){
+    const now = new Date();
+    return Math.min(100, Math.round((now.getDate()/daysInMonth())*100));
+  }
+
+  function buildAlerts(){
+    const list = [];
+    const now = today();
+
+    futureRules().forEach(item=>{
+      const diff = Math.round((new Date(item.date+"T12:00:00") - new Date(now+"T12:00:00"))/86400000);
+      if(diff >= 0 && diff <= 3){
+        list.push({
+          icon:item.type==="income"?"💰":"🔔",
+          title:item.label,
+          subtitle:diff===0?"Aujourd’hui":diff===1?"Demain":`Dans ${diff} jours`,
+          amount:item.amount,
+          type:item.type
+        });
+      }
+    });
+
+    const progress = monthProgress();
+    const expense = monthExpense();
+    const income = monthIncome() + remainingIncome();
+    const spendRatio = income > 0 ? Math.round((expense/income)*100) : 0;
+
+    if(spendRatio > progress + 15){
+      list.push({
+        icon:"⚠️",
+        title:"Dépenses élevées",
+        subtitle:`${spendRatio} % du budget consommé`,
+        amount:0,
+        type:"warning"
+      });
+    }
+
+    return list.slice(0,4);
   }
 
   function renderHome(){
@@ -205,6 +250,38 @@
     $("saveState").textContent = data.lastSavedAt
       ? `Dernière sauvegarde : ${new Date(data.lastSavedAt).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}`
       : "Données enregistrées localement";
+
+    const progress = monthProgress();
+    $("monthProgressText").textContent = progress + " %";
+    $("monthProgressBar").style.width = progress + "%";
+
+    const expense = monthExpense();
+    const income = monthIncome() + remainingIncome();
+    const spendRatio = income > 0 ? Math.round((expense/income)*100) : 0;
+
+    $("monthProgressAdvice").textContent =
+      spendRatio > progress + 15
+        ? "Vos dépenses avancent plus vite que le mois. Ralentissez les achats non essentiels."
+        : spendRatio < progress - 15
+          ? "Vous êtes en avance sur votre budget. Bonne marge pour la fin du mois."
+          : "Votre rythme de dépenses suit correctement l’avancement du mois.";
+
+    const alerts = buildAlerts();
+    $("alertsCount").textContent = alerts.length;
+    $("alertsList").innerHTML = alerts.length
+      ? alerts.map(alert => `
+        <div class="alert-row">
+          <span class="alert-icon">${alert.icon}</span>
+          <div>
+            <b>${alert.title}</b>
+            <small>${alert.subtitle}</small>
+          </div>
+          <b class="${alert.type==="income"?"amount-green":alert.type==="expense"?"amount-red":""}">
+            ${alert.amount ? (alert.type==="income"?"+":"-") + euro(alert.amount) : ""}
+          </b>
+        </div>
+      `).join("")
+      : "<p>Aucune alerte importante pour les 3 prochains jours.</p>";
   }
 
   function renderOperations(){

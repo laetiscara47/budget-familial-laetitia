@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#1768e8">
-  <title>Mon Budget V8 Foundation</title>
-  <link rel="manifest" href="manifest.webmanifest?v=8.0.0">
-  <link rel="stylesheet" href="styles.css?v=8.0.0">
+  <title>Mon Budget V8.1 Stable</title>
+  <link rel="manifest" href="manifest.webmanifest?v=8.1.0">
+  <link rel="stylesheet" href="styles.css?v=8.1.0">
 </head>
 <body>
   <header class="topbar">
@@ -37,6 +37,25 @@
           <small>Budget du jour</small>
           <b id="dailyBudgetValue">0,00 €</b>
         </div>
+      </article>
+
+      <article class="card month-progress-card">
+        <div class="section-head">
+          <h2>Avancement du mois</h2>
+          <span id="monthProgressText">0 %</span>
+        </div>
+        <div class="progress-track">
+          <i id="monthProgressBar"></i>
+        </div>
+        <p id="monthProgressAdvice" class="progress-advice"></p>
+      </article>
+
+      <article class="card alerts-card">
+        <div class="section-head">
+          <h2>À surveiller</h2>
+          <span id="alertsCount">0</span>
+        </div>
+        <div id="alertsList"></div>
       </article>
 
       <article class="card">
@@ -176,6 +195,6 @@
   </nav>
 
   <div id="toast" class="toast"></div>
-  <script src="app.js?v=8.0.0"></script>
+  <script src="app.js?v=8.1.0"></script>
 </body>
 </html>

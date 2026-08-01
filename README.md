@@ -1,13 +1,11 @@
-# Mon Budget V8 Foundation
+# Mon Budget V8.1 Stable
 
-Reconstruction complète et propre.
+Améliorations :
+- correction définitive de la barre noire ;
+- jauge d’avancement du mois ;
+- comparaison entre temps écoulé et budget consommé ;
+- alertes sur les échéances des 3 prochains jours ;
+- alerte si les dépenses avancent trop vite ;
+- toutes les fonctions de la V8 Foundation conservées.
 
-- Navigation réécrite et testée.
-- Données séparées de l’interface.
-- Récupération automatique des anciennes versions.
-- Sauvegarde locale de secours.
-- Aucun bouton manquant ne peut arrêter toute l’application.
-- Accueil, Ajouter, Opérations, Agenda, Comptes, Mois et Réglages.
-- Compatible Safari iPhone et GitHub Pages.
-
-Pour GitHub, remplacez tous les fichiers du dépôt par ceux de cette archive.
+Pour GitHub, remplacez tous les fichiers du dépôt avec ceux de cette archive.
