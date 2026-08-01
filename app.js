@@ -166,6 +166,52 @@ function nextRecurring(){
 }
 
 
+
+function weekExpectedIncome(){
+  const limit=new Date(today()+'T12:00:00');
+  limit.setDate(limit.getDate()+7);
+  return allEvents()
+    .filter(x=>x.kind==='income'&&x.date>=today()&&new Date(x.date+'T12:00:00')<=limit)
+    .reduce((sum,x)=>sum+Number(x.signed||0),0);
+}
+function showToast(title,text=''){
+  const toast=document.querySelector('#toast');
+  document.querySelector('#toastTitle').textContent=title;
+  document.querySelector('#toastText').textContent=text;
+  toast.classList.add('show');
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer=setTimeout(()=>toast.classList.remove('show'),2200);
+}
+function openModal(type){
+  const modal=document.querySelector('#appModal');
+  const title=document.querySelector('#modalTitle');
+  const content=document.querySelector('#modalContent');
+
+  if(type==='card'){
+    title.textContent='Détail CB différée';
+    const items=data.operations.filter(x=>x.type==='expense'&&x.payment==='deferred'&&!x.cardDebited);
+    content.innerHTML=`<div class="modal-summary"><span>Débit prévu</span><b>Le ${data.cardDebitDay}</b></div>
+      <div class="modal-summary"><span>Montant total</span><b class="negative">${euro(cardPending())}</b></div>
+      <h3>Paiements inclus</h3>
+      ${items.length?items.map(op=>`<div class="modal-row"><span>${esc(op.label)}</span><b>${euro(op.amount)}</b></div>`).join(''):'<p class="muted-note">Aucun paiement en attente.</p>'}`;
+  }else if(type==='income'){
+    title.textContent='Prochains revenus';
+    const items=allEvents().filter(x=>x.kind==='income'&&x.date>=today()).slice(0,6);
+    content.innerHTML=items.length?items.map(x=>`<div class="modal-row"><div><b>${esc(x.label)}</b><small>${new Date(x.date+'T12:00:00').toLocaleDateString('fr-FR')}</small></div><b class="positive">+${euro(x.signed)}</b></div>`).join(''):'<p>Aucun revenu prévu.</p>';
+  }else{
+    title.textContent='Prochains prélèvements';
+    const items=allEvents().filter(x=>['charge','card'].includes(x.kind)&&x.date>=today()).slice(0,6);
+    content.innerHTML=items.length?items.map(x=>`<div class="modal-row"><div><b>${esc(x.label)}</b><small>${new Date(x.date+'T12:00:00').toLocaleDateString('fr-FR')}</small></div><b class="negative">${euro(x.signed)}</b></div>`).join(''):'<p>Aucun prélèvement prévu.</p>';
+  }
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden','false');
+}
+function closeModal(){
+  const modal=document.querySelector('#appModal');
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden','true');
+}
+
 function daysUntilDate(dateString){
   const start=new Date(today()+'T12:00:00');
   const end=new Date(dateString+'T12:00:00');
@@ -224,6 +270,10 @@ function drawEvents(selector,items,limit){
 }
 function renderHome(){
   document.querySelector('#homeAvailable').textContent=euro(available());
+  const hour=new Date().getHours();
+  document.querySelector('#greetingTitle').textContent=`${hour<12?'Bonjour':hour<18?'Bon après-midi':'Bonsoir'} Laetitia 👋`;
+  document.querySelector('#greetingSubtitle').textContent='Voici votre situation financière';
+  document.querySelector('#weekExpected').textContent=weekExpectedIncome()>0?`↗ ${euro(weekExpectedIncome())} attendus cette semaine`:'Aucun revenu attendu cette semaine';
   document.querySelector('#homeForecast').textContent=`Fin de mois estimée : ${euro(forecast())}`;
   document.querySelector('#homeCard').textContent=euro(cardPending());
   document.querySelector('#homeCardDay').textContent=data.cardDebitDay;
@@ -250,6 +300,7 @@ function renderHome(){
   document.querySelector('#statusDotTop').style.background=statusColor;
   drawEvents('#homeUpcoming',allEvents().filter(x=>x.date>=today()),5);
   renderDashboardAlerts();
+  document.querySelector('#homeAssistantText').textContent=buildSmartAdvice();
 }
 function renderAgenda(){
   const filter=document.querySelector('#agendaFilter').value;
@@ -482,6 +533,7 @@ document.querySelector('#saveOperation').onclick=()=>{
   document.querySelector('#autoHint').textContent='La catégorie sera proposée automatiquement.';
   document.querySelector('#saveMessage').textContent='Opération enregistrée.';
   save();
+  showToast('Opération enregistrée',`${label} · ${euro(amount)}`);
   setTimeout(()=>setTab('home'),350)
 };
 
@@ -545,6 +597,10 @@ document.querySelector('#importData').onchange=async e=>{
 document.querySelector('#resetData').onclick=()=>{if(confirm('Tout effacer et repartir de zéro ?')){data=structuredClone(defaults);save()}};
 
 document.querySelector('#quickAdd').onclick=()=>setTab('add');
+document.querySelector('#quickIncomeAction').onclick=()=>{
+  setType('income');
+  setTab('add');
+};
 
 function restoreOperationToBalance(op){
   if(op.type==='income')data.balance=Number((data.balance-op.amount).toFixed(2));
@@ -595,6 +651,11 @@ document.querySelector('#operationsMonth').addEventListener('change',renderOpera
 document.querySelector('#operationsCategory').addEventListener('change',renderOperations);
 document.querySelector('#operationsPayment').addEventListener('change',renderOperations);
 document.querySelector('#operationsSort').addEventListener('change',renderOperations);
+document.addEventListener('click',e=>{
+  const opener=e.target.closest('[data-open-modal]');
+  if(opener){openModal(opener.dataset.openModal);return}
+  if(e.target.closest('[data-close-modal]'))closeModal();
+});
 
 
 document.querySelector('#checkRecurringNow').onclick=()=>{
@@ -654,6 +715,7 @@ document.querySelector('#quickSave').onclick=()=>{
   document.querySelector('#quickSuggestion').textContent='Écrivez le nom puis le montant.';
   message.textContent='Opération enregistrée.';
   save();
+  showToast('Opération enregistrée',`${parsed.label} · ${euro(parsed.amount)}`);
   setTimeout(()=>{message.textContent=''},1200);
 };
 

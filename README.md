@@ -1,10 +1,13 @@
-# Mon Budget Essentiel V6.5
+# Mon Budget Essentiel V7.0
 
-Améliorations ciblées :
-- alertes utiles sur l'accueil ;
-- saisie express en une seule ligne : « Carrefour 42,35 » ;
-- vue détaillée des comptes et du patrimoine ;
-- filtres avancés des opérations par mois, catégorie, compte et ordre ;
-- toutes les fonctions de la V6.0 conservées.
+Nouveautés :
+- accueil personnalisé « Bonjour Laetitia » ;
+- revenus attendus cette semaine ;
+- raccourcis Dépense, Revenu, Agenda et Stats ;
+- cartes CB, revenu et prélèvement cliquables ;
+- détail de la CB différée dans une fenêtre ;
+- assistant budget sur l’accueil ;
+- confirmation visuelle après ajout ;
+- toutes les fonctions stables de la V6.5 conservées.
 
 Pour GitHub Pages, remplacez les fichiers du dépôt avec ceux de cette archive.
