@@ -1,7 +1,7 @@
 {
-  "name": "Mon Budget V10 Stable",
+  "name": "Mon Budget V10.1 Final",
   "short_name": "Mon Budget",
-  "start_url": "./?v=10.0.0",
+  "start_url": "./?v=10.1.0",
   "display": "standalone",
   "background_color": "#f4f7fc",
   "theme_color": "#1768e8",

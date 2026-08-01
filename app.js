@@ -197,10 +197,18 @@
   }
 
   function showScreen(id){
-    const target=$(id); if(!target)return;
-    document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("active",s===target));
-    document.querySelectorAll("[data-screen]").forEach(b=>b.classList.toggle("active",b.dataset.screen===id));
-    window.scrollTo({top:0,behavior:"smooth"});
+    const target=$(id);
+    if(!target)return;
+    document.querySelectorAll(".screen").forEach(
+      screen=>screen.classList.toggle("active",screen===target)
+    );
+    document.querySelectorAll("[data-screen]").forEach(button=>{
+      const selected=button.dataset.screen===id;
+      button.classList.toggle("active",selected);
+      if(selected)button.setAttribute("aria-current","page");
+      else button.removeAttribute("aria-current");
+    });
+    requestAnimationFrame(()=>window.scrollTo({top:0,behavior:"smooth"}));
   }
   function toast(text){
     const el=$("toast"); if(!el||!text)return;

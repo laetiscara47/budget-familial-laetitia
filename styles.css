@@ -91,3 +91,89 @@ main{
   .account-name b{font-size:17px}
   .account-amount{font-size:18px}
 }
+
+/* V10.1 — finition finale iPhone */
+html{
+  scroll-padding-bottom:calc(190px + env(safe-area-inset-bottom));
+  -webkit-text-size-adjust:100%;
+}
+body{
+  min-height:100dvh;
+  padding-bottom:calc(190px + env(safe-area-inset-bottom));
+  overscroll-behavior-y:none;
+}
+main{
+  padding:18px 16px calc(210px + env(safe-area-inset-bottom));
+}
+.screen{
+  padding-bottom:28px;
+}
+.screen > :last-child{
+  margin-bottom:30px;
+}
+.hero,.card,.status-card{
+  box-shadow:0 8px 22px rgba(35,61,110,.075);
+}
+.bottom-nav{
+  background:#fff;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  min-height:72px;
+  padding:8px 5px calc(10px + env(safe-area-inset-bottom));
+  box-shadow:0 -7px 22px rgba(20,38,75,.11);
+  isolation:isolate;
+}
+.dark .bottom-nav{
+  background:#151c28;
+}
+.bottom-nav button{
+  min-width:0;
+  min-height:54px;
+  padding:6px 1px;
+  border-radius:12px;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+.bottom-nav button:active{
+  background:rgba(23,104,232,.08);
+  transform:scale(.97);
+}
+.bottom-nav button.active{
+  background:rgba(23,104,232,.07);
+}
+.bottom-nav span{
+  font-size:24px;
+  line-height:1;
+}
+.bottom-nav small{
+  font-size:10px;
+  line-height:1.05;
+  font-weight:650;
+  white-space:nowrap;
+}
+.card h2{
+  line-height:1.18;
+}
+input,select,.primary,.secondary,.link-btn{
+  touch-action:manipulation;
+}
+.toast{
+  bottom:calc(96px + env(safe-area-inset-bottom));
+}
+@media(max-width:430px){
+  body{
+    padding-bottom:calc(200px + env(safe-area-inset-bottom));
+  }
+  main{
+    padding-bottom:calc(220px + env(safe-area-inset-bottom));
+  }
+  .bottom-nav{
+    min-height:74px;
+  }
+  .bottom-nav span{
+    font-size:23px;
+  }
+  .bottom-nav small{
+    font-size:9px;
+  }
+}

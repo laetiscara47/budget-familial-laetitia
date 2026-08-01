@@ -1,5 +1,5 @@
-const CACHE="mon-budget-v10-1";
-const ASSETS=["./","./index.html","./styles.css?v=10.0.0","./app.js?v=10.0.0","./manifest.webmanifest?v=10.0.0","./icon.svg"];
+const CACHE="mon-budget-v10-1-final";
+const ASSETS=["./","./index.html","./styles.css?v=10.1.0","./app.js?v=10.1.0","./manifest.webmanifest?v=10.1.0","./icon.svg"];
 self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS))));
 self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))));
 self.addEventListener("fetch",event=>event.respondWith(caches.match(event.request).then(cached=>cached||fetch(event.request).then(response=>{const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy));return response}).catch(()=>caches.match("./index.html")))));
