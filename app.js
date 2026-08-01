@@ -682,201 +682,109 @@
   }
 
 
-  function dueInDays(date){
-    const start=new Date(`${today()}T12:00:00`);
-    const target=new Date(`${date}T12:00:00`);
-    return Math.round((target-start)/86400000);
-  }
+  let editingAccountId=null;
 
-  function nextDueItem(){
-    const upcoming=futureRules()
-      .filter(rule=>rule.date>=today())
-      .sort((a,b)=>a.date.localeCompare(b.date));
-    return upcoming[0]||null;
-  }
-
-  function overdueRules(){
-    const currentDay=new Date().getDate();
-    return data.rules
-      .filter(rule=>rule.active!==false)
-      .map(rule=>({...rule,date:ruleDate(rule.day)}))
-      .filter(rule=>{
-        if(rule.date>=today())return false;
-        const key=`${rule.id}:${monthKey(today())}`;
-        return !data.operations.some(operation=>operation.recurringKey===key);
-      })
-      .sort((a,b)=>a.date.localeCompare(b.date));
-  }
-
-  function riskLevel(){
-    const amount=forecast();
-    const daily=dailyBudget();
-    const late=overdueRules().length;
-    if(amount<0)return {label:"Risque élevé",className:"danger"};
-    if(late>0)return {label:"À vérifier",className:"warning"};
-    if(daily<20)return {label:"Prudence",className:"warning"};
-    return {label:"Stable",className:"success"};
-  }
-
-  function todayAdviceText(){
-    const next=nextDueItem();
-    const late=overdueRules();
-
-    if(forecast()<0){
-      return "La fin de mois estimée est négative. Évitez les dépenses non indispensables.";
-    }
-    if(late.length){
-      return `${late.length} échéance(s) semblent en retard ou non enregistrée(s).`;
-    }
-    if(next){
-      const difference=dueInDays(next.date);
-      const when=difference===0
-        ? "aujourd’hui"
-        : difference===1
-          ? "demain"
-          : `dans ${difference} jours`;
-      return `${next.label} de ${euro(next.amount)} est prévu ${when}.`;
-    }
-    return "Aucune échéance urgente détectée.";
-  }
-
-
-  const SIMPLE_FAVORITES={
-    "Carrefour":{type:"expense",category:"Alimentation"},
-    "Orange":{type:"expense",category:"Téléphone"},
-    "Eau de Garonne":{type:"expense",category:"Maison"},
-    "Ergo":{type:"expense",category:"Santé"},
-    "Vinted":{type:"income",category:"Ventes"}
-  };
-
-  function applySimpleFavorite(name){
-    const favorite=SIMPLE_FAVORITES[name];
-    if(!favorite)return;
-
-    setType(favorite.type);
-    $("labelInput").value=name;
-    $("categoryInput").value=favorite.category;
-
-    const primary=data.accounts.find(account=>account.type==="current")||data.accounts[0];
-    if(primary)$("accountInput").value=primary.id;
-
-    $("amountInput").value="";
-    $("templateHint").textContent="Favori appliqué. Saisissez le montant.";
-    $("amountInput").focus();
-  }
-
-
-  function parseSmartEntry(text){
+  function parseQuickEntry(text){
     const raw=String(text||"").trim();
     if(!raw)return null;
 
+    const amountMatch=raw.match(/(\d+(?:[.,]\d{1,2})?)\s*(?:€|euros?)?/i);
+    const amount=amountMatch?money(amountMatch[1]):0;
+
+    let label=raw;
+    if(amountMatch){
+      label=raw.replace(amountMatch[0],"").trim();
+    }
+    label=label.replace(/^(j['’]ai\s+)?(pay[eé]|re[cç]u|vendu|achet[eé])\s*/i,"").trim();
+    label=label.replace(/^(chez|de|pour)\s+/i,"").trim();
+
     const normalized=normalizedText(raw);
-    const amountMatch=raw.match(/(\d+(?:[.,]\d{1,2})?)\s*(?:€|euros?)/i)
-      || raw.match(/(?:^|\s)(\d+(?:[.,]\d{1,2})?)(?:\s|$)/);
-
-    const amount=amountMatch ? money(amountMatch[1]) : 0;
-
     let type="expense";
-    if(/recu|reçu|salaire|caf|remboursement|vente|vendu|vinted|revenu|versement/.test(normalized)){
+    if(/salaire|caf|revenu|recu|reçu|vente|vendu|vinted|remboursement/.test(normalized)){
       type="income";
     }
-    if(/paye|payé|achete|acheté|depense|dépense|preleve|prélevé|facture|courses/.test(normalized)){
-      type="expense";
-    }
 
-    let label=raw
-      .replace(/j['’]ai\s+(pay[eé]|re[cç]u|vendu|achet[eé])\s*/i,"")
-      .replace(/(\d+(?:[.,]\d{1,2})?)\s*(?:€|euros?)/i,"")
-      .replace(/\b(chez|de|pour|sur)\b\s*/i,"")
-      .replace(/\s+/g," ")
-      .trim();
-
-    if(!label){
-      label=type==="income"?"Revenu":"Dépense";
-    }
-
-    const knownLabels=[
-      "Carrefour","Orange","Eau de Garonne","Ergo","Vinted",
-      "CAF","Salaire","Assurance","Essence","Courses",
-      "Loyer","Crédit","Mutuelle","Cantine","Tennis"
-    ];
-    const found=knownLabels.find(item=>normalized.includes(normalizedText(item)));
+    const known=["Carrefour","Orange","Eau de Garonne","Ergo","Vinted","Salaire","CAF","Essence","Courses"];
+    const found=known.find(item=>normalized.includes(normalizedText(item)));
     if(found)label=found;
+    if(!label)label=type==="income"?"Revenu":"Dépense";
 
     return {
-      type,
       amount,
       label,
-      category:smartCategoryFromText(label),
-      accountId:currentAccount().id
+      type,
+      category:smartCategoryFromText(label)
     };
   }
 
-  function applySmartEntry(){
-    const parsed=parseSmartEntry($("smartEntryInput").value);
-    const message=$("smartEntryMessage");
-
+  function applyQuickEntry(){
+    const parsed=parseQuickEntry($("quickEntryInput").value);
     if(!parsed){
-      message.textContent="Écrivez une opération avant de continuer.";
+      $("quickEntryMessage").textContent="Écrivez une opération.";
       return;
     }
-
     setType(parsed.type);
     $("labelInput").value=parsed.label;
     $("categoryInput").value=parsed.category;
-    $("accountInput").value=parsed.accountId;
-
-    if(parsed.amount>0){
-      $("amountInput").value=String(parsed.amount).replace(".",",");
-      message.textContent=`Prêt : ${parsed.type==="income"?"revenu":"dépense"} de ${euro(parsed.amount)} — ${parsed.label}.`;
-    }else{
-      $("amountInput").value="";
-      message.textContent=`Libellé reconnu : ${parsed.label}. Ajoutez le montant.`;
-      $("amountInput").focus();
-    }
-
-    $("templateHint").textContent="Opération préparée par l’assistant. Vérifiez puis enregistrez.";
+    $("amountInput").value=parsed.amount>0?String(parsed.amount).replace(".",","):"";
+    $("quickEntryMessage").textContent=parsed.amount>0
+      ? `Prêt : ${parsed.label} · ${euro(parsed.amount)}`
+      : `Libellé reconnu : ${parsed.label}. Ajoutez le montant.`;
+    if(parsed.amount<=0)$("amountInput").focus();
   }
 
-
-  function familyTodayItems(){
-    return futureRules().filter(rule=>rule.date===today());
+  function openAccountEditor(accountId){
+    const account=data.accounts.find(item=>item.id===accountId);
+    if(!account)return;
+    editingAccountId=accountId;
+    $("editAccountName").value=account.name;
+    $("editAccountBalance").value=String(Number(account.balance||0).toFixed(2)).replace(".",",");
+    $("accountModalMessage").textContent="";
+    $("accountModal").classList.add("open");
+    $("accountModal").setAttribute("aria-hidden","false");
   }
 
-  function familyNextRule(){
-    return futureRules()
-      .filter(rule=>rule.date>=today())
-      .sort((a,b)=>a.date.localeCompare(b.date))[0]||null;
+  function closeAccountEditor(){
+    $("accountModal").classList.remove("open");
+    $("accountModal").setAttribute("aria-hidden","true");
+    editingAccountId=null;
   }
 
-  function familyExpectedIncome(){
-    return futureRules()
-      .filter(rule=>rule.type==="income")
-      .reduce((sum,rule)=>sum+Number(rule.amount||0),0);
-  }
+  function saveAccountChanges(){
+    const account=data.accounts.find(item=>item.id===editingAccountId);
+    if(!account)return;
 
-  function familySummaryAdvice(){
-    const todayItems=familyTodayItems();
-    const next=familyNextRule();
-    const daily=dailyBudget();
+    const name=$("editAccountName").value.trim();
+    const newBalance=money($("editAccountBalance").value);
 
-    if(forecast()<0){
-      return "Attention : la fin de mois estimée est négative.";
+    if(!name){
+      $("accountModalMessage").textContent="Le nom est obligatoire.";
+      return;
     }
-    if(todayItems.length){
-      const total=todayItems.reduce((sum,item)=>sum+Number(item.amount||0),0);
-      return `${todayItems.length} échéance(s) aujourd’hui pour ${euro(total)}.`;
+
+    const oldBalance=Number(account.balance||0);
+    const difference=Math.round((newBalance-oldBalance)*100)/100;
+
+    account.name=name;
+    if(difference!==0){
+      const adjustment={
+        id:uid(),
+        type:difference>0?"income":"expense",
+        label:"Ajustement du solde",
+        amount:Math.abs(difference),
+        date:today(),
+        category:"Ajustement",
+        accountId:account.id,
+        toAccountId:null,
+        adjustment:true
+      };
+      data.operations.push(adjustment);
+      applyOperation(adjustment,1);
     }
-    if(next){
-      const diff=dueInDays(next.date);
-      if(diff<=3){
-        return `${next.label} arrive ${diff===0?"aujourd’hui":diff===1?"demain":`dans ${diff} jours`}.`;
-      }
-    }
-    if(daily<20){
-      return "Restez prudente : le budget conseillé par jour est assez bas.";
-    }
-    return "Aucune urgence détectée pour aujourd’hui.";
+
+    save();
+    closeAccountEditor();
+    toast("Compte mis à jour");
   }
 
   function renderHome(){
@@ -887,52 +795,6 @@
     $("forecastValue").textContent=`Fin de mois estimée : ${euro(forecast())}`;
     $("weekIncome").textContent=remainingIncome()?`${euro(remainingIncome())} attendus ce mois-ci`:"Aucun revenu attendu ce mois-ci";
     $("dailyBudgetValue").textContent=`${euro(dailyBudget())} aujourd’hui`;
-
-    $("todayAvailable").textContent=euro(available());
-    $("todayBudget").textContent=euro(dailyBudget());
-    $("todayDaysLeft").textContent=Math.max(0,daysLeft()-1);
-
-    const nextDue=nextDueItem();
-    if(nextDue){
-      const difference=dueInDays(nextDue.date);
-      const when=difference===0
-        ? "aujourd’hui"
-        : difference===1
-          ? "demain"
-          : `dans ${difference} j`;
-      $("todayNextDue").textContent=`${nextDue.label} · ${when}`;
-    }else{
-      $("todayNextDue").textContent="Aucune";
-    }
-
-    const risk=riskLevel();
-    $("todayRiskBadge").textContent=risk.label;
-    $("todayRiskBadge").className=`badge risk-${risk.className}`;
-    $("todayAdvice").textContent=todayAdviceText();
-
-    const todayItems=familyTodayItems();
-    const todayTotal=todayItems.reduce((sum,item)=>sum+Number(item.amount||0),0);
-    $("familyTodayDue").textContent=todayItems.length
-      ? `${todayItems.length} · ${euro(todayTotal)}`
-      : "Rien";
-
-    const nextFamily=familyNextRule();
-    if(nextFamily){
-      const diff=dueInDays(nextFamily.date);
-      const when=diff===0?"Aujourd’hui":diff===1?"Demain":`Dans ${diff} jours`;
-      $("familyNextDue").textContent=`${nextFamily.label} · ${when}`;
-    }else{
-      $("familyNextDue").textContent="Aucune";
-    }
-
-    $("familyExpectedIncome").textContent=euro(familyExpectedIncome());
-    $("familyDailyLeft").textContent=euro(dailyBudget());
-
-    const familyRisk=riskLevel();
-    $("familyStatusBadge").textContent=familyRisk.label;
-    $("familyStatusBadge").className=`badge risk-${familyRisk.className}`;
-    $("familyAdvice").textContent=familySummaryAdvice();
-
     $("monthIncome").textContent=euro(monthIncome());
     $("monthExpense").textContent=euro(monthExpense());
     $("remainingCharges").textContent=euro(remainingCharges());
@@ -940,19 +802,17 @@
     $("operationsCount").textContent=monthOps().length;
     $("monthProgress").textContent=`${Math.round((new Date().getDate()/daysInMonth())*100)} %`;
     const st=budgetAssistant(); $("statusTitle").textContent=st.title;$("statusText").textContent=st.text;$("statusDot").style.background=st.color;
-    const lateAlerts=overdueRules().map(rule=>({...rule,overdue:true}));
-    const futureAlerts=futureRules().filter(rule=>{
-      const diff=dueInDays(rule.date);
+    const alerts=futureRules().filter(r=>{
+      const diff=Math.round((new Date(r.date+"T12:00:00")-new Date(today()+"T12:00:00"))/86400000);
       return diff>=0&&diff<=3;
-    });
-    const alerts=[...lateAlerts,...futureAlerts].slice(0,4);
+    }).slice(0,4);
     $("alertsCount").textContent=alerts.length;
     $("alertsList").innerHTML=alerts.length?alerts.map(r=>`
       <div class="alert-row">
         <span class="alert-icon">${r.type==="income"?"💰":"🔔"}</span>
         <div class="alert-main">
           <b>${r.label}</b>
-          <small>${r.overdue?"En retard · ":""}${new Date(r.date+"T12:00:00").toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"})}</small>
+          <small>${new Date(r.date+"T12:00:00").toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"})}</small>
         </div>
         <b class="${r.type==="income"?"positive":"negative"}">${r.type==="income"?"+":"-"}${euro(r.amount)}</b>
       </div>
@@ -1012,7 +872,7 @@
 
   function renderAccounts(){
     populateAccounts();
-    $("accountsList").innerHTML=data.accounts.map(a=>`<div class="account-row"><div class="account-chip"><span class="account-icon">${a.icon||"💳"}</span><div class="account-name"><b>${a.name}</b><small>${accountTypeLabel(a.type)}</small></div></div><b class="account-amount ${Number(a.balance)<0?"negative":""}">${euro(a.balance)}</b></div>`).join("");
+    $("accountsList").innerHTML=data.accounts.map(a=>`<button type="button" class="account-row account-edit-row" data-account-id="${a.id}"><div class="account-chip"><span class="account-icon">${a.icon||"💳"}</span><div class="account-name"><b>${a.name}</b><small>${accountTypeLabel(a.type)} · toucher pour modifier</small></div></div><b class="account-amount ${Number(a.balance)<0?"negative":""}">${euro(a.balance)}</b></button>`).join("");
     $("netWorthValue").textContent=euro(totalNetWorth());
   }
 
@@ -1059,37 +919,6 @@
     $("operationTemplates").innerHTML=templates
       .map(template=>`<option value="${template.label}">${euro(template.amount)} · ${template.category}</option>`)
       .join("");
-
-    const quick=templates.slice(0,6);
-    $("quickTemplates").innerHTML=quick.length
-      ? quick.map(template=>`
-          <button
-            class="quick-template"
-            type="button"
-            data-template-label="${template.label.replace(/"/g,"&quot;")}"
-          >
-            <span>${template.type==="income"?"💰":"⚡"}</span>
-            <b>${template.label}</b>
-            <small>${euro(template.amount)}</small>
-          </button>
-        `).join("")
-      : "";
-  }
-
-  function fillFromTemplate(template){
-    if(!template)return;
-
-    setType(template.type);
-    $("labelInput").value=template.label;
-    $("amountInput").value=String(template.amount).replace(".",",");
-    $("categoryInput").value=template.category;
-
-    if(data.accounts.some(item=>item.id===template.accountId)){
-      $("accountInput").value=template.accountId;
-    }
-
-    $("templateHint").textContent=`Prêt à enregistrer : ${template.source}.`;
-    $("amountInput").focus();
   }
 
   function applyTemplateSuggestion(){
@@ -1186,19 +1015,15 @@
   }
 
   document.addEventListener("click",e=>{
-    const favoriteButton=e.target.closest("[data-favorite]");
-    if(favoriteButton){
-      applySimpleFavorite(favoriteButton.dataset.favorite);
+    const accountRow=e.target.closest("[data-account-id]");
+    if(accountRow){
+      openAccountEditor(accountRow.dataset.accountId);
       return;
     }
-
-    const quickTemplate=e.target.closest("[data-template-label]");
-    if(quickTemplate){
-      const template=findTemplate(quickTemplate.dataset.templateLabel);
-      fillFromTemplate(template);
+    if(e.target.closest("[data-close-account]")){
+      closeAccountEditor();
       return;
     }
-
     const nav=e.target.closest("[data-screen]");if(nav){showScreen(nav.dataset.screen);return}
     const go=e.target.closest("[data-go]");if(go){showScreen(go.dataset.go);return}
     const typeBtn=e.target.closest("[data-op-type]");if(typeBtn){setType(typeBtn.dataset.opType);return}
@@ -1234,11 +1059,10 @@
     save();
     $("amountInput").value="";
     $("labelInput").value="";
-    $("smartEntryInput").value="";
-    $("smartEntryMessage").textContent="";
+    $("quickEntryInput").value="";
+    $("quickEntryMessage").textContent="";
     $("templateHint").textContent="Le montant et la catégorie peuvent être proposés automatiquement.";
     $("addMessage").textContent="Opération enregistrée.";
-    renderTemplateSuggestions();
     toast("Opération enregistrée");
     showScreen("home");
   });
@@ -1306,21 +1130,15 @@
 
 
 
-  $("editBalanceBtn").addEventListener("click",()=>openBalanceModal("manual"));
-  $("syncBankBtn").addEventListener("click",()=>openBalanceModal("bank"));
-  $("closeBalanceModalBtn").addEventListener("click",closeBalanceModal);
-  $("newBalanceInput").addEventListener("input",updateBalancePreview);
-  $("confirmBalanceBtn").addEventListener("click",confirmBalanceUpdate);
-  document.addEventListener("click",e=>{if(e.target.closest("[data-close-balance]"))closeBalanceModal();});
-
-
-  $("smartEntryBtn").addEventListener("click",applySmartEntry);
-  $("smartEntryInput").addEventListener("keydown",event=>{
-    if(event.key==="Enter" && !event.shiftKey){
+  $("quickEntryBtn").addEventListener("click",applyQuickEntry);
+  $("quickEntryInput").addEventListener("keydown",event=>{
+    if(event.key==="Enter"){
       event.preventDefault();
-      applySmartEntry();
+      applyQuickEntry();
     }
   });
+  $("closeAccountModalBtn").addEventListener("click",closeAccountEditor);
+  $("saveAccountChangesBtn").addEventListener("click",saveAccountChanges);
 
   $("dateInput").value=today();
   materializeRecurring();

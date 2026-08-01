@@ -452,335 +452,69 @@ body{
 }
 
 
-/* Mon Budget 2.3 Test — saisie rapide */
-.quick-templates{
-  display:flex;
-  gap:8px;
-  overflow-x:auto;
-  padding:10px 1px 2px;
-  scrollbar-width:none;
-  -webkit-overflow-scrolling:touch;
-}
-.quick-templates::-webkit-scrollbar{
-  display:none;
-}
-.quick-template{
-  flex:0 0 auto;
-  display:grid;
-  grid-template-columns:auto 1fr;
-  grid-template-rows:auto auto;
-  gap:0 7px;
-  align-items:center;
-  min-width:138px;
-  padding:10px 12px;
-  border:1px solid var(--line);
-  border-radius:14px;
-  background:var(--card);
-  color:var(--text);
-  text-align:left;
-  box-shadow:0 4px 12px rgba(35,61,110,.06);
-  touch-action:manipulation;
-}
-.quick-template:active{
-  transform:scale(.98);
-  background:rgba(23,104,232,.06);
-}
-.quick-template span{
-  grid-row:1 / 3;
-  font-size:20px;
-}
-.quick-template b{
-  font-size:13px;
-  line-height:1.15;
-  max-width:110px;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-.quick-template small{
-  color:var(--muted);
-  font-size:11px;
-}
-
-
-/* Mon Budget 3.0 Candidate */
-.today-card{
-  padding-top:16px;
-}
-.today-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:9px;
-  margin-top:14px;
-}
-.today-line{
-  min-height:76px;
-  padding:12px;
-  border:1px solid var(--line);
-  border-radius:15px;
-  background:rgba(23,104,232,.035);
-}
-.today-line span{
-  display:block;
-  color:var(--muted);
-  font-size:12px;
-  line-height:1.25;
-}
-.today-line b{
-  display:block;
-  margin-top:7px;
-  font-size:17px;
-  line-height:1.2;
-}
-.today-advice{
-  margin:13px 0 0;
-  padding:12px 14px;
-  border-radius:14px;
-  background:rgba(47,157,98,.08);
-  color:var(--text);
-  line-height:1.4;
-  font-weight:650;
-}
-.risk-success{
-  background:rgba(47,157,98,.12) !important;
-  color:var(--green) !important;
-}
-.risk-warning{
-  background:rgba(229,139,39,.13) !important;
-  color:var(--orange) !important;
-}
-.risk-danger{
-  background:rgba(217,75,75,.12) !important;
-  color:var(--red) !important;
-}
-@media(max-width:430px){
-  .today-grid{
-    grid-template-columns:1fr 1fr;
-  }
-  .today-line b{
-    font-size:16px;
-  }
-}
-
-
-/* Mon Budget 3.0 Final — finitions */
-.today-card{
-  padding:16px 18px 18px;
-}
-.today-card .section-head{
-  align-items:center;
-}
-.today-risk-badge{
-  font-size:12px !important;
-  padding:6px 10px !important;
-  border-radius:999px !important;
-  font-weight:750 !important;
-}
-.today-grid{
-  grid-auto-rows:1fr;
-}
-.today-line{
-  min-height:92px;
-  display:flex;
-  flex-direction:column;
-  justify-content:space-between;
-}
-.today-line span{
-  font-size:13px;
-}
-.today-line b{
-  font-size:18px;
-  line-height:1.22;
-}
-#todayNextDue{
-  font-size:17px;
-}
-.today-advice{
-  margin-top:12px;
-  font-size:14px;
-}
-.hero,.status-card,.today-card{
-  transition:transform .18s ease, box-shadow .18s ease;
-}
-.hero:active,.status-card:active,.today-card:active{
-  transform:scale(.998);
-}
-@media(max-width:430px){
-  .today-card{
-    padding-left:16px;
-    padding-right:16px;
-  }
-  .today-line{
-    min-height:88px;
-  }
-  .today-line b{
-    font-size:17px;
-  }
-  #todayNextDue{
-    font-size:16px;
-  }
-}
-@media(prefers-reduced-motion:reduce){
-  .hero,.status-card,.today-card{
-    transition:none !important;
-  }
-}
-
-.balance-tools{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
-.balance-tools h3{margin:0 0 10px;font-size:18px}
-.balance-tool-btn{width:100%;margin-top:9px;padding:14px;border:1px solid rgba(23,104,232,.18);border-radius:15px;background:rgba(23,104,232,.06);color:var(--text);text-align:left;font-weight:800}
-.balance-tool-btn.bank{border-color:rgba(47,157,98,.22);background:rgba(47,157,98,.07)}
-.balance-modal{position:fixed;inset:0;z-index:120;opacity:0;pointer-events:none;transition:.18s}
-.balance-modal.open{opacity:1;pointer-events:auto}
-.balance-modal-backdrop{position:absolute;inset:0;background:rgba(9,18,35,.5)}
-.balance-sheet{position:absolute;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));padding:18px;border:1px solid var(--line);border-radius:24px;background:var(--card);box-shadow:0 22px 60px rgba(0,0,0,.28)}
-.balance-sheet-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:16px}
-.balance-sheet-head h2{margin:0}.balance-sheet-head p{margin:5px 0 0;color:var(--muted);font-size:13px}
-.balance-sheet-head button{width:38px;height:38px;border:0;border-radius:50%;background:#eef2f8}
-.balance-input-wrap{display:flex;align-items:center;border:1px solid var(--line);border-radius:15px}
-.balance-input-wrap input{flex:1;min-width:0;border:0;padding:16px;font-size:24px;font-weight:800;background:transparent;color:var(--text)}
-.balance-input-wrap span{padding-right:16px;color:var(--muted);font-size:21px;font-weight:800}
-.balance-preview{margin:12px 0;padding:11px 13px;border-radius:13px;background:rgba(23,104,232,.07);font-weight:750}
-.balance-confirm{width:100%;min-height:52px}
-
-
-/* Mon Budget 5.1 — Ajouter rapidement */
-.quick-favorites{
-  margin:0 0 16px;
+/* Version 2.3 — comptes modifiables et saisie rapide */
+.quick-entry-box{
+  margin:12px 0 18px;
   padding:14px;
-  border:1px solid var(--line);
-  border-radius:18px;
-  background:rgba(23,104,232,.045);
-}
-.quick-favorites-head{
-  display:flex;
-  align-items:baseline;
-  justify-content:space-between;
-  gap:10px;
-  margin-bottom:10px;
-}
-.quick-favorites-head b{
-  font-size:17px;
-}
-.quick-favorites-head small{
-  color:var(--muted);
-  font-size:11px;
-}
-.quick-favorites-row{
-  display:flex;
-  gap:8px;
-  overflow-x:auto;
-  scrollbar-width:none;
-  -webkit-overflow-scrolling:touch;
-}
-.quick-favorites-row::-webkit-scrollbar{
-  display:none;
-}
-.quick-favorite{
-  flex:0 0 auto;
-  min-height:42px;
-  padding:9px 12px;
-  border:1px solid rgba(23,104,232,.16);
-  border-radius:999px;
-  background:var(--card);
-  color:var(--text);
-  font-size:13px;
-  font-weight:750;
-}
-.quick-favorite:active{
-  transform:scale(.98);
-  background:rgba(23,104,232,.08);
-}
-
-
-/* Mon Budget 6.0 — Assistant de saisie */
-.smart-entry{
-  margin:14px 0 18px;
-  padding:15px;
   border:1px solid rgba(23,104,232,.18);
-  border-radius:18px;
-  background:linear-gradient(145deg,rgba(23,104,232,.07),rgba(47,157,98,.045));
+  border-radius:17px;
+  background:rgba(23,104,232,.055);
 }
-.smart-entry-head b{
-  display:block;
-  font-size:17px;
-}
-.smart-entry-head small{
-  display:block;
-  margin-top:4px;
-  color:var(--muted);
-  font-size:12px;
-}
-.smart-entry textarea{
-  width:100%;
-  box-sizing:border-box;
-  margin-top:12px;
-  padding:13px 14px;
-  border:1px solid var(--line);
-  border-radius:14px;
-  background:var(--card);
-  color:var(--text);
-  font:inherit;
-  resize:none;
-}
-.smart-entry-btn{
-  width:100%;
-  min-height:44px;
-  margin-top:9px;
+.quick-entry-box b{display:block;font-size:17px}
+.quick-entry-box small{display:block;margin-top:4px;color:var(--muted);font-size:12px}
+.quick-entry-row{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:11px}
+.quick-entry-row input{min-width:0}
+.quick-entry-row button{
   border:0;
   border-radius:13px;
+  padding:0 15px;
   background:var(--blue);
   color:#fff;
   font-weight:800;
 }
-.smart-entry-message{
-  min-height:18px;
-  margin:8px 2px 0;
-  color:var(--muted);
-  font-size:12px;
-  line-height:1.35;
+.quick-entry-box p{min-height:17px;margin:8px 2px 0;color:var(--muted);font-size:12px}
+.account-edit-row{
+  width:100%;
+  border:0;
+  background:transparent;
+  color:inherit;
+  text-align:left;
+  font:inherit;
 }
-
-
-/* Mon Budget Familial 2026 */
-.family-summary{
-  padding:17px;
+.account-modal{
+  position:fixed;
+  inset:0;
+  z-index:150;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .18s ease;
 }
-.family-summary-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:9px;
-  margin-top:13px;
+.account-modal.open{opacity:1;pointer-events:auto}
+.account-modal-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(9,18,35,.5);
 }
-.family-summary-grid>div{
-  min-height:78px;
-  padding:12px;
-  border:1px solid var(--line);
-  border-radius:15px;
-  background:rgba(23,104,232,.035);
+.account-sheet{
+  position:absolute;
+  left:12px;
+  right:12px;
+  bottom:calc(12px + env(safe-area-inset-bottom));
+  padding:18px;
+  border-radius:24px;
+  background:var(--card);
+  box-shadow:0 22px 60px rgba(0,0,0,.28);
 }
-.family-summary-grid span{
-  display:block;
-  color:var(--muted);
-  font-size:12px;
-  line-height:1.25;
+.account-sheet-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:15px;
 }
-.family-summary-grid b{
-  display:block;
-  margin-top:7px;
-  font-size:16px;
-  line-height:1.2;
+.account-sheet-head h2{margin:0}
+.account-sheet-head button{
+  width:38px;height:38px;border:0;border-radius:50%;background:#eef2f8;
 }
-.family-advice{
-  margin:12px 0 0;
-  padding:12px 14px;
-  border-radius:14px;
-  background:rgba(47,157,98,.08);
-  font-weight:700;
-  line-height:1.4;
-}
-@media(max-width:430px){
-  .family-summary-grid b{
-    font-size:15px;
-  }
-}
+.account-sheet label{display:block;margin:12px 0 7px;font-weight:800}
+.account-sheet input{width:100%;box-sizing:border-box}
+.account-sheet .primary{width:100%;margin-top:16px}

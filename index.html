@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#1768e8">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <title>Mon Budget Familial 2026</title>
-  <link rel="manifest" href="manifest.webmanifest?v=2026.1">
-  <link rel="stylesheet" href="styles.css?v=2026.1">
+  <title>Mon Budget 2.3</title>
+  <link rel="manifest" href="manifest.webmanifest?v=2.3.0">
+  <link rel="stylesheet" href="styles.css?v=2.3.0">
 </head>
 <body>
   <header class="topbar">
@@ -38,60 +38,6 @@
         </div>
       </article>
 
-      <article class="card family-summary">
-        <div class="section-head">
-          <h2>Budget familial</h2>
-          <span class="badge" id="familyStatusBadge">Analyse</span>
-        </div>
-
-        <div class="family-summary-grid">
-          <div>
-            <span>À payer aujourd’hui</span>
-            <b id="familyTodayDue">Rien</b>
-          </div>
-          <div>
-            <span>Prochaine échéance</span>
-            <b id="familyNextDue">Aucune</b>
-          </div>
-          <div>
-            <span>Revenus attendus</span>
-            <b id="familyExpectedIncome">0,00 €</b>
-          </div>
-          <div>
-            <span>Reste à vivre / jour</span>
-            <b id="familyDailyLeft">0,00 €</b>
-          </div>
-        </div>
-
-        <p id="familyAdvice" class="family-advice">Analyse en cours…</p>
-      </article>
-
-      <article class="card today-card">
-        <div class="section-head">
-          <h2>Aujourd’hui</h2>
-          <span class="badge today-risk-badge" id="todayRiskBadge">Analyse</span>
-        </div>
-        <div class="today-grid">
-          <div class="today-line">
-            <span>💳 Disponible</span>
-            <b id="todayAvailable">0,00 €</b>
-          </div>
-          <div class="today-line">
-            <span>💰 Budget conseillé</span>
-            <b id="todayBudget">0,00 €</b>
-          </div>
-          <div class="today-line">
-            <span>⏰ Prochaine échéance</span>
-            <b id="todayNextDue">Aucune</b>
-          </div>
-          <div class="today-line">
-            <span>📅 Jours restants</span>
-            <b id="todayDaysLeft">0</b>
-          </div>
-        </div>
-        <p id="todayAdvice" class="today-advice">Analyse en cours…</p>
-      </article>
-
       <article class="card">
         <div class="section-head"><h2>À surveiller</h2><span class="badge" id="alertsCount">0</span></div>
         <div id="alertsList"></div>
@@ -118,17 +64,14 @@
     <section id="add" class="screen">
       <article class="card">
         <h2>Ajouter une opération</h2>
-
-        <div class="smart-entry">
-          <div class="smart-entry-head">
-            <div>
-              <b>✨ Écrire une opération</b>
-              <small>Ex. « Carrefour 52 € » ou « Salaire 1 200 € »</small>
-            </div>
+        <div class="quick-entry-box">
+          <b>⚡ Saisie rapide</b>
+          <small>Ex. Carrefour 52 € ou Salaire 1200 €</small>
+          <div class="quick-entry-row">
+            <input id="quickEntryInput" placeholder="Écrivez l’opération…">
+            <button id="quickEntryBtn" type="button">Remplir</button>
           </div>
-          <textarea id="smartEntryInput" rows="2" placeholder="Écrivez simplement l’opération…"></textarea>
-          <button id="smartEntryBtn" class="smart-entry-btn" type="button">Analyser et remplir</button>
-          <p id="smartEntryMessage" class="smart-entry-message"></p>
+          <p id="quickEntryMessage"></p>
         </div>
         <div class="segmented three">
           <button data-op-type="expense" class="active" type="button">Dépense</button>
@@ -141,25 +84,9 @@
           <input id="amountInput" inputmode="decimal" placeholder="0,00">
 
           <label>Libellé</label>
-          
-<div class="quick-favorites">
-  <div class="quick-favorites-head">
-    <b>⭐ Favoris</b>
-    <small>Un appui remplit l’opération</small>
-  </div>
-  <div class="quick-favorites-row">
-    <button type="button" class="quick-favorite" data-favorite="Carrefour">🛒 Carrefour</button>
-    <button type="button" class="quick-favorite" data-favorite="Orange">📱 Orange</button>
-    <button type="button" class="quick-favorite" data-favorite="Eau de Garonne">💧 Eau</button>
-    <button type="button" class="quick-favorite" data-favorite="Ergo">🏥 Ergo</button>
-    <button type="button" class="quick-favorite" data-favorite="Vinted">🛍️ Vinted</button>
-  </div>
-</div>
-
           <input id="labelInput" list="operationTemplates" placeholder="Ex. Carrefour" autocomplete="off">
           <datalist id="operationTemplates"></datalist>
           <small id="templateHint" class="field-hint">Le montant et la catégorie peuvent être proposés automatiquement.</small>
-          <div id="quickTemplates" class="quick-templates" aria-label="Opérations rapides"></div>
 
           <label>Catégorie</label>
           <select id="categoryInput">
@@ -281,7 +208,7 @@
 
       <article class="card">
         <h2>Application</h2>
-        <p>Version 2.2.2 Stable : récupération automatique et protection contre une base vide.</p>
+        <p>Version 2.3 Stable : comptes modifiables et saisie rapide.</p>
       </article>
     </section>
   </main>
@@ -297,21 +224,25 @@
   </nav>
 
   <div id="toast" class="toast" aria-live="polite"></div>
-  <script src="app.js?v=2026.1"></script>
+  <script src="app.js?v=2.3.0"></script>
 
-<div id="balanceModal" class="balance-modal" aria-hidden="true">
-  <div class="balance-modal-backdrop" data-close-balance></div>
-  <section class="balance-sheet">
-    <div class="balance-sheet-head">
-      <div><h2 id="balanceModalTitle">Modifier le solde</h2><p id="balanceModalText"></p></div>
-      <button id="closeBalanceModalBtn" type="button">✕</button>
-    </div>
-    <label for="newBalanceInput">Nouveau solde</label>
-    <div class="balance-input-wrap"><input id="newBalanceInput" inputmode="decimal"><span>€</span></div>
-    <div id="balanceDifferencePreview" class="balance-preview">Ajustement : 0,00 €</div>
-    <button id="confirmBalanceBtn" class="primary balance-confirm" type="button">Valider l’ajustement</button>
-    <p id="balanceModalMessage" class="form-message"></p>
-  </section>
-</div>
+  <div id="accountModal" class="account-modal" aria-hidden="true">
+    <div class="account-modal-backdrop" data-close-account></div>
+    <section class="account-sheet">
+      <div class="account-sheet-head">
+        <h2>Modifier le compte</h2>
+        <button id="closeAccountModalBtn" type="button">✕</button>
+      </div>
+
+      <label>Nom du compte</label>
+      <input id="editAccountName" autocomplete="off">
+
+      <label>Solde actuel</label>
+      <input id="editAccountBalance" inputmode="decimal" placeholder="0,00">
+
+      <button id="saveAccountChangesBtn" class="primary" type="button">Enregistrer</button>
+      <p id="accountModalMessage" class="message"></p>
+    </section>
+  </div>
 </body>
 </html>
