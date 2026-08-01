@@ -51,3 +51,11 @@ body.dark .home-summary-grid div{background:#141b27}
 .compact-status{padding:14px 16px}
 .compact-status .status-dot{width:40px;height:40px}
 .muted-intro{color:var(--muted);margin-top:-4px}
+
+.bottom-nav{grid-template-columns:repeat(6,1fr)}
+.operation-editable{cursor:pointer}
+.muted-note{color:var(--muted);font-size:12px;margin-top:12px}
+@media(max-width:520px){
+  .bottom-nav small{font-size:9px}
+  .bottom-nav span{font-size:20px}
+}

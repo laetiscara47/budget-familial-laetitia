@@ -186,7 +186,32 @@ function renderSettings(){
   document.body.classList.toggle('dark',data.theme==='dark');
   document.querySelector('#themeToggle').textContent=data.theme==='dark'?'☀️':'🌙';
 }
-function renderAll(){renderHome();renderAgenda();renderAccounts();renderSettings();updateImpact()}
+
+function renderOperations(){
+  const search=(document.querySelector('#operationsSearch')?.value||'').trim().toLowerCase();
+  const filter=document.querySelector('#operationsFilter')?.value||'all';
+  const list=data.operations
+    .filter(op=>filter==='all'||op.type===filter)
+    .filter(op=>{
+      if(!search)return true;
+      return `${op.label} ${op.category||''} ${op.date}`.toLowerCase().includes(search);
+    })
+    .sort((a,b)=>b.date.localeCompare(a.date))
+    .map(op=>({...op,kind:op.type,signed:op.type==='income'?op.amount:-op.amount}));
+
+  const target=document.querySelector('#operationsList');
+  if(!target)return;
+  target.innerHTML=list.length?list.map(op=>{
+    const dt=new Date(op.date+'T12:00:00');
+    return `<div class="timeline-row operation-editable" data-operation-id="${op.id}">
+      <div class="date-box">${dt.getDate()}<small>${dt.toLocaleDateString('fr-FR',{month:'short'})}</small></div>
+      <div><b>${icon(op.kind)} ${esc(op.label)}</b><small>${op.category||typeLabel(op.kind)}</small></div>
+      <div class="amount ${op.signed>=0?'positive':'negative'}">${op.signed>=0?'+':''}${euro(op.signed)}</div>
+    </div>`;
+  }).join(''):'<p style="color:var(--muted)">Aucune opération trouvée.</p>';
+}
+
+function renderAll(){renderHome();renderAgenda();renderAccounts();renderOperations();renderSettings();updateImpact()}
 
 function setTab(tab){
   document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===tab));
@@ -314,6 +339,53 @@ document.querySelector('#importData').onchange=async e=>{
 document.querySelector('#resetData').onclick=()=>{if(confirm('Tout effacer et repartir de zéro ?')){data=structuredClone(defaults);save()}};
 
 document.querySelector('#quickAdd').onclick=()=>setTab('add');
+
+function restoreOperationToBalance(op){
+  if(op.type==='income')data.balance=Number((data.balance-op.amount).toFixed(2));
+  if(op.type==='expense'&&op.payment==='current')data.balance=Number((data.balance+op.amount).toFixed(2));
+}
+function applyOperationToBalance(op){
+  if(op.type==='income')data.balance=Number((data.balance+op.amount).toFixed(2));
+  if(op.type==='expense'&&op.payment==='current')data.balance=Number((data.balance-op.amount).toFixed(2));
+}
+function editOperation(id){
+  const op=data.operations.find(x=>x.id===id);
+  if(!op)return;
+  const action=prompt('Tapez 1 pour modifier ou 2 pour supprimer.');
+  if(action==='2'){
+    if(confirm(`Supprimer « ${op.label} » ?`)){
+      restoreOperationToBalance(op);
+      data.operations=data.operations.filter(x=>x.id!==id);
+      save();
+    }
+    return;
+  }
+  if(action!=='1')return;
+
+  const newLabel=prompt('Libellé',op.label);
+  if(newLabel===null)return;
+  const newAmountText=prompt('Montant',String(op.amount).replace('.',','));
+  if(newAmountText===null)return;
+  const newAmount=money(newAmountText);
+  if(!newLabel.trim()||newAmount<=0){alert('Libellé ou montant invalide.');return}
+
+  restoreOperationToBalance(op);
+  op.label=newLabel.trim();
+  op.amount=newAmount;
+  const suggestion=smartSuggestion(op.label);
+  op.category=suggestion.category;
+  op.type=suggestion.type;
+  if(op.type==='income')op.payment='current';
+  applyOperationToBalance(op);
+  save();
+}
+document.addEventListener('click',e=>{
+  const row=e.target.closest('[data-operation-id]');
+  if(row)editOperation(row.dataset.operationId);
+});
+document.querySelector('#operationsSearch').addEventListener('input',renderOperations);
+document.querySelector('#operationsFilter').addEventListener('change',renderOperations);
+
 document.querySelector('#opDate').value=today();
 materializeRecurring();
 requestAnimationFrame(()=>renderAll());
