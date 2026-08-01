@@ -1,6 +1,6 @@
 (()=>{
 "use strict";
-const STORAGE_KEY="budget-familial-laetitia-final-v1",BACKUP_KEY=STORAGE_KEY+"-backup",DATA_VERSION=7000;
+const STORAGE_KEY="budget-familial-laetitia-final-v1",BACKUP_KEY=STORAGE_KEY+"-backup",DATA_VERSION=8100;
 const $=id=>document.getElementById(id),clone=o=>JSON.parse(JSON.stringify(o));
 const euro=n=>Number(n||0).toLocaleString("fr-FR",{style:"currency",currency:"EUR"});
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
@@ -794,7 +794,11 @@ function recurringIncomeStatus(x){const dt=new Date(x.date+"T23:59:59");if(x.rec
 function recurringIncomeTransactionsForMonth(){const key=new Date().toISOString().slice(0,7);return data.incomeTransactions.filter(x=>x.recurringIncomeId&&monthKey(x.date)===key)}
 function renderIncomeEngine(){const txs=recurringIncomeTransactionsForMonth();const sum=s=>txs.filter(x=>recurringIncomeStatus(x)===s).reduce((a,x)=>a+Number(x.amount||0),0);$("incomeReceivedView").textContent=euro(sum("received"));$("incomeExpectedView").textContent=euro(sum("expected"));$("incomeLateView").textContent=euro(sum("late"));$("incomeEngineList").innerHTML=txs.length?txs.sort((a,b)=>a.date.localeCompare(b.date)).map(x=>{const s=recurringIncomeStatus(x),labels={received:"Reçu",expected:"Attendu",late:"En retard"},icons={received:"✅",expected:"⏳",late:"❌"};return `<div class="income-status-row"><div class="income-status-icon">${icons[s]}</div><div><b>${esc(x.label)}</b><small>${fmtDate(x.date)} · ${euro(x.amount)}</small></div><button class="income-status-pill ${s}" data-income-status="${x.id}">${labels[s]}</button></div>`}).join(""):'<p class="muted">Aucun revenu automatique configuré.</p>'}
 function renderRecurringIncomeSelects(){$("recurringIncomeAccount").innerHTML=data.accounts.map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join("");$("recurringIncomeProfile").innerHTML=data.profiles.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("")}
-function renderRecurringIncomeSettings(){$("recurringIncomeSettings").innerHTML=data.recurringIncomes.length?data.recurringIncomes.map(r=>`<div class="recurring-income-row"><div></div><div><b>${esc(r.label)}</b><small>${euro(r.amount)} · le ${r.day} de chaque mois · ${r.enabled===false?"désactivé":"actif"}</small></div><div class="recurring-income-actions"><button data-recurring-toggle="${r.id}">${r.enabled===false?"Activer":"Désactiver"}</button><button class="delete-btn" data-recurring-delete="${r.id}">✕</button></div></div>`).join(""):'<p class="muted">Aucun revenu récurrent enregistré.</p>'}
+function renderRecurringIncomeSettings(){
+ const count=data.recurringIncomes.length;
+ $("recurringIncomeCount").textContent=String(count);
+ $("recurringIncomeSettings").innerHTML=count?data.recurringIncomes.map(r=>`<div class="recurring-income-row"><div><b>${esc(r.label)}</b><small>${euro(r.amount)} · le ${r.day} de chaque mois · ${r.enabled===false?"désactivé":"actif"}</small></div><div class="recurring-income-actions"><button data-recurring-toggle="${r.id}">${r.enabled===false?"Activer":"Désactiver"}</button><button class="delete-btn" data-recurring-delete="${r.id}">✕</button></div></div>`).join(""):'<p class="muted">Aucun revenu récurrent enregistré.</p>';
+}
 function renderEngineSettings(){$("autoGenerateIncomeToggle").checked=data.settings.autoGenerateIncome!==false;$("showLateIncomeToggle").checked=data.settings.showLateIncome!==false;$("detectAnomaliesToggle").checked=data.settings.detectAnomalies!==false;$("anomalyTolerance").value=Number(data.settings.anomalyTolerance||20)}
 function renderAnomalies(){const items=[];if(data.settings.showLateIncome!==false)recurringIncomeTransactionsForMonth().filter(x=>recurringIncomeStatus(x)==="late").forEach(x=>items.push({icon:"❌",title:`Revenu en retard : ${x.label}`,text:`${euro(x.amount)} étaient attendus le ${fmtDate(x.date)}.`}));$("anomalyList").innerHTML=items.length?items.map(a=>`<div class="anomaly-row"><div class="anomaly-icon">${a.icon}</div><div><b>${esc(a.title)}</b><p>${esc(a.text)}</p></div></div>`).join(""):'<p class="muted">Aucune anomalie détectée.</p>'}
 
@@ -1153,7 +1157,7 @@ $("exportEncrypted").addEventListener("click",async()=>{
  const password=$("backupPassword").value;
  if(password.length<6)return alert("Choisis un mot de passe d’au moins 6 caractères.");
  try{
-  const container=await encryptPayload({app:"Budget Familial Laetitia",version:"infinity-2.0",data},password);
+  const container=await encryptPayload({app:"Budget Familial Laetitia",version:"infinity-2.1",data},password);
   const blob=new Blob([JSON.stringify(container,null,2)],{type:"application/json"}),a=document.createElement("a");
   a.href=URL.createObjectURL(blob);a.download="budget_laetitia_v300_chiffre.json";a.click();
  }catch{alert("La sauvegarde chiffrée n’a pas pu être créée.")}
@@ -1229,10 +1233,24 @@ $("exportUltimateDashboard").addEventListener("click",()=>{
  ]));
 });
 
-$("saveRecurringIncome").addEventListener("click",()=>{const label=$("recurringIncomeLabel").value.trim(),amount=Number($("recurringIncomeAmount").value),day=Number($("recurringIncomeDay").value);if(!label)return alert("Saisis le nom du revenu.");if(!amount||amount<=0)return alert("Saisis un montant valide.");if(!day||day<1||day>31)return alert("Saisis un jour entre 1 et 31.");data.recurringIncomes.push({id:crypto.randomUUID(),label,amount,day,accountId:$("recurringIncomeAccount").value,profileId:$("recurringIncomeProfile").value,enabled:$("recurringIncomeEnabled").checked});$("recurringIncomeLabel").value="";$("recurringIncomeAmount").value="";$("recurringIncomeDay").value="";ensureRecurringIncomeInstances();save()});
+$("saveRecurringIncome").addEventListener("click",()=>{
+ const status=$("recurringSaveStatus"),label=$("recurringIncomeLabel").value.trim();
+ const amount=Number(String($("recurringIncomeAmount").value).replace(",",".")),day=Number($("recurringIncomeDay").value);
+ const fail=m=>{status.hidden=false;status.className="recurring-save-status error";status.textContent=m;status.scrollIntoView({behavior:"smooth",block:"center"})};
+ if(!label)return fail("⚠️ Saisissez le nom du revenu.");
+ if(!Number.isFinite(amount)||amount<=0)return fail("⚠️ Saisissez un montant valide.");
+ if(!Number.isInteger(day)||day<1||day>31)return fail("⚠️ Saisissez un jour entre 1 et 31.");
+ const duplicate=data.recurringIncomes.some(r=>r.label.trim().toLowerCase()===label.toLowerCase()&&Number(r.day)===day);
+ if(duplicate&&!confirm("Ce revenu existe déjà ce jour-là. L’ajouter quand même ?"))return;
+ data.recurringIncomes.push({id:crypto.randomUUID(),label,amount,day,accountId:$("recurringIncomeAccount").value||"current",profileId:$("recurringIncomeProfile").value||activeProfileId(),enabled:$("recurringIncomeEnabled").checked});
+ ensureRecurringIncomeInstances();save();
+ $("recurringIncomeLabel").value="";$("recurringIncomeAmount").value="";$("recurringIncomeDay").value="";
+ status.hidden=false;status.className="recurring-save-status";status.textContent=`✅ ${label} — ${euro(amount)} le ${day} de chaque mois est enregistré.`;
+ setTimeout(()=>status.scrollIntoView({behavior:"smooth",block:"center"}),50);
+});
 $("saveEngineSettings").addEventListener("click",()=>{data.settings.autoGenerateIncome=$("autoGenerateIncomeToggle").checked;data.settings.showLateIncome=$("showLateIncomeToggle").checked;data.settings.detectAnomalies=$("detectAnomaliesToggle").checked;data.settings.anomalyTolerance=Math.max(5,Math.min(100,Number($("anomalyTolerance").value||20)));ensureRecurringIncomeInstances();save();alert("Moteur financier enregistré.")});
 $("exportCsv").addEventListener("click",()=>{const rows=[["Date","Type","Libellé","Catégorie","Montant","Compte","Paiement"]];data.expenses.forEach(x=>rows.push([x.date,"Dépense",x.label,x.category,-x.amount,account(x.accountId)?.name||"",paymentLabel(x)]));data.incomeTransactions.forEach(x=>rows.push([x.date,"Revenu",x.label,"Revenu",x.amount,account(x.accountId)?.name||"",x.future?"Prévu":"Reçu"]));const csv="\ufeff"+rows.map(r=>r.map(csvEscape).join(";")).join("\n"),blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="budget_laetitia_operations.csv";a.click()});
-$("exportData").addEventListener("click",()=>{const blob=new Blob([JSON.stringify({app:"Budget Familial Laetitia",version:"infinity-2.0",data},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="mon_budget_infinity_2_0.json";a.click()});
+$("exportData").addEventListener("click",()=>{const blob=new Blob([JSON.stringify({app:"Budget Familial Laetitia",version:"infinity-2.1",data},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="mon_budget_infinity_2_1.json";a.click()});
 $("importDataBtn").addEventListener("click",()=>$("importDataFile").click());$("importDataFile").addEventListener("change",e=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const p=JSON.parse(String(r.result));data=migrate(p.data||p);save();alert("Sauvegarde restaurée.")}catch{alert("Fichier invalide.")}};r.readAsText(f)});
 $("restoreAutoBackup").addEventListener("click",()=>{try{const raw=localStorage.getItem(BACKUP_KEY);data=migrate(JSON.parse(raw).data);save();alert("Sauvegarde récupérée.")}catch{alert("Aucune sauvegarde.")}});
 $("removeDuplicates").addEventListener("click",()=>{
