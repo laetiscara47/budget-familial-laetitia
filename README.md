@@ -1,20 +1,13 @@
-# Mon Budget 2.1 Test — Stabilité
+# Mon Budget 2.2 Test — Assistant
 
-Cette version est une version de test séparée de votre 2.0 Stable.
+Version de test construite sur la 2.0 Final.
 
-Aucune nouvelle option visible et aucune modification de l’interface principale.
+Nouveautés sans nouveau menu :
+- conseil d’accueil selon les échéances proches ;
+- agenda regroupé en Aujourd’hui, Demain, Cette semaine et Historique récent ;
+- modèles automatiques à partir des échéances et anciennes opérations ;
+- proposition du montant, de la catégorie et du compte ;
+- catégorisation élargie ;
+- avertissement avant l’ajout d’un doublon exact.
 
-Améliorations :
-- cache interne des calculs pour éviter les recalculs répétés ;
-- invalidation automatique du cache après chaque modification ;
-- moteur budgétaire plus fluide avec un historique important ;
-- mode diagnostic caché ;
-- contrôle manuel de l’intégrité ;
-- sauvegarde spéciale de diagnostic ;
-- sauvegardes automatiques et restauration de la 2.0 conservées.
-
-## Ouvrir le diagnostic caché
-
-Touchez 7 fois rapidement le texte « Sauvegardé automatiquement » dans l’en-tête.
-
-N’installez cette version sur votre dépôt principal qu’après un test satisfaisant.
+La 2.0 Final doit rester votre version de secours.

@@ -1,12 +1,13 @@
 {
-  "version": "2.1.0-test",
+  "version": "2.2.0-test",
   "schema": 2,
   "channel": "test",
   "base": "2.0.0-final",
   "changes": [
-    "memoized calculations",
-    "hidden diagnostics",
-    "backup diagnostics",
-    "integrity check"
+    "budget assistant",
+    "grouped agenda",
+    "operation templates",
+    "duplicate detection",
+    "extended smart categories"
   ]
 }

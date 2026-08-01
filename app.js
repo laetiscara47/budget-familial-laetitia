@@ -330,24 +330,6 @@
 
   if(localStorage.getItem("mon_budget_cache_cleaned_10_2")!=="yes") cleanOldApplicationCaches();
 
-  let calculationRevision=0;
-  let calculationCache=new Map();
-
-  function invalidateCalculations(){
-    calculationRevision++;
-    calculationCache.clear();
-  }
-
-  function memoCalculation(key,calculator){
-    const cached=calculationCache.get(key);
-    if(cached && cached.revision===calculationRevision){
-      return cached.value;
-    }
-    const value=calculator();
-    calculationCache.set(key,{revision:calculationRevision,value});
-    return value;
-  }
-
   let data=load();
   let operationType="expense";
   let deferredPrompt=null;
@@ -357,7 +339,6 @@
   }
 
   function save(){
-    invalidateCalculations();
     try{
       const previousRaw=parseStore(KEY);
       const previous=normalize(previousRaw);
@@ -409,23 +390,12 @@
   function totalNetWorth(){ return data.accounts.filter(a=>a.type!=="deferred").reduce((s,a)=>s+Number(a.balance),0)-Math.abs(accountBalance(deferredAccount()?.id)); }
   function available(){ return accountBalance(currentAccount().id)-Math.abs(accountBalance(deferredAccount()?.id)); }
   function monthOps(offset=0){
-    return memoCalculation(`monthOps:${offset}`,()=>{
-      const d=new Date();
-      d.setMonth(d.getMonth()+offset);
-      const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
-      return data.operations.filter(op=>monthKey(op.date)===key);
-    });
+    const d=new Date(); d.setMonth(d.getMonth()+offset);
+    const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+    return data.operations.filter(op=>monthKey(op.date)===key);
   }
-  function monthIncome(offset=0){
-    return memoCalculation(`monthIncome:${offset}`,()=>
-      monthOps(offset).filter(o=>o.type==="income").reduce((sum,op)=>sum+Number(op.amount),0)
-    );
-  }
-  function monthExpense(offset=0){
-    return memoCalculation(`monthExpense:${offset}`,()=>
-      monthOps(offset).filter(o=>o.type==="expense").reduce((sum,op)=>sum+Number(op.amount),0)
-    );
-  }
+  function monthIncome(offset=0){ return monthOps(offset).filter(o=>o.type==="income").reduce((s,o)=>s+Number(o.amount),0); }
+  function monthExpense(offset=0){ return monthOps(offset).filter(o=>o.type==="expense").reduce((s,o)=>s+Number(o.amount),0); }
   function daysInMonth(){ const d=new Date(); return new Date(d.getFullYear(),d.getMonth()+1,0).getDate(); }
   function daysLeft(){ return Math.max(1,daysInMonth()-new Date().getDate()+1); }
   function ruleDate(day,monthOffset=0){
@@ -434,30 +404,12 @@
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(Math.min(Number(day),max)).padStart(2,"0")}`;
   }
   function futureRules(){
-    return memoCalculation("futureRules",()=>
-      data.rules
-        .filter(rule=>rule.active!==false)
-        .map(rule=>({...rule,date:ruleDate(rule.day)}))
-        .filter(rule=>rule.date>=today())
-        .sort((a,b)=>a.date.localeCompare(b.date))
-    );
+    return data.rules.filter(r=>r.active!==false).map(r=>({...r,date:ruleDate(r.day)})).filter(r=>r.date>=today()).sort((a,b)=>a.date.localeCompare(b.date));
   }
-  function remainingIncome(){
-    return memoCalculation("remainingIncome",()=>
-      futureRules().filter(rule=>rule.type==="income").reduce((sum,rule)=>sum+Number(rule.amount),0)
-    );
-  }
-  function remainingCharges(){
-    return memoCalculation("remainingCharges",()=>
-      futureRules().filter(rule=>rule.type==="expense").reduce((sum,rule)=>sum+Number(rule.amount),0)
-    );
-  }
-  function forecast(){
-    return memoCalculation("forecast",()=>available()+remainingIncome()-remainingCharges());
-  }
-  function dailyBudget(){
-    return memoCalculation("dailyBudget",()=>Math.max(0,forecast()/daysLeft()));
-  }
+  function remainingIncome(){ return futureRules().filter(r=>r.type==="income").reduce((s,r)=>s+Number(r.amount),0); }
+  function remainingCharges(){ return futureRules().filter(r=>r.type==="expense").reduce((s,r)=>s+Number(r.amount),0); }
+  function forecast(){ return available()+remainingIncome()-remainingCharges(); }
+  function dailyBudget(){ return Math.max(0,forecast()/daysLeft()); }
   function statusInfo(){
     if(forecast()<0)return {title:"Situation tendue",text:"La projection de fin de mois est négative.",color:"var(--red)"};
     if(dailyBudget()<20)return {title:"Situation prudente",text:"Gardez les dépenses non essentielles sous contrôle.",color:"var(--orange)"};
@@ -475,7 +427,6 @@
   }
 
   function materializeRecurring(){
-    invalidateCalculations();
     const now=new Date(),year=now.getFullYear(),month=now.getMonth(),todayDay=now.getDate();
     let changed=false;
     data.rules.filter(r=>r.active!==false&&Number(r.day)<=todayDay).forEach(rule=>{
@@ -514,6 +465,160 @@
     clearTimeout(window.__toast); window.__toast=setTimeout(()=>{el.classList.remove("show");el.textContent=""},1800);
   }
 
+
+  function normalizedText(value){
+    return String(value||"")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g,"")
+      .trim()
+      .toLowerCase();
+  }
+
+  function operationTemplates(){
+    const templates=new Map();
+
+    data.rules.forEach(rule=>{
+      const key=normalizedText(rule.label);
+      if(!key)return;
+      templates.set(key,{
+        label:rule.label,
+        amount:Number(rule.amount)||0,
+        type:rule.type,
+        category:smartCategoryFromText(rule.label),
+        accountId:rule.accountId||currentAccount().id,
+        source:"Échéance enregistrée"
+      });
+    });
+
+    [...data.operations]
+      .sort((a,b)=>b.date.localeCompare(a.date))
+      .forEach(operation=>{
+        if(operation.type==="transfer")return;
+        const key=normalizedText(operation.label);
+        if(!key || templates.has(key))return;
+        templates.set(key,{
+          label:operation.label,
+          amount:Number(operation.amount)||0,
+          type:operation.type,
+          category:operation.category||smartCategoryFromText(operation.label),
+          accountId:operation.accountId||currentAccount().id,
+          source:"Dernière opération"
+        });
+      });
+
+    return [...templates.values()].slice(0,80);
+  }
+
+  function findTemplate(label){
+    const searched=normalizedText(label);
+    if(!searched)return null;
+    const templates=operationTemplates();
+    return templates.find(template=>normalizedText(template.label)===searched)
+      || templates.find(template=>normalizedText(template.label).startsWith(searched) && searched.length>=4)
+      || null;
+  }
+
+  function smartCategoryFromText(label){
+    const text=normalizedText(label);
+    if(/carrefour|leclerc|lidl|aldi|intermarche|courses|boulangerie/.test(text))return "Alimentation";
+    if(/orange|sfr|free|bouygues|edf|engie|eau|assurance|loyer|internet/.test(text))return "Maison";
+    if(/essence|total|carburant|peage|garage|autoroute/.test(text))return "Transport";
+    if(/pharmacie|medecin|dentiste|ergo|hopital|sante/.test(text))return "Santé";
+    if(/vinted|amazon|cinema|sortie|loisir/.test(text))return "Loisirs";
+    if(/ecole|college|enfant|cantine/.test(text))return "Enfants";
+    return "Autre";
+  }
+
+  function duplicateCandidate(candidate){
+    const label=normalizedText(candidate.label);
+    return data.operations.find(operation=>
+      operation.type===candidate.type &&
+      normalizedText(operation.label)===label &&
+      Number(operation.amount)===Number(candidate.amount) &&
+      operation.date===candidate.date &&
+      operation.accountId===candidate.accountId
+    )||null;
+  }
+
+  function budgetAssistant(){
+    const upcoming=futureRules();
+    const nextThreeDays=upcoming.filter(rule=>{
+      const difference=Math.round(
+        (new Date(`${rule.date}T12:00:00`)-new Date(`${today()}T12:00:00`))/86400000
+      );
+      return difference>=0 && difference<=3;
+    });
+    const expensesSoon=nextThreeDays.filter(rule=>rule.type==="expense");
+    const incomeSoon=nextThreeDays.filter(rule=>rule.type==="income");
+    const daily=dailyBudget();
+
+    if(forecast()<0){
+      return {
+        title:"Situation tendue",
+        text:"Les échéances prévues dépassent le disponible estimé.",
+        color:"var(--red)"
+      };
+    }
+    if(expensesSoon.length>=2){
+      return {
+        title:"Semaine à surveiller",
+        text:`${expensesSoon.length} prélèvements arrivent dans les 3 prochains jours.`,
+        color:"var(--orange)"
+      };
+    }
+    if(incomeSoon.length){
+      return {
+        title:"Revenu bientôt attendu",
+        text:`${incomeSoon[0].label} est prévu ${incomeSoon[0].date===today()?"aujourd’hui":"prochainement"}.`,
+        color:"var(--green)"
+      };
+    }
+    if(daily<20){
+      return {
+        title:"Restez prudente",
+        text:"Le budget quotidien conseillé est actuellement assez bas.",
+        color:"var(--orange)"
+      };
+    }
+    return {
+      title:"Situation confortable",
+      text:`Vous pouvez viser environ ${euro(daily)} aujourd’hui.`,
+      color:"var(--green)"
+    };
+  }
+
+  function agendaGroupLabel(date){
+    const current=new Date(`${today()}T12:00:00`);
+    const target=new Date(`${date}T12:00:00`);
+    const difference=Math.round((target-current)/86400000);
+    if(difference<0)return "Historique récent";
+    if(difference===0)return "Aujourd’hui";
+    if(difference===1)return "Demain";
+    if(difference<=7)return "Cette semaine";
+    return "Plus tard ce mois-ci";
+  }
+
+  function renderGroupedAgenda(items){
+    if(!items.length)return "<p>Aucune opération prévue.</p>";
+    let currentGroup="";
+    return items.map(item=>{
+      const group=agendaGroupLabel(item.date);
+      const heading=group!==currentGroup
+        ? `<h3 class="agenda-group">${group}</h3>`
+        : "";
+      currentGroup=group;
+      return `${heading}<div class="list-row">
+        <div>
+          <b>${item.type==="income"?"💰":item.type==="transfer"?"🔁":"🧾"} ${item.label}</b>
+          <small>${new Date(`${item.date}T12:00:00`).toLocaleDateString("fr-FR")}</small>
+        </div>
+        <b class="${item.type==="income"?"positive":item.type==="expense"?"negative":""}">
+          ${item.type==="income"?"+":item.type==="expense"?"-":""}${euro(item.amount)}
+        </b>
+      </div>`;
+    }).join("");
+  }
+
   function renderHome(){
     const now=new Date();
     $("monthLabel").textContent=`Budget familial · ${now.toLocaleDateString("fr-FR",{month:"long",year:"numeric"})}`;
@@ -528,7 +633,7 @@
     $("savingsValue").textContent=euro(data.accounts.filter(a=>a.type==="savings").reduce((s,a)=>s+Number(a.balance),0));
     $("operationsCount").textContent=monthOps().length;
     $("monthProgress").textContent=`${Math.round((new Date().getDate()/daysInMonth())*100)} %`;
-    const st=statusInfo(); $("statusTitle").textContent=st.title;$("statusText").textContent=st.text;$("statusDot").style.background=st.color;
+    const st=budgetAssistant(); $("statusTitle").textContent=st.title;$("statusText").textContent=st.text;$("statusDot").style.background=st.color;
     const alerts=futureRules().filter(r=>{
       const diff=Math.round((new Date(r.date+"T12:00:00")-new Date(today()+"T12:00:00"))/86400000);
       return diff>=0&&diff<=3;
@@ -592,7 +697,7 @@
       ...upcomingOperations
     ].sort((a,b)=>a.date.localeCompare(b.date))
       .concat(recentOperations);
-    $("agendaList").innerHTML=list.length?list.map(i=>`<div class="list-row"><div><b>${i.type==="income"?"💰":i.type==="transfer"?"🔁":"🧾"} ${i.label}</b><small>${new Date(i.date+"T12:00:00").toLocaleDateString("fr-FR")}</small></div><b class="${i.type==="income"?"positive":i.type==="expense"?"negative":""}">${i.type==="income"?"+":i.type==="expense"?"-":""}${euro(i.amount)}</b></div>`).join(""):"<p>Aucune opération prévue.</p>";
+    $("agendaList").innerHTML=renderGroupedAgenda(list);
     $("rulesList").innerHTML=data.rules.length?data.rules.map(r=>`<div class="rule-row"><div><b>${r.type==="income"?"💰":"🧾"} ${r.label}</b><small>${euro(r.amount)} · le ${r.day} · ${r.active===false?"Désactivée":"Active"}</small></div><button class="link-btn" data-rule-id="${r.id}">${r.active===false?"Activer":"Désactiver"}</button></div>`).join(""):"<p>Aucune échéance.</p>";
   }
 
@@ -612,65 +717,6 @@
     $("categoryStats").innerHTML=rows.length?rows.map(([c,a])=>`<div class="stat-row"><div><b>${c}</b><span>${euro(a)}</span></div><div class="bar"><i style="width:${Math.max(3,Math.round(a/max*100))}%"></i></div></div>`).join(""):"<p>Aucune dépense ce mois-ci.</p>";
     const diff=monthExpense()-monthExpense(-1);
     $("statsAdvice").textContent=diff>0?`Vous avez dépensé ${euro(diff)} de plus que le mois précédent.`:diff<0?`Vous avez dépensé ${euro(Math.abs(diff))} de moins que le mois précédent.`:"Vos dépenses sont stables par rapport au mois précédent.";
-  }
-
-  function buildDeveloperReport(){
-    const history=readBackupHistory();
-    const valid=validateData(normalize(data));
-    const operationsByType=data.operations.reduce((result,operation)=>{
-      result[operation.type]=(result[operation.type]||0)+1;
-      return result;
-    },{});
-
-    return {
-      valid,
-      schema:data.version||DATA_SCHEMA_VERSION,
-      accounts:data.accounts.length,
-      operations:data.operations.length,
-      incomes:operationsByType.income||0,
-      expenses:operationsByType.expense||0,
-      transfers:operationsByType.transfer||0,
-      rules:data.rules.length,
-      backups:history.length,
-      checksum:dataChecksum(normalize(data)),
-      lastSavedAt:data.lastSavedAt||null,
-      storageBytes:new Blob([
-        localStorage.getItem(KEY)||"",
-        localStorage.getItem(HISTORY_KEY)||""
-      ]).size
-    };
-  }
-
-  function renderDeveloperReport(){
-    const report=buildDeveloperReport();
-    $("developerReport").innerHTML=`
-      <div class="developer-grid">
-        <div><span>Intégrité</span><b class="${report.valid?"positive":"negative"}">${report.valid?"Valide":"Erreur"}</b></div>
-        <div><span>Schéma</span><b>${report.schema}</b></div>
-        <div><span>Comptes</span><b>${report.accounts}</b></div>
-        <div><span>Opérations</span><b>${report.operations}</b></div>
-        <div><span>Dépenses</span><b>${report.expenses}</b></div>
-        <div><span>Revenus</span><b>${report.incomes}</b></div>
-        <div><span>Virements</span><b>${report.transfers}</b></div>
-        <div><span>Échéances</span><b>${report.rules}</b></div>
-        <div><span>Sauvegardes</span><b>${report.backups}</b></div>
-        <div><span>Stockage local</span><b>${Math.ceil(report.storageBytes/1024)} Ko</b></div>
-      </div>
-      <p class="developer-checksum">Empreinte : ${report.checksum}</p>
-    `;
-  }
-
-  function openDeveloperMode(){
-    renderDeveloperReport();
-    const modal=$("developerModal");
-    modal.classList.add("open");
-    modal.setAttribute("aria-hidden","false");
-  }
-
-  function closeDeveloperMode(){
-    const modal=$("developerModal");
-    modal.classList.remove("open");
-    modal.setAttribute("aria-hidden","true");
   }
 
   function renderSettings(){
@@ -698,6 +744,36 @@
   const renderOperationsDebounced=debounce(renderOperations,100);
 
   let renderScheduled=false;
+
+  function renderTemplateSuggestions(){
+    const templates=operationTemplates();
+    $("operationTemplates").innerHTML=templates
+      .map(template=>`<option value="${template.label}">${euro(template.amount)} · ${template.category}</option>`)
+      .join("");
+  }
+
+  function applyTemplateSuggestion(){
+    const template=findTemplate($("labelInput").value);
+    const hint=$("templateHint");
+
+    if(!template){
+      hint.textContent="Le montant et la catégorie peuvent être proposés automatiquement.";
+      return;
+    }
+
+    if(!$("amountInput").value || money($("amountInput").value)===0){
+      $("amountInput").value=String(template.amount).replace(".",",");
+    }
+    $("categoryInput").value=template.category;
+    if(data.accounts.some(item=>item.id===template.accountId)){
+      $("accountInput").value=template.accountId;
+    }
+    if(template.type!==operationType){
+      setType(template.type);
+    }
+    hint.textContent=`Proposition appliquée depuis : ${template.source}.`;
+  }
+
   function renderAll(){
     if(renderScheduled)return;
     renderScheduled=true;
@@ -709,6 +785,7 @@
       renderAccounts();
       renderStats();
       renderSettings();
+      renderTemplateSuggestions();
     });
   }
   function setType(type){
@@ -764,12 +841,8 @@
   }
 
   function smartCategory(label){
-    const t=label.toLowerCase();
-    if(/carrefour|leclerc|lidl|aldi|courses/.test(t))return "Alimentation";
-    if(/orange|edf|eau|assurance|loyer/.test(t))return "Maison";
-    if(/essence|total|carburant|péage/.test(t))return "Transport";
-    if(/pharmacie|médecin|dentiste/.test(t))return "Santé";
-    return $("categoryInput").value;
+    const suggested=smartCategoryFromText(label);
+    return suggested==="Autre" ? $("categoryInput").value : suggested;
   }
 
   document.addEventListener("click",e=>{
@@ -784,6 +857,9 @@
     const ruleBtn=e.target.closest("[data-rule-id]");if(ruleBtn){const r=data.rules.find(x=>x.id===ruleBtn.dataset.ruleId);if(r){r.active=r.active===false;save()}return}
   });
 
+  $("labelInput").addEventListener("input",debounce(applyTemplateSuggestion,180));
+  $("labelInput").addEventListener("change",applyTemplateSuggestion);
+
   $("saveOperationBtn").addEventListener("click",()=>{
     const date=$("dateInput").value||today();
     if(operationType==="transfer"){
@@ -795,9 +871,20 @@
       const amount=money($("amountInput").value),label=$("labelInput").value.trim(),accountId=$("accountInput").value;
       if(amount<=0||!label){$("addMessage").textContent="Complétez le libellé et le montant.";return}
       const op={id:uid(),type:operationType,label,amount,date,category:smartCategory(label),accountId,toAccountId:null};
+      const duplicate=duplicateCandidate(op);
+      if(duplicate && !confirm(`Une opération identique existe déjà aujourd’hui : ${duplicate.label} ${euro(duplicate.amount)}. L’ajouter quand même ?`)){
+        $("addMessage").textContent="Ajout annulé : doublon détecté.";
+        return;
+      }
       data.operations.push(op);applyOperation(op,1);
     }
-    save();$("addMessage").textContent="Opération enregistrée.";toast("Opération enregistrée");showScreen("home");
+    save();
+    $("amountInput").value="";
+    $("labelInput").value="";
+    $("templateHint").textContent="Le montant et la catégorie peuvent être proposés automatiquement.";
+    $("addMessage").textContent="Opération enregistrée.";
+    toast("Opération enregistrée");
+    showScreen("home");
   });
 
   $("checkRecurringBtn").addEventListener("click",()=>{materializeRecurring();renderAll();toast("Échéances vérifiées")});
@@ -861,43 +948,6 @@
     }
   });
 
-
-  let developerTapCount=0;
-  let developerTapTimer=null;
-
-  $("saveState").addEventListener("click",()=>{
-    developerTapCount++;
-    clearTimeout(developerTapTimer);
-    developerTapTimer=setTimeout(()=>developerTapCount=0,1600);
-    if(developerTapCount>=7){
-      developerTapCount=0;
-      openDeveloperMode();
-    }
-  });
-
-  $("closeDeveloperBtn").addEventListener("click",closeDeveloperMode);
-  document.addEventListener("click",event=>{
-    if(event.target.closest("[data-close-developer]"))closeDeveloperMode();
-  });
-
-  $("runIntegrityCheckBtn").addEventListener("click",()=>{
-    const normalized=normalize(data);
-    if(validateData(normalized)){
-      toast("Données vérifiées : aucune erreur");
-    }else{
-      alert("Une incohérence a été détectée. Aucune donnée n’a été modifiée.");
-    }
-    renderDeveloperReport();
-  });
-
-  $("createDiagnosticBackupBtn").addEventListener("click",()=>{
-    if(pushBackup(data,"diagnostic")){
-      toast("Sauvegarde de diagnostic créée");
-      renderDeveloperReport();
-    }else{
-      alert("La sauvegarde de diagnostic a échoué.");
-    }
-  });
 
   $("dateInput").value=today();
   materializeRecurring();
