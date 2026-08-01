@@ -1,180 +1,198 @@
-const KEY='budget_essentiel_v3';
+const KEY='mon_budget_essentiel_v4';
+const LEGACY_KEYS=['budget_essentiel_v3','budget_essentiel_v2','budget_essentiel_v1'];
 const defaults={balance:2697.32,cardDebitDay:4,operations:[],incomeRules:[{id:'i1',label:'CAF',amount:867.92,day:5},{id:'i2',label:'Assurance Maëva',amount:130,day:10}],chargeRules:[{id:'c1',label:'Orange',amount:28.99,day:6},{id:'c2',label:'Eau de Garonne',amount:64,day:3}],theme:'light'};
-let data=load(),type='expense',editingId=null;
-function load(){try{return {...structuredClone(defaults),...JSON.parse(localStorage.getItem(KEY))}}catch{return structuredClone(defaults)}}
-function save(){localStorage.setItem(KEY,JSON.stringify(data));render()}
+let data=load(),opType='expense',payment='deferred',category='Alimentation';
+
+function load(){
+  try{
+    const current=localStorage.getItem(KEY);
+    if(current)return {...structuredClone(defaults),...JSON.parse(current)};
+    for(const k of LEGACY_KEYS){
+      const old=localStorage.getItem(k);
+      if(old){
+        const migrated={...structuredClone(defaults),...JSON.parse(old)};
+        localStorage.setItem(KEY,JSON.stringify(migrated));
+        return migrated;
+      }
+    }
+  }catch{}
+  return structuredClone(defaults)
+}
+function save(){localStorage.setItem(KEY,JSON.stringify(data));renderAll()}
 function euro(n){return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(Number(n||0))}
 function money(v){return Number(String(v||'').replace(/\s/g,'').replace(',','.'))||0}
 function today(){return new Date().toISOString().slice(0,10)}
-function mkey(d){return String(d).slice(0,7)}
-function thisMonth(){return today().slice(0,7)}
-function dim(){let d=new Date();return new Date(d.getFullYear(),d.getMonth()+1,0).getDate()}
-function left(){let d=new Date();return Math.max(1,dim()-d.getDate()+1)}
-function dateFor(day){let d=new Date(),last=dim(),dd=String(Math.min(Number(day),last)).padStart(2,'0'),mm=String(d.getMonth()+1).padStart(2,'0');return `${d.getFullYear()}-${mm}-${dd}`}
+function monthKey(v){return String(v).slice(0,7)}
+function currentMonth(){return today().slice(0,7)}
+function daysInMonth(){const d=new Date();return new Date(d.getFullYear(),d.getMonth()+1,0).getDate()}
+function daysLeft(){return Math.max(1,daysInMonth()-new Date().getDate()+1)}
+function safeDate(day,monthOffset=0){const n=new Date(),d=new Date(n.getFullYear(),n.getMonth()+monthOffset,1),last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();d.setDate(Math.min(Number(day),last));d.setHours(12);return d.toISOString().slice(0,10)}
 function cardPending(){return data.operations.filter(x=>x.type==='expense'&&x.payment==='deferred'&&!x.cardDebited).reduce((s,x)=>s+x.amount,0)}
-function futureRules(rules){let day=new Date().getDate();return rules.filter(r=>r.day>=day)}
-function expectedIncome(){return futureRules(data.incomeRules).reduce((s,r)=>s+r.amount,0)}
-function remainingCharges(){return futureRules(data.chargeRules).reduce((s,r)=>s+r.amount,0)}
+function expectedIncome(){const day=new Date().getDate();return data.incomeRules.filter(r=>r.day>=day).reduce((s,r)=>s+r.amount,0)}
+function remainingCharges(){const day=new Date().getDate();return data.chargeRules.filter(r=>r.day>=day).reduce((s,r)=>s+r.amount,0)}
 function available(){return data.balance-cardPending()}
-function projected(){return data.balance-cardPending()-remainingCharges()+expectedIncome()}
-function currentMonthOps(){return data.operations.filter(x=>mkey(x.date)===thisMonth())}
-function monthIncome(){return currentMonthOps().filter(x=>x.type==='income').reduce((s,x)=>s+x.amount,0)}
-function monthExpenses(){return currentMonthOps().filter(x=>x.type==='expense').reduce((s,x)=>s+x.amount,0)}
-function monthUsagePercent(){
- const planned=Math.max(1,monthIncome()+expectedIncome());
- return Math.min(100,Math.round((monthExpenses()/planned)*100))
-}
-function adviceText(){
- const p=projected(),d=daily(),card=cardPending();
- if(p<0)return `La fin de mois est estimée à ${euro(p)}. Évitez les dépenses non essentielles aujourd’hui.`;
- if(card>available()*0.5)return `Votre CB différée est élevée à ${euro(card)}. Gardez une marge avant le débit du ${data.cardDebitDay}.`;
- if(d<20)return `Budget serré aujourd’hui : essayez de rester sous ${euro(d)}.`;
- return `Si vous restez autour de ${euro(d)} aujourd’hui, vous devriez terminer le mois avec environ ${euro(p)}.`;
-}
-
-function daily(){return Math.max(0,projected()/left())}
-function nextRule(rules){let day=new Date().getDate();return [...rules].sort((a,b)=>(a.day>=day?a.day:a.day+31)-(b.day>=day?b.day:b.day+31))[0]}
-function events(){let e=[];data.operations.forEach(o=>e.push({...o,kind:o.type,amountSigned:o.type==='income'?o.amount:-o.amount}));data.incomeRules.forEach(r=>e.push({id:'ir'+r.id,kind:'income',label:r.label,date:dateFor(r.day),amountSigned:r.amount}));data.chargeRules.forEach(r=>e.push({id:'cr'+r.id,kind:'charge',label:r.label,date:dateFor(r.day),amountSigned:-r.amount}));if(cardPending()>0){let d=new Date(),m=d.getDate()<=data.cardDebitDay?d.getMonth():d.getMonth()+1,dt=new Date(d.getFullYear(),m,data.cardDebitDay,12);e.push({id:'card',kind:'card',label:'Débit CB différée',date:dt.toISOString().slice(0,10),amountSigned:-cardPending()})}return e.sort((a,b)=>a.date.localeCompare(b.date))}
-function icon(k){return {income:'💰',expense:'🛒',charge:'🧾',card:'💳'}[k]||'•'}
-function kind(k){return {income:'Revenu',expense:'Dépense',charge:'Prélèvement',card:'Carte différée'}[k]||''}
+function forecast(){return data.balance-cardPending()+expectedIncome()-remainingCharges()}
+function dailyBudget(){return Math.max(0,forecast()/daysLeft())}
+function monthOps(){return data.operations.filter(x=>monthKey(x.date)===currentMonth())}
+function monthIncome(){return monthOps().filter(x=>x.type==='income').reduce((s,x)=>s+x.amount,0)}
+function monthExpense(){return monthOps().filter(x=>x.type==='expense').reduce((s,x)=>s+x.amount,0)}
+function nextRule(rules){const day=new Date().getDate();return [...rules].sort((a,b)=>(a.day>=day?a.day:a.day+31)-(b.day>=day?b.day:b.day+31))[0]}
+function icon(kind){return {income:'💰',charge:'🧾',expense:'🛒',card:'💳'}[kind]||'•'}
+function typeLabel(kind){return {income:'Revenu',charge:'Prélèvement',expense:'Dépense',card:'CB différée'}[kind]||''}
 function esc(v){return String(v).replace(/[&<>\"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[s]))}
-function drawEvents(sel,list){document.querySelector(sel).innerHTML=list.length?list.map(x=>`<div class="item ${x.rule||x.id==='card'?'':'clickable'}" ${x.rule||x.id==='card'?'':`data-edit-op="${x.id}"`}><div class="icon">${icon(x.kind)}</div><div><b>${esc(x.label)}</b><small>${new Date(x.date+'T12:00:00').toLocaleDateString('fr-FR')} · ${kind(x.kind)}</small></div><div class="amount ${x.amountSigned>=0?'income':'expense'}">${x.amountSigned>=0?'+':''}${euro(x.amountSigned)}</div></div>`).join(''):'<p style="color:var(--muted)">Aucune opération.</p>'}
-function ruleRow(r,t){return `<div class="rule"><div><b>${esc(r.label)}</b><small>${euro(r.amount)} · le ${r.day}</small></div><button data-del="${t}:${r.id}">Supprimer</button></div>`}
-function render(){document.querySelector('#available').textContent=euro(available());document.querySelector('#forecast').textContent=`Fin de mois estimée : ${euro(projected())}`;document.querySelector('#balance').textContent=euro(data.balance);document.querySelector('#card').textContent=euro(cardPending());document.querySelector('#daily').textContent=euro(daily());
-document.querySelector('#monthProgress').style.width=monthUsagePercent()+'%';
-document.querySelector('#monthProgressLabel').textContent=monthUsagePercent()+' % du budget mensuel utilisé';
-document.querySelector('#dailyAdvice').textContent=adviceText();
-document.querySelector('#monthName').textContent=new Date().toLocaleDateString('fr-FR',{month:'long'});
-document.querySelector('#monthIncome').textContent=euro(monthIncome());
-document.querySelector('#monthExpenses').textContent=euro(monthExpenses());
-document.querySelector('#monthCard').textContent=euro(cardPending());
-document.querySelector('#monthRemaining').textContent=euro(projected());let ni=nextRule(data.incomeRules),nc=nextRule(data.chargeRules);document.querySelector('#nextIncome').textContent=ni?euro(ni.amount):'—';document.querySelector('#nextIncomeLabel').textContent=ni?`${ni.label} · le ${ni.day}`:'Aucun';document.querySelector('#nextCharge').textContent=nc?euro(nc.amount):'—';document.querySelector('#nextChargeLabel').textContent=nc?`${nc.label} · le ${nc.day}`:'Aucun';drawEvents('#upcoming',events().filter(x=>x.date>=today()).slice(0,5));drawEvents('#events',events().filter(x=>document.querySelector('#filter').value==='all'||x.kind===document.querySelector('#filter').value));document.querySelector('#settingBalance').value=String(data.balance).replace('.',',');document.querySelector('#cardDay').value=data.cardDebitDay;document.querySelector('#incomeRules').innerHTML=data.incomeRules.map(r=>ruleRow(r,'i')).join('');document.querySelector('#chargeRules').innerHTML=data.chargeRules.map(r=>ruleRow(r,'c')).join('');
-document.querySelector('#accountCurrent').textContent=euro(data.balance);
-document.querySelector('#accountDeferred').textContent=euro(cardPending());
-document.querySelector('#accountAvailable').textContent=euro(available());
-document.querySelector('#accountCardDay').textContent=data.cardDebitDay;
-drawEvents('#recentOperations',events().filter(x=>!x.id.startsWith('ir')&&!x.id.startsWith('cr')&&x.id!=='card').slice(-8).reverse());
-renderAlert();
-document.body.classList.toggle('dark',data.theme==='dark');document.querySelector('#theme').textContent=data.theme==='dark'?'☀️':'🌙'}
-document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{let t=b.dataset.tab;document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===t));document.querySelectorAll('nav [data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===t));if(t==='calendar')render()}));
-document.querySelector('#expenseType').onclick=()=>{type='expense';expenseType.classList.add('active');incomeType.classList.remove('active');paymentBox.style.display='block'};
-document.querySelector('#incomeType').onclick=()=>{type='income';incomeType.classList.add('active');expenseType.classList.remove('active');paymentBox.style.display='none'};
-document.querySelector('#saveOp').onclick=()=>{
-let label=document.querySelector('#label').value.trim(),amount=money(document.querySelector('#amount').value),date=document.querySelector('#date').value||today();
-if(!label||amount<=0){feedback.textContent='Complète le libellé et le montant.';return}
-if(editingId){
- const old=data.operations.find(x=>x.id===editingId);
- if(old){
-  if(old.type==='income')data.balance-=old.amount;
-  if(old.type==='expense'&&old.payment==='current')data.balance+=old.amount;
-  old.type=type;old.label=label;old.amount=amount;old.date=date;old.category=document.querySelector('#category').value;old.payment=type==='expense'?document.querySelector('#payment').value:'current';
-  if(old.type==='income')data.balance+=amount;
-  if(old.type==='expense'&&old.payment==='current')data.balance-=amount;
- }
- feedback.textContent='Opération modifiée.';
- editingId=null;document.querySelector('#saveOp').textContent='Enregistrer';
-}else{
- let op={id:crypto.randomUUID(),type,label,amount,date,category:document.querySelector('#category').value,payment:type==='expense'?document.querySelector('#payment').value:'current',cardDebited:false};
- data.operations.push(op);
- if(type==='income')data.balance=Number((data.balance+amount).toFixed(2));
- if(type==='expense'&&op.payment==='current')data.balance=Number((data.balance-amount).toFixed(2));
- feedback.textContent='Opération enregistrée.';
+
+function allEvents(){
+  const list=[];
+  data.operations.forEach(o=>list.push({...o,kind:o.type,signed:o.type==='income'?o.amount:-o.amount}));
+  data.incomeRules.forEach(r=>list.push({id:'ri'+r.id,kind:'income',label:r.label,date:safeDate(r.day),signed:r.amount,rule:true}));
+  data.chargeRules.forEach(r=>list.push({id:'rc'+r.id,kind:'charge',label:r.label,date:safeDate(r.day),signed:-r.amount,rule:true}));
+  if(cardPending()>0){
+    const now=new Date(),offset=now.getDate()<=data.cardDebitDay?0:1;
+    list.push({id:'card',kind:'card',label:'Débit CB différée',date:safeDate(data.cardDebitDay,offset),signed:-cardPending(),rule:true});
+  }
+  return list.sort((a,b)=>a.date.localeCompare(b.date))
 }
-data.balance=Number(data.balance.toFixed(2));
-document.querySelector('#label').value='';document.querySelector('#amount').value='';
-save()
+function statusInfo(){
+  const f=forecast(),d=dailyBudget();
+  if(f<0)return {level:'danger',title:'Risque',text:`Fin de mois estimée à ${euro(f)}. Limitez les dépenses non essentielles.`};
+  if(f<300||d<20)return {level:'warning',title:'Attention',text:`Marge limitée. Budget conseillé aujourd’hui : ${euro(d)}.`};
+  return {level:'ok',title:'Situation confortable',text:`Vous pouvez viser environ ${euro(d)} aujourd’hui.`};
+}
+function drawEvents(selector,items,limit){
+  const target=document.querySelector(selector);
+  const arr=typeof limit==='number'?items.slice(0,limit):items;
+  target.innerHTML=arr.length?arr.map(x=>{
+    const dt=new Date(x.date+'T12:00:00');
+    return `<div class="timeline-row"><div class="date-box">${dt.getDate()}<small>${dt.toLocaleDateString('fr-FR',{month:'short'})}</small></div><div><b>${icon(x.kind)} ${esc(x.label)}</b><small>${typeLabel(x.kind)}</small></div><div class="amount ${x.signed>=0?'positive':'negative'}">${x.signed>=0?'+':''}${euro(x.signed)}</div></div>`
+  }).join(''):'<p style="color:var(--muted)">Aucune opération.</p>'
+}
+function renderHome(){
+  document.querySelector('#homeAvailable').textContent=euro(available());
+  document.querySelector('#homeForecast').textContent=`Fin de mois estimée : ${euro(forecast())}`;
+  document.querySelector('#homeCard').textContent=euro(cardPending());
+  document.querySelector('#homeCardDay').textContent=data.cardDebitDay;
+  document.querySelector('#homeDaily').textContent=euro(dailyBudget());
+  const ni=nextRule(data.incomeRules),nc=nextRule(data.chargeRules);
+  document.querySelector('#homeNextIncome').textContent=ni?euro(ni.amount):'—';
+  document.querySelector('#homeNextIncomeLabel').textContent=ni?`${ni.label} · le ${ni.day}`:'Aucun';
+  document.querySelector('#homeNextCharge').textContent=nc?euro(nc.amount):'—';
+  document.querySelector('#homeNextChargeLabel').textContent=nc?`${nc.label} · le ${nc.day}`:'Aucun';
+  const st=statusInfo();
+  document.querySelector('#statusTitle').textContent=st.title;
+  document.querySelector('#statusText').textContent=st.text;
+  document.querySelector('#statusDot').style.background=st.level==='danger'?'var(--red)':st.level==='warning'?'var(--orange)':'var(--green)';
+  drawEvents('#homeUpcoming',allEvents().filter(x=>x.date>=today()),4);
+}
+function renderAgenda(){
+  const filter=document.querySelector('#agendaFilter').value;
+  drawEvents('#agendaList',allEvents().filter(x=>filter==='all'||x.kind===filter));
+}
+function renderAccounts(){
+  document.querySelector('#accountBalance').textContent=euro(data.balance);
+  document.querySelector('#accountCard').textContent=euro(cardPending());
+  document.querySelector('#accountAvailable').textContent=euro(available());
+  document.querySelector('#monthIncome').textContent=euro(monthIncome());
+  document.querySelector('#monthExpense').textContent=euro(monthExpense());
+  document.querySelector('#monthForecast').textContent=euro(forecast());
+  const recent=data.operations.slice(-8).reverse().map(o=>({...o,kind:o.type,signed:o.type==='income'?o.amount:-o.amount}));
+  drawEvents('#recentList',recent);
+}
+function ruleRow(rule,type){
+  return `<div class="rule-row"><div><b>${esc(rule.label)}</b><small>${euro(rule.amount)} · le ${rule.day}</small></div><button data-delete-rule="${type}:${rule.id}">Supprimer</button></div>`
+}
+function renderSettings(){
+  document.querySelector('#settingBalance').value=String(data.balance).replace('.',',');
+  document.querySelector('#settingCardDay').value=data.cardDebitDay;
+  document.querySelector('#incomeRules').innerHTML=data.incomeRules.map(r=>ruleRow(r,'income')).join('')||'<p>Aucun revenu.</p>';
+  document.querySelector('#chargeRules').innerHTML=data.chargeRules.map(r=>ruleRow(r,'charge')).join('')||'<p>Aucun prélèvement.</p>';
+  document.body.classList.toggle('dark',data.theme==='dark');
+  document.querySelector('#themeToggle').textContent=data.theme==='dark'?'☀️':'🌙';
+}
+function renderAll(){renderHome();renderAgenda();renderAccounts();renderSettings();updateImpact()}
+
+function setTab(tab){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===tab));
+  document.querySelectorAll('.bottom-nav [data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+}
+document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
+
+function setType(value){
+  opType=value;
+  document.querySelector('#chooseExpense').classList.toggle('active',value==='expense');
+  document.querySelector('#chooseIncome').classList.toggle('active',value==='income');
+  document.querySelector('#paymentBox').style.display=value==='expense'?'block':'none';
+  updateImpact()
+}
+function setPayment(value){
+  payment=value;
+  document.querySelector('#chooseDeferred').classList.toggle('active',value==='deferred');
+  document.querySelector('#chooseCurrent').classList.toggle('active',value==='current');
+  updateImpact()
+}
+const categories=[['Alimentation','🛒'],['Maison','🏠'],['Transport','🚗'],['Santé','❤️'],['Famille','👨‍👩‍👧'],['Loisirs','🎾'],['Autre','📦']];
+document.querySelector('#categoryButtons').innerHTML=categories.map(([name,emoji],i)=>`<button class="category-btn ${i===0?'active':''}" data-category="${name}">${emoji}<br>${name}</button>`).join('');
+document.querySelectorAll('[data-category]').forEach(b=>b.addEventListener('click',()=>{category=b.dataset.category;document.querySelectorAll('[data-category]').forEach(x=>x.classList.toggle('active',x===b))}));
+document.querySelector('#chooseExpense').onclick=()=>setType('expense');
+document.querySelector('#chooseIncome').onclick=()=>setType('income');
+document.querySelector('#chooseDeferred').onclick=()=>setPayment('deferred');
+document.querySelector('#chooseCurrent').onclick=()=>setPayment('current');
+
+function updateImpact(){
+  const amount=money(document.querySelector('#opAmount').value),box=document.querySelector('#impactPreview');
+  if(amount<=0){box.classList.remove('show');box.innerHTML='';return}
+  box.classList.add('show');
+  if(opType==='income')box.innerHTML=`Après ce revenu, le compte afficherait <b>${euro(data.balance+amount)}</b>`;
+  else box.innerHTML=`Après cette dépense, le budget conseillé serait d’environ <b>${euro(Math.max(0,(forecast()-amount)/daysLeft()))}</b><small>${payment==='deferred'?'Ajouté à la CB différée':'Débit immédiat du compte'}</small>`;
+}
+document.querySelector('#opAmount').addEventListener('input',updateImpact);
+
+document.querySelector('#saveOperation').onclick=()=>{
+  const amount=money(document.querySelector('#opAmount').value),label=document.querySelector('#opLabel').value.trim(),date=document.querySelector('#opDate').value||today();
+  if(amount<=0||!label){document.querySelector('#saveMessage').textContent='Complétez le montant et le libellé.';return}
+  const op={id:crypto.randomUUID(),type:opType,label,amount,date,category,payment:opType==='expense'?payment:'current',cardDebited:false};
+  data.operations.push(op);
+  if(opType==='income')data.balance=Number((data.balance+amount).toFixed(2));
+  if(opType==='expense'&&payment==='current')data.balance=Number((data.balance-amount).toFixed(2));
+  document.querySelector('#opAmount').value='';
+  document.querySelector('#opLabel').value='';
+  document.querySelector('#saveMessage').textContent='Opération enregistrée.';
+  save()
 };
-document.querySelector('#saveSettings').onclick=()=>{data.balance=money(settingBalance.value);data.cardDebitDay=Math.max(1,Math.min(28,Number(cardDay.value||4)));save()};
-function addRule(t){let p=t==='i'?'ir':'cr',label=document.querySelector('#'+p+'Label').value.trim(),amount=money(document.querySelector('#'+p+'Amount').value),day=Number(document.querySelector('#'+p+'Day').value);if(!label||amount<=0||day<1||day>31)return alert('Complète les trois champs.');(t==='i'?data.incomeRules:data.chargeRules).push({id:crypto.randomUUID(),label,amount,day});document.querySelector('#'+p+'Label').value='';document.querySelector('#'+p+'Amount').value='';document.querySelector('#'+p+'Day').value='';save()}
-document.querySelector('#addIncomeRule').onclick=()=>addRule('i');document.querySelector('#addChargeRule').onclick=()=>addRule('c');
-document.addEventListener('click',e=>{let v=e.target.dataset.del;if(!v)return;let[t,id]=v.split(':');if(t==='i')data.incomeRules=data.incomeRules.filter(r=>r.id!==id);else data.chargeRules=data.chargeRules.filter(r=>r.id!==id);save()});
-document.querySelector('#filter').onchange=render;document.querySelector('#theme').onclick=()=>{data.theme=data.theme==='dark'?'light':'dark';save()};
-document.querySelector('#export').onclick=()=>{let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mon_budget_essentiel.json';a.click()};
-document.querySelector('#import').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{data={...structuredClone(defaults),...JSON.parse(await f.text())};save();alert('Sauvegarde importée.')}catch{alert('Fichier invalide.')}};
-document.querySelector('#reset').onclick=()=>{if(confirm('Tout effacer ?')){data=structuredClone(defaults);save()}};
 
-
-function renderSearch(){
- const q=(document.querySelector('#globalSearch')?.value||'').trim().toLowerCase();
- const box=document.querySelector('#searchResults');
- if(!box)return;
- if(!q){box.innerHTML='';return}
- const list=events().filter(x=>{
-   const hay=`${x.label} ${kind(x.kind)} ${x.date}`.toLowerCase();
-   return hay.includes(q)
- }).slice(0,20);
- drawEvents('#searchResults',list)
-}
-
-function renderAlert(){
- const p=projected(),card=cardPending(),el=document.querySelector('#alertCard'),badge=document.querySelector('#alertBadge'),text=document.querySelector('#alertText');
- el.classList.remove('warning','danger');
- if(p<0){el.classList.add('danger');badge.textContent='Risque';text.textContent=`Fin de mois estimée à ${euro(p)}. Réduis les dépenses non essentielles.`}
- else if(p<300){el.classList.add('warning');badge.textContent='Attention';text.textContent=`Marge faible : ${euro(p)} prévue en fin de mois.`}
- else if(card>data.balance*.5){el.classList.add('warning');badge.textContent='CB élevée';text.textContent=`La CB différée représente ${euro(card)}.`}
- else{badge.textContent='OK';text.textContent=`Situation correcte. Fin de mois estimée à ${euro(p)}.`}
-}
-
-function updateImpactPreview(){
- const amount=money(document.querySelector('#amount').value);
- let box=document.querySelector('#operationImpact');
- if(!box){
-   box=document.createElement('div');
-   box.id='operationImpact';
-   box.className='impact-box';
-   document.querySelector('#saveOp').before(box);
- }
- if(amount<=0){box.innerHTML='';box.style.display='none';return}
- box.style.display='block';
- if(type==='income'){
-   box.innerHTML=`Après ce revenu, le solde du compte serait de <b>${euro(data.balance+amount)}</b>`;
- }else{
-   const immediate=document.querySelector('#payment').value==='current';
-   const futureDaily=Math.max(0,(projected()-amount)/left());
-   box.innerHTML=`Après cette dépense, votre budget conseillé du jour serait de <b>${euro(futureDaily)}</b><small>${immediate?'Débit immédiat du compte':'Ajouté à la CB différée'}</small>`;
- }
-}
-
-document.querySelector('#simulate').onclick=()=>{
- const amount=money(document.querySelector('#simAmount').value),box=document.querySelector('#simResult');
- if(amount<=0){box.className='simulation-result show';box.innerHTML='Saisis un montant valide.';return}
- const after=projected()-amount,newDaily=Math.max(0,after/left());
- const verdict=after<0?'Achat risqué':after<300?'Achat à surveiller':'Achat possible';
- box.className='simulation-result show';
- box.innerHTML=`<span>${verdict}</span><b>${euro(after)} en fin de mois</b><small>Nouveau budget du jour : ${euro(newDaily)}</small>`;
+document.querySelector('#agendaFilter').addEventListener('change',renderAgenda);
+document.querySelector('#saveSettings').onclick=()=>{
+  data.balance=money(document.querySelector('#settingBalance').value);
+  data.cardDebitDay=Math.max(1,Math.min(28,Number(document.querySelector('#settingCardDay').value||4)));
+  save()
 };
+function addRule(type){
+  const p=type==='income'?'income':'charge';
+  const label=document.querySelector('#'+p+'Label').value.trim(),amount=money(document.querySelector('#'+p+'Amount').value),day=Number(document.querySelector('#'+p+'Day').value);
+  if(!label||amount<=0||day<1||day>31)return alert('Complétez le nom, le montant et le jour.');
+  (type==='income'?data.incomeRules:data.chargeRules).push({id:crypto.randomUUID(),label,amount,day});
+  document.querySelector('#'+p+'Label').value='';document.querySelector('#'+p+'Amount').value='';document.querySelector('#'+p+'Day').value='';
+  save()
+}
+document.querySelector('#addIncomeRule').onclick=()=>addRule('income');
+document.querySelector('#addChargeRule').onclick=()=>addRule('charge');
 document.addEventListener('click',e=>{
- const id=e.target.closest('[data-edit-op]')?.dataset.editOp;
- if(!id)return;
- const op=data.operations.find(x=>x.id===id);if(!op)return;
- const choice=prompt('Tape 1 pour modifier ou 2 pour supprimer.');
- if(choice==='2'){
-   if(confirm('Supprimer cette opération ?')){
-     if(op.type==='income')data.balance-=op.amount;
-     if(op.type==='expense'&&op.payment==='current')data.balance+=op.amount;
-     data.operations=data.operations.filter(x=>x.id!==id);
-     data.balance=Number(data.balance.toFixed(2));save();
-   }
-   return;
- }
- if(choice==='1'){
-   editingId=id;type=op.type;
-   document.querySelector('#label').value=op.label;
-   document.querySelector('#amount').value=String(op.amount).replace('.',',');
-   document.querySelector('#date').value=op.date;
-   document.querySelector('#category').value=op.category||'Autre';
-   document.querySelector('#payment').value=op.payment||'current';
-   document.querySelector('#expenseType').classList.toggle('active',type==='expense');
-   document.querySelector('#incomeType').classList.toggle('active',type==='income');
-   document.querySelector('#paymentBox').style.display=type==='expense'?'block':'none';
-   document.querySelector('#saveOp').textContent='Enregistrer la modification';
-   document.querySelector('[data-tab="add"]').click();
- }
+  const val=e.target.dataset.deleteRule;
+  if(!val)return;
+  const [type,id]=val.split(':');
+  if(type==='income')data.incomeRules=data.incomeRules.filter(r=>r.id!==id);
+  else data.chargeRules=data.chargeRules.filter(r=>r.id!==id);
+  save()
 });
+document.querySelector('#themeToggle').onclick=()=>{data.theme=data.theme==='dark'?'light':'dark';save()};
+document.querySelector('#exportData').onclick=()=>{
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download='mon_budget_essentiel_v4.json';a.click()
+};
+document.querySelector('#importData').onchange=async e=>{
+  const file=e.target.files[0];if(!file)return;
+  try{data={...structuredClone(defaults),...JSON.parse(await file.text())};save();alert('Sauvegarde importée.')}catch{alert('Fichier invalide.')}
+};
+document.querySelector('#resetData').onclick=()=>{if(confirm('Tout effacer et repartir de zéro ?')){data=structuredClone(defaults);save()}};
 
-
-document.querySelector('#globalSearch').addEventListener('input',renderSearch);
-document.querySelector('#amount').addEventListener('input',updateImpactPreview);
-document.querySelector('#payment').addEventListener('change',updateImpactPreview);
-
-document.querySelector('#date').value=today();render();
+document.querySelector('#opDate').value=today();
+renderAll();

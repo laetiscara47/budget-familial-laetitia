@@ -1,12 +1,16 @@
-# Mon Budget Essentiel V3.0
+# Mon Budget Essentiel V4.0
 
-Nouveautés :
-- accueil plus compact ;
-- conseil du jour automatique ;
-- résumé mensuel ;
-- recherche d’opérations ;
-- impact immédiat d’une dépense sur le budget du jour ;
-- jauge d’utilisation du budget mensuel ;
-- simulateur, comptes, agenda et réglages conservés.
+Version simplifiée et stable.
 
-Remplacez tout le contenu du dépôt GitHub par les fichiers de cette archive.
+Principales fonctions :
+- accueil compact ;
+- statut Confortable / Attention / Risque ;
+- ajout rapide d’une dépense ou d’un revenu ;
+- carte bancaire à débit différé ;
+- agenda chronologique ;
+- écran Comptes ;
+- revenus et prélèvements récurrents ;
+- sauvegarde locale et export JSON ;
+- reprise automatique des données des versions précédentes.
+
+Pour GitHub Pages, remplacez tout le contenu du dépôt par les fichiers de cette archive.

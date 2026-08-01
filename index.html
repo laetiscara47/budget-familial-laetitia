@@ -1,85 +1,163 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#2f6fed"><title>Mon Budget Essentiel</title><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg"><link rel="stylesheet" href="styles.css?v=3.0.0"></head><body>
-<header><div><h1>💙 Mon Budget</h1><p>V3.0</p></div><button id="theme">🌙</button></header>
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#2f6fed">
+  <title>Mon Budget Essentiel V4.0</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css?v=4.0.0">
+</head>
+<body>
+<header class="topbar">
+  <div><h1>💙 Mon Budget</h1><p>V4.0 Essentiel</p></div>
+  <button id="themeToggle" class="round-btn">🌙</button>
+</header>
+
 <main>
 <section id="home" class="screen active">
-<article class="hero compact-hero">
-      <span>Disponible réel</span>
-      <strong id="available">0 €</strong>
-      <small id="forecast"></small>
-    </article>
-<div class="grid"><article><span>Solde du compte</span><b id="balance">0 €</b></article><article><span>CB différée</span><b id="card">0 €</b><small>Débit le 4</small></article></div>
-<div class="grid"><article><span>Prochain revenu</span><b id="nextIncome">—</b><small id="nextIncomeLabel">Aucun</small></article><article><span>Prochain prélèvement</span><b id="nextCharge">—</b><small id="nextChargeLabel">Aucun</small></article></div>
-<article class="daily-focus">
-      <span>Aujourd’hui, vous pouvez dépenser</span>
-      <b class="bigblue" id="daily">0 €</b>
-      <div class="progress"><div id="monthProgress"></div></div>
-      <small id="monthProgressLabel">0 % du budget mensuel utilisé</small>
-    </article>
-<article class="advice-card">
-  <div class="title"><h2>Conseil du jour</h2><span class="badge">Simple</span></div>
-  <p id="dailyAdvice">Analyse en cours…</p>
-</article>
+  <article class="hero">
+    <span>Disponible réel</span>
+    <strong id="homeAvailable">0,00 €</strong>
+    <small id="homeForecast">Fin de mois estimée : 0,00 €</small>
+  </article>
 
-<article>
-  <div class="title"><h2>Résumé du mois</h2><span class="badge" id="monthName">Mois</span></div>
-  <div class="month-summary">
-    <div><span>Revenus</span><b id="monthIncome">0 €</b></div>
-    <div><span>Dépenses</span><b id="monthExpenses">0 €</b></div>
-    <div><span>CB en attente</span><b id="monthCard">0 €</b></div>
-    <div><span>Reste prévu</span><b id="monthRemaining">0 €</b></div>
+  <div class="quick-grid">
+    <article class="mini-card"><span>💳 CB différée</span><b id="homeCard">0,00 €</b><small>Débit le <span id="homeCardDay">4</span></small></article>
+    <article class="mini-card"><span>💰 Prochain revenu</span><b id="homeNextIncome">—</b><small id="homeNextIncomeLabel">Aucun</small></article>
+    <article class="mini-card"><span>🧾 Prochain prélèvement</span><b id="homeNextCharge">—</b><small id="homeNextChargeLabel">Aucun</small></article>
+    <article class="mini-card"><span>📅 Budget conseillé</span><b id="homeDaily">0,00 €</b><small>Pour aujourd’hui</small></article>
   </div>
-</article>
 
-<article>
-  <div class="title"><h2>Rechercher</h2><span class="badge">Opérations</span></div>
-  <input id="globalSearch" placeholder="Ex. Orange, alimentation, revenu…">
-  <div id="searchResults"></div>
-</article>
+  <article id="statusCard" class="status-card">
+    <div class="status-dot" id="statusDot"></div>
+    <div><h2 id="statusTitle">Situation</h2><p id="statusText">Analyse en cours…</p></div>
+  </article>
 
-<article id="alertCard" class="alert-card">
-  <div class="title"><h2>À surveiller</h2><span id="alertBadge" class="badge">OK</span></div>
-  <p id="alertText">Aucune alerte.</p>
-</article>
-<article>
-  <div class="title"><h2>Simuler un achat</h2><span class="badge">Nouveau</span></div>
-  <label>Montant de l’achat</label>
-  <input id="simAmount" inputmode="decimal" placeholder="0,00">
-  <button id="simulate" class="soft full">Calculer l’impact</button>
-  <div id="simResult" class="simulation-result"></div>
-</article>
-<article><div class="title"><h2>Prochaines opérations</h2><button data-tab="calendar">Voir tout</button></div><div id="upcoming"></div></article>
+  <article class="simple-card">
+    <div class="section-head"><h2>À venir</h2><button data-tab="agenda" class="text-btn">Voir tout</button></div>
+    <div id="homeUpcoming"></div>
+  </article>
 </section>
 
-<section id="add" class="screen"><article><h2>Ajouter</h2>
-<div class="seg"><button id="expenseType" class="active">Dépense</button><button id="incomeType">Revenu</button></div>
-<label>Libellé</label><input id="label" placeholder="Ex. Courses">
-<label>Montant</label><input id="amount" inputmode="decimal" placeholder="0,00">
-<label>Catégorie</label><select id="category"><option>Alimentation</option><option>Maison</option><option>Transport</option><option>Santé</option><option>Loisirs</option><option>Famille</option><option>Autre</option></select>
-<label>Date</label><input id="date" type="date">
-<div id="paymentBox"><label>Mode de paiement</label><select id="payment"><option value="deferred">Carte à débit différé</option><option value="current">Compte courant</option></select></div>
-<button id="saveOp" class="primary">Enregistrer</button><p id="feedback"></p></article></section>
+<section id="add" class="screen">
+  <article class="simple-card">
+    <h2>Ajouter une opération</h2>
+    <div class="choice-row">
+      <button id="chooseExpense" class="choice active">🟥 Dépense</button>
+      <button id="chooseIncome" class="choice">🟩 Revenu</button>
+    </div>
 
-<section id="calendar" class="screen"><article><div class="title"><h2>Agenda</h2><select id="filter"><option value="all">Tout</option><option value="income">Revenus</option><option value="expense">Dépenses</option><option value="charge">Prélèvements</option><option value="card">CB</option></select></div><div id="events"></div><p class="muted-note">Touchez une opération enregistrée pour la modifier ou la supprimer.</p></article></section>
+    <label>Montant</label>
+    <input id="opAmount" inputmode="decimal" placeholder="0,00">
+
+    <label>Libellé</label>
+    <input id="opLabel" placeholder="Ex. Courses">
+
+    <label>Catégorie</label>
+    <div id="categoryButtons" class="category-grid"></div>
+
+    <label>Date</label>
+    <input id="opDate" type="date">
+
+    <div id="paymentBox">
+      <label>Paiement</label>
+      <div class="choice-row">
+        <button id="chooseDeferred" class="choice active">💳 CB différée</button>
+        <button id="chooseCurrent" class="choice">🏦 Compte</button>
+      </div>
+    </div>
+
+    <div id="impactPreview" class="impact-preview"></div>
+    <button id="saveOperation" class="primary">Enregistrer</button>
+    <p id="saveMessage" class="success-message"></p>
+  </article>
+</section>
+
+<section id="agenda" class="screen">
+  <article class="simple-card">
+    <div class="section-head">
+      <h2>Agenda</h2>
+      <select id="agendaFilter">
+        <option value="all">Tout</option>
+        <option value="income">Revenus</option>
+        <option value="charge">Prélèvements</option>
+        <option value="expense">Dépenses</option>
+        <option value="card">CB différée</option>
+      </select>
+    </div>
+    <div id="agendaList"></div>
+  </article>
+</section>
 
 <section id="accounts" class="screen">
-<article>
-  <div class="title"><h2>Comptes</h2><span class="badge">Vue simple</span></div>
-  <div class="account-card"><span>Compte courant</span><b id="accountCurrent">0 €</b></div>
-  <div class="account-card"><span>Carte différée</span><b id="accountDeferred">0 €</b><small>Débit le <span id="accountCardDay">4</span></small></div>
-  <div class="account-card"><span>Total disponible</span><b id="accountAvailable">0 €</b></div>
-</article>
-<article>
-  <h2>Historique récent</h2>
-  <div id="recentOperations"></div>
-</article>
+  <article class="simple-card">
+    <h2>Comptes</h2>
+    <div class="account-row"><span>🏦 Compte courant</span><b id="accountBalance">0,00 €</b></div>
+    <div class="account-row"><span>💳 Carte différée</span><b id="accountCard">0,00 €</b></div>
+    <div class="account-row strong"><span>Disponible réel</span><b id="accountAvailable">0,00 €</b></div>
+  </article>
+
+  <article class="simple-card">
+    <h2>Résumé du mois</h2>
+    <div class="month-summary">
+      <div><span>Entrées</span><b id="monthIncome">0,00 €</b></div>
+      <div><span>Sorties</span><b id="monthExpense">0,00 €</b></div>
+      <div><span>Reste prévu</span><b id="monthForecast">0,00 €</b></div>
+    </div>
+  </article>
+
+  <article class="simple-card">
+    <h2>Dernières opérations</h2>
+    <div id="recentList"></div>
+  </article>
 </section>
 
 <section id="settings" class="screen">
-<article><h2>Réglages</h2><label>Solde du compte</label><input id="settingBalance" inputmode="decimal"><label>Jour du débit CB</label><input id="cardDay" type="number" min="1" max="28"><button id="saveSettings" class="primary">Enregistrer</button></article>
-<article><h2>Revenus fixes</h2><input id="irLabel" placeholder="Nom"><input id="irAmount" inputmode="decimal" placeholder="Montant"><input id="irDay" type="number" min="1" max="31" placeholder="Jour"><button id="addIncomeRule" class="soft">Ajouter</button><div id="incomeRules"></div></article>
-<article><h2>Prélèvements fixes</h2><input id="crLabel" placeholder="Nom"><input id="crAmount" inputmode="decimal" placeholder="Montant"><input id="crDay" type="number" min="1" max="31" placeholder="Jour"><button id="addChargeRule" class="soft">Ajouter</button><div id="chargeRules"></div></article>
-<article><h2>Sauvegarde</h2><button id="export" class="soft full">Exporter</button><label class="file">Importer<input id="import" type="file" accept="application/json"></label><button id="reset" class="danger full">Réinitialiser</button></article>
+  <article class="simple-card">
+    <h2>Réglages essentiels</h2>
+    <label>Solde actuel du compte</label>
+    <input id="settingBalance" inputmode="decimal">
+    <label>Jour du débit CB</label>
+    <input id="settingCardDay" type="number" min="1" max="28">
+    <button id="saveSettings" class="primary">Enregistrer</button>
+  </article>
+
+  <article class="simple-card">
+    <h2>Revenus récurrents</h2>
+    <input id="incomeLabel" placeholder="Nom">
+    <input id="incomeAmount" inputmode="decimal" placeholder="Montant">
+    <input id="incomeDay" type="number" min="1" max="31" placeholder="Jour du mois">
+    <button id="addIncomeRule" class="secondary">Ajouter</button>
+    <div id="incomeRules"></div>
+  </article>
+
+  <article class="simple-card">
+    <h2>Prélèvements récurrents</h2>
+    <input id="chargeLabel" placeholder="Nom">
+    <input id="chargeAmount" inputmode="decimal" placeholder="Montant">
+    <input id="chargeDay" type="number" min="1" max="31" placeholder="Jour du mois">
+    <button id="addChargeRule" class="secondary">Ajouter</button>
+    <div id="chargeRules"></div>
+  </article>
+
+  <article class="simple-card">
+    <h2>Sauvegarde</h2>
+    <button id="exportData" class="secondary full">Exporter mes données</button>
+    <label class="import-label">Importer une sauvegarde<input id="importData" type="file" accept="application/json"></label>
+    <button id="resetData" class="danger full">Tout réinitialiser</button>
+  </article>
 </section>
 </main>
-<nav><button data-tab="home" class="active"><span>🏠</span><small>Accueil</small></button><button data-tab="add"><span>➕</span><small>Ajouter</small></button><button data-tab="calendar"><span>📅</span><small>Agenda</small></button><button data-tab="accounts"><span>💳</span><small>Comptes</small></button><button data-tab="settings"><span>⚙️</span><small>Réglages</small></button></nav>
-<script src="app.js?v=3.0.0"></script></body></html>
+
+<nav class="bottom-nav">
+  <button data-tab="home" class="active"><span>🏠</span><small>Accueil</small></button>
+  <button data-tab="add"><span>➕</span><small>Ajouter</small></button>
+  <button data-tab="agenda"><span>📅</span><small>Agenda</small></button>
+  <button data-tab="accounts"><span>💳</span><small>Comptes</small></button>
+  <button data-tab="settings"><span>⚙️</span><small>Réglages</small></button>
+</nav>
+<script src="app.js?v=4.0.0"></script>
+</body>
+</html>
