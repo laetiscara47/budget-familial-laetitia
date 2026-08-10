@@ -28,13 +28,19 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 .actions{display:flex;gap:8px}.actions button{flex:1}.statusDone{background:#e8f6ef!important;color:#16875d!important}.statusTodo{background:#fff5e8!important;color:#a45e12!important}.monthOverview{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.overviewBox{padding:11px;border:1px solid var(--line);border-radius:12px;background:#f8f9fb}.overviewBox b{display:block;font-size:18px;margin-top:4px}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V18</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V19</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
  <div class="label">💶 Disponible prévu fin de mois</div>
  <div id="rest" class="big green">0 €</div>
  <div id="restText" class="smalllabel">Après la carte et les prélèvements restant à payer.</div>
+</div>
+
+<div class="section" style="margin-top:0;margin-bottom:10px">
+<h2>📌 Aujourd’hui</h2>
+<div id="todayDueList" class="list"></div>
+<div id="todayDueNote" class="note"></div>
 </div>
 
 <div class="section" style="margin-top:0;margin-bottom:10px">
@@ -278,6 +284,19 @@ function render(){
  s.fixed.forEach(f=>{if(!(s.paid[m]||{})[f.id])dueItems.push({day:+f.day||1,label:f.label,amount:f.amount,type:'À payer'})});
  s.fixedIncome.forEach(f=>{if(!(s.incomeReceived[m]||{})[f.id])dueItems.push({day:+f.day||1,label:f.label,amount:f.amount,type:'À recevoir'})});
  let todayNum=(new Date().getFullYear()===yy && new Date().getMonth()+1===mm)?new Date().getDate():1;
+ let todayBox=$('todayDueList'),todayNote=$('todayDueNote');todayBox.innerHTML='';
+ let isCurrentMonth=(new Date().getFullYear()===yy && new Date().getMonth()+1===mm);
+ let todayItems=[];
+ if(isCurrentMonth){
+   s.fixed.forEach(f=>{if(!(s.paid[m]||{})[f.id] && (+f.day||1)<=todayNum)todayItems.push({kind:'fixed',id:f.id,day:+f.day||1,label:f.label,amount:f.amount,over:(+f.day||1)<todayNum})});
+   s.fixedIncome.forEach(f=>{if(!(s.incomeReceived[m]||{})[f.id] && (+f.day||1)<=todayNum)todayItems.push({kind:'income',id:f.id,day:+f.day||1,label:f.label,amount:f.amount,over:(+f.day||1)<todayNum})});
+ }
+ if(!isCurrentMonth){todayBox.innerHTML='<div class="empty">Ce bloc concerne le mois en cours.</div>';todayNote.textContent='';}
+ else if(!todayItems.length){todayBox.innerHTML='<div class="empty">✅ Rien en retard ou à traiter aujourd’hui.</div>';todayNote.textContent='Tout est à jour pour le '+todayNum+'.';}
+ else {
+   todayItems.sort((a,b)=>a.day-b.day).forEach(x=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="secondary pay statusTodo"></button>';d.querySelector('.title').textContent=(x.over?'⚠️ ':'')+x.label;d.querySelector('.meta').textContent=(x.over?'En retard depuis le ':'Prévu aujourd’hui · le ')+x.day;d.querySelector('.amt').textContent=eur(x.amount);let bt=d.querySelector('.pay');bt.textContent=x.kind==='income'?'Reçu ✓':'Payé ✓';bt.onclick=()=>{if(x.kind==='income'){s.incomeReceived[m]=s.incomeReceived[m]||{};s.incomeReceived[m][x.id]=true}else{s.paid[m]=s.paid[m]||{};s.paid[m][x.id]=true}persist()};todayBox.appendChild(d)});
+   let overdue=todayItems.filter(x=>x.over).length;todayNote.textContent=overdue?overdue+' échéance'+(overdue>1?'s':'')+' en retard à vérifier.':'Échéance'+(todayItems.length>1?'s':'')+' prévue'+(todayItems.length>1?'s':'')+' aujourd’hui.';
+ }
  let futureDue=dueItems.filter(x=>x.day>=todayNum).sort((a,b)=>a.day-b.day);
  let next=futureDue[0]||dueItems.sort((a,b)=>a.day-b.day)[0]||null;
  $('nextDue').textContent=next?('Le '+next.day+' · '+next.label):'Aucune échéance';
