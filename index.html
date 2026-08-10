@@ -25,10 +25,10 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 .tabs{display:flex;gap:7px;margin-bottom:10px}.tabs button{flex:1;background:#eef0f6;color:#444}.tabs button.active{background:var(--blue);color:white}
 .list{display:flex;flex-direction:column;gap:8px}.item{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;padding:10px}.main{flex:1;min-width:0}.title{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.meta{font-size:12px;color:var(--muted);margin-top:2px}.amt{font-weight:800}.del,.edit{background:#f0f1f4;color:#555;padding:8px 10px}.edit{background:#eef0f6}.empty{text-align:center;color:var(--muted);padding:14px}
 .progress{height:9px;background:#eceef3;border-radius:999px;overflow:hidden;margin-top:8px}.bar{height:100%;background:var(--blue);width:0}
-.actions{display:flex;gap:8px}.actions button{flex:1}
+.actions{display:flex;gap:8px}.actions button{flex:1}.statusDone{background:#e8f6ef!important;color:#16875d!important}.statusTodo{background:#fff5e8!important;color:#a45e12!important}.monthOverview{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.overviewBox{padding:11px;border:1px solid var(--line);border-radius:12px;background:#f8f9fb}.overviewBox b{display:block;font-size:18px;margin-top:4px}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V17</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V18</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -78,6 +78,15 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
  <div id="nextDue" style="font-weight:800;margin-top:4px">Aucune échéance</div>
  <div id="nextDueDetail" class="note" style="margin-top:3px"></div>
 </div>
+</div>
+
+<div class="section">
+<h2>Suivi des échéances</h2>
+<div class="monthOverview">
+ <div class="overviewBox"><span class="smalllabel">✅ Revenus déjà reçus</span><b id="receivedFixed" class="green">0,00 €</b></div>
+ <div class="overviewBox"><span class="smalllabel">✅ Charges déjà payées</span><b id="paidFixed" class="green">0,00 €</b></div>
+</div>
+<div class="note">Les éléments marqués « Reçu » ou « Payé » restent enregistrés, mais ne sont plus comptés dans ce qu’il reste à recevoir ou à payer.</div>
 </div>
 
 <div class="section">
@@ -262,6 +271,9 @@ function render(){
  let expected=s.fixedIncome.filter(f=>!(s.incomeReceived[m]||{})[f.id]).reduce((a,f)=>a+f.amount,0);
  $('expectedIncome').textContent=eur(expected);$('unpaidFixed').textContent=eur(unpaid);
  $('dashExpected').textContent=eur(expected);$('dashUnpaid').textContent=eur(unpaid);
+  let receivedFixed=s.fixedIncome.filter(f=>(s.incomeReceived[m]||{})[f.id]).reduce((a,f)=>a+f.amount,0);
+  let paidFixed=s.fixed.filter(f=>(s.paid[m]||{})[f.id]).reduce((a,f)=>a+f.amount,0);
+  $('receivedFixed').textContent=eur(receivedFixed);$('paidFixed').textContent=eur(paidFixed);
  let dueItems=[];
  s.fixed.forEach(f=>{if(!(s.paid[m]||{})[f.id])dueItems.push({day:+f.day||1,label:f.label,amount:f.amount,type:'À payer'})});
  s.fixedIncome.forEach(f=>{if(!(s.incomeReceived[m]||{})[f.id])dueItems.push({day:+f.day||1,label:f.label,amount:f.amount,type:'À recevoir'})});
@@ -281,9 +293,9 @@ function render(){
  $('daysLeft').textContent=daysLeft;
  let pd=daysLeft>0?rest/daysLeft:0;$('perDay').textContent=eur(pd);$('perDay').className=pd<0?'red':'green';
  let fil=$('fixedIncomeList');fil.innerHTML='';if(!s.fixedIncome.length)fil.innerHTML='<div class="empty">Aucun revenu fixe enregistré.</div>';
- s.fixedIncome.forEach(f=>{let received=!!(s.incomeReceived[m]||{})[f.id],d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt green"></div><button class="secondary pay"></button><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=f.label;d.querySelector('.meta').textContent='Prévu le '+f.day+' de chaque mois';d.querySelector('.amt').textContent=eur(f.amount);d.querySelector('.pay').textContent=received?'Reçu ✓':'À recevoir';d.querySelector('.pay').onclick=()=>{s.incomeReceived[m]=s.incomeReceived[m]||{};s.incomeReceived[m][f.id]=!received;persist()};d.querySelector('.edit').onclick=()=>openEdit('income',f.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce revenu fixe ?')){s.fixedIncome=s.fixedIncome.filter(x=>x.id!==f.id);persist()}};fil.appendChild(d)});
+ s.fixedIncome.forEach(f=>{let received=!!(s.incomeReceived[m]||{})[f.id],d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt green"></div><button class="secondary pay"></button><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=f.label;d.querySelector('.meta').textContent='Prévu le '+f.day+' de chaque mois';d.querySelector('.amt').textContent=eur(f.amount);d.querySelector('.pay').textContent=received?'Reçu ✓':'À recevoir';d.querySelector('.pay').className='secondary pay '+(received?'statusDone':'statusTodo');d.querySelector('.pay').onclick=()=>{s.incomeReceived[m]=s.incomeReceived[m]||{};s.incomeReceived[m][f.id]=!received;persist()};d.querySelector('.edit').onclick=()=>openEdit('income',f.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce revenu fixe ?')){s.fixedIncome=s.fixedIncome.filter(x=>x.id!==f.id);persist()}};fil.appendChild(d)});
  let fl=$('fixedList');fl.innerHTML='';if(!s.fixed.length)fl.innerHTML='<div class="empty">Aucun prélèvement fixe enregistré.</div>';
- s.fixed.forEach(f=>{let paid=!!(s.paid[m]||{})[f.id],d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="secondary pay"></button><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=f.label;d.querySelector('.meta').textContent='Le '+(f.day||'?')+' de chaque mois · '+f.category;d.querySelector('.amt').textContent=eur(f.amount);d.querySelector('.pay').textContent=paid?'Payé ✓':'À payer';d.querySelector('.pay').onclick=()=>{s.paid[m]=s.paid[m]||{};s.paid[m][f.id]=!paid;persist()};d.querySelector('.edit').onclick=()=>openEdit('fixed',f.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce prélèvement fixe ?')){s.fixed=s.fixed.filter(x=>x.id!==f.id);persist()}};fl.appendChild(d)});
+ s.fixed.forEach(f=>{let paid=!!(s.paid[m]||{})[f.id],d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="secondary pay"></button><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=f.label;d.querySelector('.meta').textContent='Le '+(f.day||'?')+' de chaque mois · '+f.category;d.querySelector('.amt').textContent=eur(f.amount);d.querySelector('.pay').textContent=paid?'Payé ✓':'À payer';d.querySelector('.pay').className='secondary pay '+(paid?'statusDone':'statusTodo');d.querySelector('.pay').onclick=()=>{s.paid[m]=s.paid[m]||{};s.paid[m][f.id]=!paid;persist()};d.querySelector('.edit').onclick=()=>openEdit('fixed',f.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce prélèvement fixe ?')){s.fixed=s.fixed.filter(x=>x.id!==f.id);persist()}};fl.appendChild(d)});
  let bl=$('budgetList');bl.innerHTML='';let bm=s.budgets[m]||{}, cats=Object.keys(bm);
  if(!cats.length) bl.innerHTML='<div class="empty">Aucun budget par catégorie. Vous pouvez utiliser l’application sans cette option.</div>';
  cats.forEach(cat=>{let limit=+bm[cat]||0,spent=rows.filter(e=>e.type==='expense'&&e.category===cat).reduce((a,e)=>a+e.amount,0),left=limit-spent,d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div><div class="progress"><div class="bar"></div></div></div><div class="amt"></div><button class="del">✕</button>';d.querySelector('.title').textContent=cat;d.querySelector('.meta').textContent=eur(spent)+' dépensés sur '+eur(limit);let pct=limit>0?Math.min(100,(spent/limit)*100):0;d.querySelector('.bar').style.width=pct+'%';let a=d.querySelector('.amt');a.textContent=eur(left);a.className='amt '+(left<0?'red':'green');d.querySelector('.del').onclick=()=>{delete s.budgets[m][cat];persist()};bl.appendChild(d)});
