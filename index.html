@@ -26,9 +26,10 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 .list{display:flex;flex-direction:column;gap:8px}.item{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;padding:10px}.main{flex:1;min-width:0}.title{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.meta{font-size:12px;color:var(--muted);margin-top:2px}.amt{font-weight:800}.del,.edit{background:#f0f1f4;color:#555;padding:8px 10px}.edit{background:#eef0f6}.empty{text-align:center;color:var(--muted);padding:14px}
 .progress{height:9px;background:#eceef3;border-radius:999px;overflow:hidden;margin-top:8px}.bar{height:100%;background:var(--blue);width:0}
 .actions{display:flex;gap:8px}.actions button{flex:1}.statusDone{background:#e8f6ef!important;color:#16875d!important}.statusTodo{background:#fff5e8!important;color:#a45e12!important}.monthOverview{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.overviewBox{padding:11px;border:1px solid var(--line);border-radius:12px;background:#f8f9fb}.overviewBox b{display:block;font-size:18px;margin-top:4px}
+.compactSection{padding:12px}.compactSection h2{margin-bottom:8px}.compactSection summary{cursor:pointer;font-weight:800;font-size:16px;list-style:none}.compactSection summary::-webkit-details-marker{display:none}.compactSection summary:after{content:"⌄";float:right;color:var(--muted)}.compactSection details[open] summary:after{content:"⌃"}.compactBody{margin-top:10px}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V19</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V20</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -43,33 +44,39 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 <div id="todayDueNote" class="note"></div>
 </div>
 
-<div class="section" style="margin-top:0;margin-bottom:10px">
+<div class="section compactSection" style="margin-top:0;margin-bottom:10px">
 <h2>Repère quotidien</h2>
 <div class="cards">
  <div class="card"><span class="smalllabel">📅 Jours restants</span><b id="daysLeft">0</b></div>
- <div class="card"><span class="smalllabel">💶 Moyenne disponible / jour</span><b id="perDay">0,00 €</b></div>
- <div class="card"><span class="smalllabel">🛒 Dépensé aujourd’hui</span><b id="spentToday" class="red">0,00 €</b></div>
- <div class="card"><span class="smalllabel">📆 Dépensé sur 7 jours</span><b id="spentWeek" class="red">0,00 €</b></div>
+ <div class="card"><span class="smalllabel">💶 Disponible / jour</span><b id="perDay">0,00 €</b></div>
 </div>
-<div class="note">C’est seulement un repère : vous n’êtes pas obligée de dépenser la même somme chaque jour.</div>
-</div>
-
-<div class="cards">
- <div class="card"><span class="smalllabel">🏦 Solde banque</span><b id="bankView">0 €</b></div>
- <div class="card"><span class="smalllabel">💳 Carte en cours</span><b id="cardView" class="orange">0 €</b></div>
- <div class="card"><span class="smalllabel">⬇️ Revenus du mois</span><b id="incomeView" class="green">0 €</b></div>
- <div class="card"><span class="smalllabel">⬆️ Dépenses saisies</span><b id="expenseView" class="red">0 €</b></div>
+<details style="margin-top:8px">
+ <summary>Voir les dépenses récentes</summary>
+ <div class="compactBody cards">
+  <div class="card"><span class="smalllabel">🛒 Aujourd’hui</span><b id="spentToday" class="red">0,00 €</b></div>
+  <div class="card"><span class="smalllabel">📆 Sur 7 jours</span><b id="spentWeek" class="red">0,00 €</b></div>
+ </div>
+</details>
 </div>
 
-<div class="section">
+<div class="section compactSection">
 <h2>Situation actuelle</h2>
-<div class="grid">
- <input id="bank" type="number" step="0.01" inputmode="decimal" placeholder="Solde du compte €">
- <input id="card" type="number" step="0.01" inputmode="decimal" placeholder="Carte en cours €">
- <button id="saveBalance" class="wide">Mettre à jour</button>
+<div class="cards">
+ <div class="card"><span class="smalllabel">🏦 Banque</span><b id="bankView">0 €</b></div>
+ <div class="card"><span class="smalllabel">💳 Carte</span><b id="cardView" class="orange">0 €</b></div>
+ <div class="card"><span class="smalllabel">⬇️ Revenus</span><b id="incomeView" class="green">0 €</b></div>
+ <div class="card"><span class="smalllabel">⬆️ Dépenses</span><b id="expenseView" class="red">0 €</b></div>
 </div>
-<div class="note"><b>Disponible maintenant :</b> <span id="situationAvailable">0,00 €</span><br>
-    <span id="situationDetail">Solde bancaire − carte en cours.</span></div>
+<div class="note"><b>Disponible maintenant :</b> <span id="situationAvailable">0,00 €</span></div>
+<details style="margin-top:8px">
+ <summary>Modifier solde et carte</summary>
+ <div class="compactBody grid">
+  <input id="bank" type="number" step="0.01" inputmode="decimal" placeholder="Solde du compte €">
+  <input id="card" type="number" step="0.01" inputmode="decimal" placeholder="Carte en cours €">
+  <button id="saveBalance" class="wide">Mettre à jour</button>
+ </div>
+ <div class="note"><span id="situationDetail">Solde bancaire − carte en cours.</span></div>
+</details>
 </div>
 
 <div class="section">
