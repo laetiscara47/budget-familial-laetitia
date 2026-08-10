@@ -28,7 +28,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 .actions{display:flex;gap:8px}.actions button{flex:1}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V7</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V8</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -51,7 +51,17 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
  <input id="card" type="number" step="0.01" inputmode="decimal" placeholder="Carte en cours €">
  <button id="saveBalance" class="wide">Mettre à jour</button>
 </div>
-<div class="note">La carte en cours est retirée du solde pour calculer ce qu’il reste réellement.</div>
+<div class="note"><b>Disponible maintenant :</b> <span id="situationAvailable">0,00 €</span><br>
+    <span id="situationDetail">Solde bancaire − carte en cours.</span></div>
+</div>
+
+<div class="section">
+<h2>À venir ce mois-ci</h2>
+<div class="cards">
+ <div class="card"><span class="smalllabel">💰 Revenus attendus</span><b id="dashExpected" class="green">0,00 €</b></div>
+ <div class="card"><span class="smalllabel">🧾 Charges à payer</span><b id="dashUnpaid" class="orange">0,00 €</b></div>
+</div>
+<div class="note">Ces montants disparaissent automatiquement de la prévision lorsque vous les marquez « Reçu » ou « Payé ».</div>
 </div>
 
 <div class="section">
@@ -133,10 +143,12 @@ function render(){
  let unpaid=s.fixed.filter(f=>!(s.paid[m]||{})[f.id]).reduce((a,f)=>a+f.amount,0);
  let expected=s.fixedIncome.filter(f=>!(s.incomeReceived[m]||{})[f.id]).reduce((a,f)=>a+f.amount,0);
  $('expectedIncome').textContent=eur(expected);$('unpaidFixed').textContent=eur(unpaid);
+ $('dashExpected').textContent=eur(expected);$('dashUnpaid').textContent=eur(unpaid);
  let availableNow=(+b.bank||0)-(+b.card||0);
  $('availableNow').textContent=eur(availableNow);$('availableNow').className=availableNow<0?'red':'green';
+ $('situationAvailable').textContent=eur(availableNow);$('situationAvailable').className=availableNow<0?'red':'green';
  let rest=availableNow-unpaid+expected;$('rest').textContent=eur(rest);$('rest').className='big '+(rest<0?'red':'green');
- $('restText').textContent='Prévision après la carte, les prélèvements encore à payer et les revenus fixes encore attendus.';
+ $('restText').textContent='Après la carte, les prélèvements restant à payer et les revenus fixes encore attendus.';
  let fil=$('fixedIncomeList');fil.innerHTML='';if(!s.fixedIncome.length)fil.innerHTML='<div class="empty">Aucun revenu fixe enregistré.</div>';
  s.fixedIncome.forEach(f=>{let received=!!(s.incomeReceived[m]||{})[f.id],d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt green"></div><button class="secondary pay"></button><button class="del">✕</button>';d.querySelector('.title').textContent=f.label;d.querySelector('.meta').textContent='Prévu le '+f.day+' de chaque mois';d.querySelector('.amt').textContent=eur(f.amount);d.querySelector('.pay').textContent=received?'Reçu ✓':'À recevoir';d.querySelector('.pay').onclick=()=>{s.incomeReceived[m]=s.incomeReceived[m]||{};s.incomeReceived[m][f.id]=!received;persist()};d.querySelector('.del').onclick=()=>{s.fixedIncome=s.fixedIncome.filter(x=>x.id!==f.id);persist()};fil.appendChild(d)});
  let fl=$('fixedList');fl.innerHTML='';if(!s.fixed.length)fl.innerHTML='<div class="empty">Aucun prélèvement fixe enregistré.</div>';
