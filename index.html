@@ -28,7 +28,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 .actions{display:flex;gap:8px}.actions button{flex:1}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V13</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V14</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -161,6 +161,19 @@ Le statut « Reçu / Payé » reste indépendant pour chaque mois.
 </div>
 
 <div class="section">
+<h2>Bilan du mois</h2>
+<div class="cards">
+ <div class="card"><span class="smalllabel">Total revenus</span><b id="reportIncome" class="green">0,00 €</b></div>
+ <div class="card"><span class="smalllabel">Total dépenses</span><b id="reportExpense" class="red">0,00 €</b></div>
+ <div class="card"><span class="smalllabel">Solde revenus − dépenses</span><b id="reportNet">0,00 €</b></div>
+ <div class="card"><span class="smalllabel">Plus grosse dépense</span><b id="reportLargest">0,00 €</b></div>
+</div>
+<div id="reportLargestLabel" class="note"></div>
+<button id="copyReport" class="secondary" style="width:100%;margin-top:10px">Copier le bilan</button>
+<div id="copyReportMsg" class="note" style="display:none">Bilan copié ✓</div>
+</div>
+
+<div class="section">
 <h2>Sauvegarde</h2>
 <div class="actions"><button id="export" class="secondary">Exporter</button><button id="import" class="secondary">Importer</button></div>
 <input id="file" type="file" accept="application/json" hidden>
@@ -202,6 +215,14 @@ function saveEdit(){
  closeEdit();persist();
 }
 
+async function copyMonthlyReport(){
+ let m=$('month').value,rows=s.entries.filter(e=>e.month===m),inc=rows.filter(e=>e.type==='income').reduce((a,e)=>a+e.amount,0),exp=rows.filter(e=>e.type==='expense').reduce((a,e)=>a+e.amount,0);
+ let b=s.balances[m]||{bank:0,card:0},unpaid=s.fixed.filter(f=>!(s.paid[m]||{})[f.id]).reduce((a,f)=>a+f.amount,0),expected=s.fixedIncome.filter(f=>!(s.incomeReceived[m]||{})[f.id]).reduce((a,f)=>a+f.amount,0);
+ let forecast=(+b.bank||0)-(+b.card||0)-unpaid+expected;
+ let report='Bilan Mon Budget — '+m+'\nRevenus : '+eur(inc)+'\nDépenses : '+eur(exp)+'\nSolde revenus - dépenses : '+eur(inc-exp)+'\nDisponible prévu fin de mois : '+eur(forecast);
+ try{await navigator.clipboard.writeText(report);$('copyReportMsg').style.display='block'}catch{alert(report)}
+}
+
 function previousMonth(m){
  let [y,mo]=m.split('-').map(Number);mo--;if(mo===0){mo=12;y--}
  return y+'-'+String(mo).padStart(2,'0')
@@ -222,6 +243,10 @@ function render(){
  let m=$('month').value,b=s.balances[m]||{bank:0,card:0};$('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=eur(b.bank);$('cardView').textContent=eur(b.card);
  let rows=s.entries.filter(e=>e.month===m),inc=rows.filter(e=>e.type==='income').reduce((a,e)=>a+e.amount,0),exp=rows.filter(e=>e.type==='expense').reduce((a,e)=>a+e.amount,0);
  $('incomeView').textContent=eur(inc);$('expenseView').textContent=eur(exp);
+ $('reportIncome').textContent=eur(inc);$('reportExpense').textContent=eur(exp);
+ let net=inc-exp;$('reportNet').textContent=eur(net);$('reportNet').className=net<0?'red':'green';
+ let expenseRows=rows.filter(e=>e.type==='expense'),largest=expenseRows.length?expenseRows.reduce((a,e)=>e.amount>a.amount?e:a,expenseRows[0]):null;
+ $('reportLargest').textContent=eur(largest?largest.amount:0);$('reportLargestLabel').textContent=largest?'Plus grosse dépense : '+largest.label+' · '+largest.category:'Aucune dépense enregistrée.';
  let todayISO=new Date().toISOString().slice(0,10),weekStart=new Date();weekStart.setDate(weekStart.getDate()-6);weekStart.setHours(0,0,0,0);
  let spentToday=rows.filter(e=>e.type==='expense'&&e.date===todayISO).reduce((a,e)=>a+e.amount,0);
  let spentWeek=rows.filter(e=>e.type==='expense'&&new Date(e.date+'T12:00:00')>=weekStart&&new Date(e.date+'T12:00:00')<=new Date()).reduce((a,e)=>a+e.amount,0);
@@ -255,6 +280,7 @@ function render(){
  visibleRows.sort((a,b)=>b.date.localeCompare(a.date)).forEach(e=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=e.label;d.querySelector('.meta').textContent=new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR')+' · '+e.category;let a=d.querySelector('.amt');a.textContent=(e.type==='income'?'+ ':'- ')+eur(e.amount);a.className='amt '+(e.type==='income'?'green':'red');d.querySelector('.edit').onclick=()=>openEdit('entry',e.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce mouvement ?')){s.entries=s.entries.filter(x=>x.id!==e.id);persist()}};el.appendChild(d)});
 }
 document.querySelectorAll('.quickcat').forEach(btn=>btn.onclick=()=>{setMode('expense');$('category').value=btn.dataset.cat;$('amount').focus()});
+$('copyReport').onclick=copyMonthlyReport;
 $('saveEdit').onclick=saveEdit;$('cancelEdit').onclick=closeEdit;
 $('copyPreviousBudgets').onclick=copyPreviousBudgets;
 $('saveBudget').onclick=()=>{let m=$('month').value,cat=$('budgetCat').value,amount=parseFloat($('budgetAmount').value)||0;if(amount<=0)return;s.budgets[m]=s.budgets[m]||{};s.budgets[m][cat]=amount;$('budgetAmount').value='';persist()};
