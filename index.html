@@ -28,13 +28,22 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 .actions{display:flex;gap:8px}.actions button{flex:1}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V10</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V11</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
  <div class="label">💶 Disponible prévu fin de mois</div>
  <div id="rest" class="big green">0 €</div>
  <div id="restText" class="smalllabel">Après la carte et les prélèvements restant à payer.</div>
+</div>
+
+<div class="section" style="margin-top:0;margin-bottom:10px">
+<h2>Repère quotidien</h2>
+<div class="cards">
+ <div class="card"><span class="smalllabel">📅 Jours restants</span><b id="daysLeft">0</b></div>
+ <div class="card"><span class="smalllabel">💶 Moyenne disponible / jour</span><b id="perDay">0,00 €</b></div>
+</div>
+<div class="note">C’est seulement un repère : vous n’êtes pas obligée de dépenser la même somme chaque jour.</div>
 </div>
 
 <div class="cards">
@@ -125,7 +134,7 @@ Le statut « Reçu / Payé » reste indépendant pour chaque mois.
 </div>
 
 <div class="section">
-<h2>Mouvements du mois</h2>
+<h2>Mouvements du mois</h2><div class="note" id="movementSummary" style="margin-bottom:10px"></div>
 <div id="entryList" class="list"></div>
 </div>
 
@@ -191,6 +200,7 @@ function render(){
  let m=$('month').value,b=s.balances[m]||{bank:0,card:0};$('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=eur(b.bank);$('cardView').textContent=eur(b.card);
  let rows=s.entries.filter(e=>e.month===m),inc=rows.filter(e=>e.type==='income').reduce((a,e)=>a+e.amount,0),exp=rows.filter(e=>e.type==='expense').reduce((a,e)=>a+e.amount,0);
  $('incomeView').textContent=eur(inc);$('expenseView').textContent=eur(exp);
+ $('movementSummary').textContent=rows.length?rows.length+' mouvement'+(rows.length>1?'s':'')+' enregistré'+(rows.length>1?'s':'')+' ce mois-ci.':'Aucun mouvement enregistré ce mois-ci.';
  let unpaid=s.fixed.filter(f=>!(s.paid[m]||{})[f.id]).reduce((a,f)=>a+f.amount,0);
  let expected=s.fixedIncome.filter(f=>!(s.incomeReceived[m]||{})[f.id]).reduce((a,f)=>a+f.amount,0);
  $('expectedIncome').textContent=eur(expected);$('unpaidFixed').textContent=eur(unpaid);
@@ -200,6 +210,12 @@ function render(){
  $('situationAvailable').textContent=eur(availableNow);$('situationAvailable').className=availableNow<0?'red':'green';
  let rest=availableNow-unpaid+expected;$('rest').textContent=eur(rest);$('rest').className='big '+(rest<0?'red':'green');
  $('restText').textContent='Après la carte, les prélèvements restant à payer et les revenus fixes encore attendus.';
+ let [yy,mm]=m.split('-').map(Number),lastDay=new Date(yy,mm,0).getDate(),nowD=new Date(),daysLeft;
+ if(nowD.getFullYear()===yy && nowD.getMonth()+1===mm) daysLeft=Math.max(1,lastDay-nowD.getDate()+1);
+ else if(new Date(yy,mm-1,1)>new Date(nowD.getFullYear(),nowD.getMonth(),nowD.getDate())) daysLeft=lastDay;
+ else daysLeft=0;
+ $('daysLeft').textContent=daysLeft;
+ let pd=daysLeft>0?rest/daysLeft:0;$('perDay').textContent=eur(pd);$('perDay').className=pd<0?'red':'green';
  let fil=$('fixedIncomeList');fil.innerHTML='';if(!s.fixedIncome.length)fil.innerHTML='<div class="empty">Aucun revenu fixe enregistré.</div>';
  s.fixedIncome.forEach(f=>{let received=!!(s.incomeReceived[m]||{})[f.id],d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt green"></div><button class="secondary pay"></button><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=f.label;d.querySelector('.meta').textContent='Prévu le '+f.day+' de chaque mois';d.querySelector('.amt').textContent=eur(f.amount);d.querySelector('.pay').textContent=received?'Reçu ✓':'À recevoir';d.querySelector('.pay').onclick=()=>{s.incomeReceived[m]=s.incomeReceived[m]||{};s.incomeReceived[m][f.id]=!received;persist()};d.querySelector('.edit').onclick=()=>openEdit('income',f.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce revenu fixe ?')){s.fixedIncome=s.fixedIncome.filter(x=>x.id!==f.id);persist()}};fil.appendChild(d)});
  let fl=$('fixedList');fl.innerHTML='';if(!s.fixed.length)fl.innerHTML='<div class="empty">Aucun prélèvement fixe enregistré.</div>';
