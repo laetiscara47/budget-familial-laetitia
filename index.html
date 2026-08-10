@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V24</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V25</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -425,28 +425,19 @@ render();
   if(!b) return;
   b.addEventListener('click', function(){
     try{
-      const d=load();
-      const arr=d.movements||d.transactions||[];
-      if(!arr.length){ alert("Aucune saisie à annuler."); return; }
-
-      let idx=-1;
-      for(let i=arr.length-1;i>=0;i--){
-        const x=arr[i];
-        if(!x.month || x.month===currentMonthKey()){ idx=i; break; }
-      }
-      if(idx<0){ alert("Aucune saisie à annuler pour ce mois."); return; }
-
-      const x=arr[idx];
-      const nom=x.label||x.name||x.category||"Dernière saisie";
-      const montant=Number(x.amount||0).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2});
-      if(!confirm("Annuler : "+nom+" — "+montant+" € ?")) return;
-
-      arr.splice(idx,1);
-      if(d.movements) d.movements=arr; else d.transactions=arr;
-      save(d);
-      render();
+      const m=document.getElementById('month').value;
+      const candidates=[];
+      (s.entries||[]).forEach((x,i)=>{ if(x.month===m) candidates.push({kind:'entry',i,x}); });
+      (s.fixed||[]).forEach((x,i)=>{ candidates.push({kind:'fixed',i,x}); });
+      if(!candidates.length){ alert('Aucune saisie à annuler.'); return; }
+      const last=candidates[candidates.length-1];
+      const nom=last.x.label||'Dernière saisie';
+      const montant=Number(last.x.amount||0).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});
+      if(!confirm('Annuler : '+nom+' — '+montant+' € ?')) return;
+      if(last.kind==='entry') s.entries.splice(last.i,1); else s.fixed.splice(last.i,1);
+      persist();
     }catch(e){
-      alert("Impossible d’annuler cette saisie.");
+      alert('Impossible d’annuler cette saisie.');
     }
   });
 })();
