@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V25</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V26</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -73,6 +73,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 <div class="section">
 <h2>Ajouter rapidement</h2>
 <div class="tabs"><button id="tabExpense" class="active">Dépense</button><button id="tabIncome">Revenu</button><button id="tabFixed">Fixe</button></div>
+<div id="habitRow" style="display:none;gap:7px;overflow-x:auto;margin-bottom:10px;padding-bottom:2px"></div>
 <div id="quickExpense" style="display:flex;gap:7px;overflow-x:auto;margin-bottom:10px;padding-bottom:2px">
 <button type="button" class="secondary quickcat" data-cat="Courses" data-label="Courses">Courses</button>
 <button type="button" class="secondary quickcat" data-cat="Carburant" data-label="Carburant">Carburant</button>
@@ -80,7 +81,8 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 <button type="button" class="secondary quickcat" data-cat="Animaux" data-label="Animaux">Animaux</button>
 </div>
 <form id="form" class="grid">
- <input id="label" class="wide" placeholder="Nom : courses, salaire, assurance…" required>
+ <input id="label" class="wide" list="recentLabels" autocomplete="off" placeholder="Nom : courses, salaire, assurance…" required>
+ <datalist id="recentLabels"></datalist>
  <input id="amount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Montant €" required>
  <input id="date" type="date" required>
  <input id="fixedDay" class="wide" type="number" min="1" max="28" inputmode="numeric" placeholder="Jour du prélèvement (1 à 28)" style="display:none">
@@ -267,7 +269,7 @@ s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.bu
 const $=x=>document.getElementById(x), eur=n=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(+n||0);
 let mode='expense'; const today=new Date(); $('month').value=today.toISOString().slice(0,7);$('date').value=today.toISOString().slice(0,10);
 function persist(){localStorage.setItem(KEY,JSON.stringify(s));render()}
-function setMode(m){mode=m;['Expense','Income','Fixed'].forEach(x=>$('tab'+x).classList.remove('active'));$('tab'+m[0].toUpperCase()+m.slice(1)).classList.add('active');$('fixedNote').style.display=m==='fixed'?'block':'none';$('fixedDay').style.display=m==='fixed'?'block':'none';$('addBtn').textContent=m==='expense'?'Ajouter la dépense':m==='income'?'Ajouter le revenu':'Ajouter le prélèvement fixe'}
+function setMode(m){mode=m;['Expense','Income','Fixed'].forEach(x=>$('tab'+x).classList.remove('active'));$('tab'+m[0].toUpperCase()+m.slice(1)).classList.add('active');$('fixedNote').style.display=m==='fixed'?'block':'none';$('fixedDay').style.display=m==='fixed'?'block':'none';$('addBtn').textContent=m==='expense'?'Ajouter la dépense':m==='income'?'Ajouter le revenu':'Ajouter le prélèvement fixe';updateQuickHabits()}
 $('tabExpense').onclick=()=>setMode('expense');$('tabIncome').onclick=()=>setMode('income');$('tabFixed').onclick=()=>setMode('fixed');
 
 
@@ -319,7 +321,7 @@ function copyPreviousBudgets(){
  $('copyBudgetMsg').textContent='Budgets du mois précédent repris ✓';
  persist();
 }
-function render(){
+function render(){updateQuickHabits();
  let m=$('month').value,b=s.balances[m]||{bank:0,card:0};$('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=eur(b.bank);$('cardView').textContent=eur(b.card);
  let rows=s.entries.filter(e=>e.month===m),inc=rows.filter(e=>e.type==='income').reduce((a,e)=>a+e.amount,0),exp=rows.filter(e=>e.type==='expense').reduce((a,e)=>a+e.amount,0);
  $('incomeView').textContent=eur(inc);$('expenseView').textContent=eur(exp);
@@ -382,6 +384,18 @@ function render(){
  let visibleRows=rows.filter(e=>($('movementFilter').value==='all'||e.type===$('movementFilter').value)&&($('movementCategory').value==='all'||e.category===$('movementCategory').value));
  if(!visibleRows.length)el.innerHTML='<div class="empty">Aucun mouvement correspondant.</div>';
  visibleRows.sort((a,b)=>b.date.localeCompare(a.date)).forEach(e=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=e.label;d.querySelector('.meta').textContent=new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR')+' · '+e.category;let a=d.querySelector('.amt');a.textContent=(e.type==='income'?'+ ':'- ')+eur(e.amount);a.className='amt '+(e.type==='income'?'green':'red');d.querySelector('.edit').onclick=()=>openEdit('entry',e.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce mouvement ?')){s.entries=s.entries.filter(x=>x.id!==e.id);persist()}};el.appendChild(d)});
+}
+function updateQuickHabits(){
+ let dl=$('recentLabels'), row=$('habitRow');
+ if(!dl||!row)return;
+ let pool=(s.entries||[]).filter(e=>e.type===mode && e.label).slice().reverse();
+ let seen=new Set(), labels=[];
+ pool.forEach(e=>{let k=e.label.trim().toLowerCase();if(k&&!seen.has(k)){seen.add(k);labels.push(e)}});
+ dl.innerHTML='';labels.slice(0,12).forEach(e=>{let o=document.createElement('option');o.value=e.label;dl.appendChild(o)});
+ row.innerHTML='';
+ if(mode==='fixed'){row.style.display='none';return}
+ labels.slice(0,4).forEach(e=>{let b=document.createElement('button');b.type='button';b.className='secondary';b.textContent='🕘 '+e.label;b.onclick=()=>{$('label').value=e.label;$('category').value=e.category||'Autre';$('amount').focus()};row.appendChild(b)});
+ row.style.display=labels.length?'flex':'none';
 }
 document.querySelectorAll('.quickcat').forEach(btn=>btn.onclick=()=>{
  setMode('expense');
