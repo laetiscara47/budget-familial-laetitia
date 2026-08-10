@@ -1,16 +1,18 @@
-MON BUDGET SIMPLE — V4 iPHONE
+MON BUDGET — VERSION 5
 
-Cette version est préparée pour être installée sur l'écran d'accueil de l'iPhone.
+Nouveautés :
+- revenus fixes mensuels (salaire, allocations, etc.)
+- jour prévu pour chaque revenu fixe
+- jour prévu pour chaque prélèvement fixe
+- bouton À recevoir / Reçu
+- bouton À payer / Payé
+- prévision automatique du reste à vivre
 
-Fichiers à mettre en ligne ensemble :
-- index.html
-- manifest.webmanifest
-- icon.svg
+Calcul prévisionnel :
+solde bancaire
+- carte en cours
+- prélèvements restant à payer
++ revenus fixes encore attendus
 
-Une fois le site en ligne dans Safari :
-1. Ouvrir l'adresse de Mon Budget.
-2. Toucher Partager.
-3. Choisir « Sur l'écran d'accueil ».
-4. Valider « Ajouter ».
-
-L'application s'ouvrira ensuite depuis son icône « Mon Budget ».
+Pour mettre à jour l'application déjà installée :
+remplacer index.html, manifest.webmanifest et icon.svg sur la branche main du dépôt GitHub.
