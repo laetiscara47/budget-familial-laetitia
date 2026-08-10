@@ -94,6 +94,17 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 </div>
 
 <div class="section">
+<h2>Budgets du mois</h2>
+<div class="note" style="margin-bottom:10px">Facultatif : indiquez seulement les catégories que vous souhaitez surveiller.</div>
+<div class="grid">
+ <select id="budgetCat"><option>Courses</option><option>Factures</option><option>Logement</option><option>Voiture</option><option>Santé</option><option>Enfants</option><option>Loisirs</option><option>Autre</option></select>
+ <input id="budgetAmount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Budget €">
+ <button id="saveBudget" class="wide">Enregistrer le budget</button>
+</div>
+<div id="budgetList" class="list" style="margin-top:10px"></div>
+</div>
+
+<div class="section">
 <h2>Mouvements du mois</h2>
 <div id="entryList" class="list"></div>
 </div>
@@ -107,8 +118,8 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 <script>
 const KEY='monBudgetSimpleV3';
-let s=JSON.parse(localStorage.getItem(KEY)||'{"entries":[],"fixed":[],"fixedIncome":[],"balances":{},"paid":{},"incomeReceived":{}}');
-s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.balances=s.balances||{};s.paid=s.paid||{};s.incomeReceived=s.incomeReceived||{};
+let s=JSON.parse(localStorage.getItem(KEY)||'{"entries":[],"fixed":[],"fixedIncome":[],"budgets":{},"balances":{},"paid":{},"incomeReceived":{}}');
+s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.budgets=s.budgets||{};s.balances=s.balances||{};s.paid=s.paid||{};s.incomeReceived=s.incomeReceived||{};
 const $=x=>document.getElementById(x), eur=n=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(+n||0);
 let mode='expense'; const today=new Date(); $('month').value=today.toISOString().slice(0,7);$('date').value=today.toISOString().slice(0,10);
 function persist(){localStorage.setItem(KEY,JSON.stringify(s));render()}
@@ -128,8 +139,12 @@ function render(){
  s.fixedIncome.forEach(f=>{let received=!!(s.incomeReceived[m]||{})[f.id],d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt green"></div><button class="secondary pay"></button><button class="del">✕</button>';d.querySelector('.title').textContent=f.label;d.querySelector('.meta').textContent='Prévu le '+f.day+' de chaque mois';d.querySelector('.amt').textContent=eur(f.amount);d.querySelector('.pay').textContent=received?'Reçu ✓':'À recevoir';d.querySelector('.pay').onclick=()=>{s.incomeReceived[m]=s.incomeReceived[m]||{};s.incomeReceived[m][f.id]=!received;persist()};d.querySelector('.del').onclick=()=>{s.fixedIncome=s.fixedIncome.filter(x=>x.id!==f.id);persist()};fil.appendChild(d)});
  let fl=$('fixedList');fl.innerHTML='';if(!s.fixed.length)fl.innerHTML='<div class="empty">Aucun prélèvement fixe enregistré.</div>';
  s.fixed.forEach(f=>{let paid=!!(s.paid[m]||{})[f.id],d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="secondary pay"></button><button class="del">✕</button>';d.querySelector('.title').textContent=f.label;d.querySelector('.meta').textContent='Le '+(f.day||'?')+' de chaque mois · '+f.category;d.querySelector('.amt').textContent=eur(f.amount);d.querySelector('.pay').textContent=paid?'Payé ✓':'À payer';d.querySelector('.pay').onclick=()=>{s.paid[m]=s.paid[m]||{};s.paid[m][f.id]=!paid;persist()};d.querySelector('.del').onclick=()=>{s.fixed=s.fixed.filter(x=>x.id!==f.id);persist()};fl.appendChild(d)});
+ let bl=$('budgetList');bl.innerHTML='';let bm=s.budgets[m]||{}, cats=Object.keys(bm);
+ if(!cats.length) bl.innerHTML='<div class="empty">Aucun budget par catégorie. Vous pouvez utiliser l’application sans cette option.</div>';
+ cats.forEach(cat=>{let limit=+bm[cat]||0,spent=rows.filter(e=>e.type==='expense'&&e.category===cat).reduce((a,e)=>a+e.amount,0),left=limit-spent,d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div><div class="progress"><div class="bar"></div></div></div><div class="amt"></div><button class="del">✕</button>';d.querySelector('.title').textContent=cat;d.querySelector('.meta').textContent=eur(spent)+' dépensés sur '+eur(limit);let pct=limit>0?Math.min(100,(spent/limit)*100):0;d.querySelector('.bar').style.width=pct+'%';let a=d.querySelector('.amt');a.textContent=eur(left);a.className='amt '+(left<0?'red':'green');d.querySelector('.del').onclick=()=>{delete s.budgets[m][cat];persist()};bl.appendChild(d)});
  let el=$('entryList');el.innerHTML='';if(!rows.length)el.innerHTML='<div class="empty">Aucun mouvement ce mois-ci.</div>';rows.sort((a,b)=>b.date.localeCompare(a.date)).forEach(e=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="del">✕</button>';d.querySelector('.title').textContent=e.label;d.querySelector('.meta').textContent=new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR')+' · '+e.category;let a=d.querySelector('.amt');a.textContent=(e.type==='income'?'+ ':'- ')+eur(e.amount);a.className='amt '+(e.type==='income'?'green':'red');d.querySelector('.del').onclick=()=>{s.entries=s.entries.filter(x=>x.id!==e.id);persist()};el.appendChild(d)});
 }
+$('saveBudget').onclick=()=>{let m=$('month').value,cat=$('budgetCat').value,amount=parseFloat($('budgetAmount').value)||0;if(amount<=0)return;s.budgets[m]=s.budgets[m]||{};s.budgets[m][cat]=amount;$('budgetAmount').value='';persist()};
 $('addFixedIncome').onclick=()=>{let label=$('fiLabel').value.trim(),amount=parseFloat($('fiAmount').value)||0,day=Math.max(1,Math.min(28,parseInt($('fiDay').value)||1));if(!label||amount<=0)return;s.fixedIncome.push({id:crypto.randomUUID(),label,amount,day});$('fiLabel').value='';$('fiAmount').value='';$('fiDay').value='';persist()};
 $('saveBalance').onclick=()=>{s.balances[$('month').value]={bank:parseFloat($('bank').value)||0,card:parseFloat($('card').value)||0};persist()};
 $('form').onsubmit=e=>{e.preventDefault();let obj={id:crypto.randomUUID(),label:$('label').value.trim(),amount:parseFloat($('amount').value)||0,category:$('category').value};if(mode==='fixed'){obj.day=Math.max(1,Math.min(28,parseInt($('fixedDay').value)||1));s.fixed.push(obj);$('fixedDay').value=''}else s.entries.push({...obj,type:mode,date:$('date').value,month:$('month').value});$('label').value='';$('amount').value='';persist()};

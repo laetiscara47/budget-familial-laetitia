@@ -1,18 +1,11 @@
-MON BUDGET — VERSION 5
+MON BUDGET — VERSION 6
 
-Nouveautés :
-- revenus fixes mensuels (salaire, allocations, etc.)
-- jour prévu pour chaque revenu fixe
-- jour prévu pour chaque prélèvement fixe
-- bouton À recevoir / Reçu
-- bouton À payer / Payé
-- prévision automatique du reste à vivre
+Ajout principal :
+- budgets mensuels facultatifs par catégorie ;
+- suivi Courses, Voiture, Loisirs, etc. ;
+- montant dépensé / budget prévu ;
+- somme encore disponible par catégorie ;
+- barre de progression.
 
-Calcul prévisionnel :
-solde bancaire
-- carte en cours
-- prélèvements restant à payer
-+ revenus fixes encore attendus
-
-Pour mettre à jour l'application déjà installée :
-remplacer index.html, manifest.webmanifest et icon.svg sur la branche main du dépôt GitHub.
+La V6 conserve tout le fonctionnement de la V5 :
+revenus fixes, charges fixes, carte en cours, reste à vivre et sauvegarde.
