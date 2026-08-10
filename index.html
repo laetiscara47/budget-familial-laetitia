@@ -1,248 +1,113 @@
 <!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#1768e8">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <title>Mon Budget 2.3</title>
-  <link rel="manifest" href="manifest.webmanifest?v=2.3.0">
-  <link rel="stylesheet" href="styles.css?v=2.3.0">
-</head>
-<body>
-  <header class="topbar">
-    <div>
-      <h1>Bonjour Laetitia 👋</h1>
-      <p id="monthLabel">Budget familial</p>
-      <small id="saveState">Données enregistrées localement</small>
-    </div>
-    <button id="themeBtn" class="theme-btn" type="button" aria-label="Changer de thème">🌙</button>
-  </header>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#f5f6fa">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Mon Budget">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>Mon Budget</title>
+<style>
+:root{--bg:#f5f6fa;--card:#fff;--text:#20232a;--muted:#727886;--line:#e5e7ed;--green:#16875d;--red:#d44b4b;--blue:#5667d8;--orange:#c4771e}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
+.app{max-width:720px;margin:auto;padding:18px 14px 90px}h1{font-size:28px;margin:5px 0 2px}.subtitle{font-size:14px;color:var(--muted);margin-bottom:14px}
+.month{display:flex;gap:8px;margin-bottom:12px}.month input{flex:1}.month button{width:46px}
+input,select,button{font:inherit}input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff}
+button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#fff;font-weight:700}.secondary{background:#eef0f6;color:#333;border:1px solid var(--line)}
+.hero{background:#fff;border:1px solid var(--line);border-radius:18px;padding:17px;box-shadow:0 8px 22px rgba(30,35,50,.06);margin-bottom:10px}
+.hero .label,.smalllabel{font-size:12px;color:var(--muted)}.hero .big{font-size:34px;font-weight:850;margin:4px 0}.green{color:var(--green)}.red{color:var(--red)}.orange{color:var(--orange)}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:9px}.card,.section{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 7px 18px rgba(30,35,50,.05)}
+.card b{display:block;font-size:19px;margin-top:4px}.section{margin-top:11px}.section h2{font-size:18px;margin:0 0 11px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.wide{grid-column:1/-1}.note{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.4}
+.tabs{display:flex;gap:7px;margin-bottom:10px}.tabs button{flex:1;background:#eef0f6;color:#444}.tabs button.active{background:var(--blue);color:white}
+.list{display:flex;flex-direction:column;gap:8px}.item{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;padding:10px}.main{flex:1;min-width:0}.title{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.meta{font-size:12px;color:var(--muted);margin-top:2px}.amt{font-weight:800}.del{background:#f0f1f4;color:#555;padding:8px 10px}.empty{text-align:center;color:var(--muted);padding:14px}
+.progress{height:9px;background:#eceef3;border-radius:999px;overflow:hidden;margin-top:8px}.bar{height:100%;background:var(--blue);width:0}
+.actions{display:flex;gap:8px}.actions button{flex:1}
+</style></head>
+<body><div class="app">
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel</div>
+<div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
-  <main>
-    <section id="home" class="screen active">
-      <article class="hero">
-        <span>Disponible réel</span>
-        <strong id="availableValue">0,00 €</strong>
-        <small id="forecastValue">Fin de mois estimée : 0,00 €</small>
-        <div id="weekIncome">Aucun revenu attendu</div>
-      </article>
+<div class="hero">
+ <div class="label">💶 Reste à vivre estimé</div>
+ <div id="rest" class="big green">0 €</div>
+ <div id="restText" class="smalllabel">Après la carte et les prélèvements restant à payer.</div>
+</div>
 
-      <article class="status-card status-card-simple">
-        <div class="status-dot" id="statusDot"></div>
-        <div>
-          <b id="statusTitle">Situation</b>
-          <small id="statusText">Analyse en cours…</small>
-          <strong id="dailyBudgetValue" class="status-daily">0,00 € aujourd’hui</strong>
-        </div>
-      </article>
+<div class="cards">
+ <div class="card"><span class="smalllabel">🏦 Solde banque</span><b id="bankView">0 €</b></div>
+ <div class="card"><span class="smalllabel">💳 Carte en cours</span><b id="cardView" class="orange">0 €</b></div>
+ <div class="card"><span class="smalllabel">⬇️ Revenus du mois</span><b id="incomeView" class="green">0 €</b></div>
+ <div class="card"><span class="smalllabel">⬆️ Dépenses saisies</span><b id="expenseView" class="red">0 €</b></div>
+</div>
 
-      <article class="card">
-        <div class="section-head"><h2>À surveiller</h2><span class="badge" id="alertsCount">0</span></div>
-        <div id="alertsList"></div>
-      </article>
+<div class="section">
+<h2>Situation actuelle</h2>
+<div class="grid">
+ <input id="bank" type="number" step="0.01" inputmode="decimal" placeholder="Solde du compte €">
+ <input id="card" type="number" step="0.01" inputmode="decimal" placeholder="Carte en cours €">
+ <button id="saveBalance" class="wide">Mettre à jour</button>
+</div>
+<div class="note">La carte en cours est retirée du solde pour calculer ce qu’il reste réellement.</div>
+</div>
 
-      <article class="card">
-        <div class="section-head"><h2>Ce mois-ci</h2><span class="badge" id="monthBadge"></span></div>
-        <div class="grid-2">
-          <div class="metric"><span>Revenus</span><b id="monthIncome">0,00 €</b></div>
-          <div class="metric"><span>Dépenses</span><b id="monthExpense">0,00 €</b></div>
-          <div class="metric"><span>Prélèvements restants</span><b id="remainingCharges">0,00 €</b></div>
-          <div class="metric"><span>Épargne</span><b id="savingsValue">0,00 €</b></div>
-          <div class="metric"><span>Opérations</span><b id="operationsCount">0</b></div>
-          <div class="metric"><span>Mois écoulé</span><b id="monthProgress">0 %</b></div>
-        </div>
-      </article>
+<div class="section">
+<h2>Ajouter rapidement</h2>
+<div class="tabs"><button id="tabExpense" class="active">Dépense</button><button id="tabIncome">Revenu</button><button id="tabFixed">Fixe</button></div>
+<form id="form" class="grid">
+ <input id="label" class="wide" placeholder="Nom : courses, salaire, assurance…" required>
+ <input id="amount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Montant €" required>
+ <input id="date" type="date" required>
+ <select id="category" class="wide"><option>Courses</option><option>Factures</option><option>Logement</option><option>Voiture</option><option>Santé</option><option>Enfants</option><option>Loisirs</option><option>Autre</option></select>
+ <button class="wide" id="addBtn">Ajouter la dépense</button>
+</form>
+<div id="fixedNote" class="note" style="display:none">Un fixe est prévu automatiquement chaque mois. Vous pourrez indiquer qu’il est payé.</div>
+</div>
 
-      <article class="card">
-        <div class="section-head"><h2>Prochaines opérations</h2><button class="link-btn" data-go="agenda">Voir tout</button></div>
-        <div id="upcomingList"></div>
-      </article>
-    </section>
+<div class="section">
+<h2>Prélèvements fixes</h2>
+<div id="fixedList" class="list"></div>
+</div>
 
-    <section id="add" class="screen">
-      <article class="card">
-        <h2>Ajouter une opération</h2>
-        <div class="quick-entry-box">
-          <b>⚡ Saisie rapide</b>
-          <small>Ex. Carrefour 52 € ou Salaire 1200 €</small>
-          <div class="quick-entry-row">
-            <input id="quickEntryInput" placeholder="Écrivez l’opération…">
-            <button id="quickEntryBtn" type="button">Remplir</button>
-          </div>
-          <p id="quickEntryMessage"></p>
-        </div>
-        <div class="segmented three">
-          <button data-op-type="expense" class="active" type="button">Dépense</button>
-          <button data-op-type="income" type="button">Revenu</button>
-          <button data-op-type="transfer" type="button">Virement</button>
-        </div>
+<div class="section">
+<h2>Mouvements du mois</h2>
+<div id="entryList" class="list"></div>
+</div>
 
-        <div id="standardOperationFields">
-          <label>Montant</label>
-          <input id="amountInput" inputmode="decimal" placeholder="0,00">
+<div class="section">
+<h2>Sauvegarde</h2>
+<div class="actions"><button id="export" class="secondary">Exporter</button><button id="import" class="secondary">Importer</button></div>
+<input id="file" type="file" accept="application/json" hidden>
+</div>
+</div>
 
-          <label>Libellé</label>
-          <input id="labelInput" list="operationTemplates" placeholder="Ex. Carrefour" autocomplete="off">
-          <datalist id="operationTemplates"></datalist>
-          <small id="templateHint" class="field-hint">Le montant et la catégorie peuvent être proposés automatiquement.</small>
+<script>
+const KEY='monBudgetSimpleV3';
+let s=JSON.parse(localStorage.getItem(KEY)||'{"entries":[],"fixed":[],"balances":{},"paid":{}}');
+s.entries=s.entries||[];s.fixed=s.fixed||[];s.balances=s.balances||{};s.paid=s.paid||{};
+const $=x=>document.getElementById(x), eur=n=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(+n||0);
+let mode='expense'; const today=new Date(); $('month').value=today.toISOString().slice(0,7);$('date').value=today.toISOString().slice(0,10);
+function persist(){localStorage.setItem(KEY,JSON.stringify(s));render()}
+function setMode(m){mode=m;['Expense','Income','Fixed'].forEach(x=>$('tab'+x).classList.remove('active'));$('tab'+m[0].toUpperCase()+m.slice(1)).classList.add('active');$('fixedNote').style.display=m==='fixed'?'block':'none';$('addBtn').textContent=m==='expense'?'Ajouter la dépense':m==='income'?'Ajouter le revenu':'Ajouter le prélèvement fixe'}
+$('tabExpense').onclick=()=>setMode('expense');$('tabIncome').onclick=()=>setMode('income');$('tabFixed').onclick=()=>setMode('fixed');
 
-          <label>Catégorie</label>
-          <select id="categoryInput">
-            <option>Alimentation</option><option>Maison</option><option>Transport</option>
-            <option>Santé</option><option>Loisirs</option><option>Enfants</option><option>Autre</option>
-          </select>
-
-          <label>Compte</label>
-          <select id="accountInput"></select>
-        </div>
-
-        <div id="transferFields" hidden>
-          <label>Depuis</label>
-          <select id="transferFrom"></select>
-          <label>Vers</label>
-          <select id="transferTo"></select>
-          <label>Montant</label>
-          <input id="transferAmount" inputmode="decimal" placeholder="0,00">
-          <label>Libellé</label>
-          <input id="transferLabel" placeholder="Ex. Vers Livret A">
-        </div>
-
-        <label>Date</label>
-        <input id="dateInput" type="date">
-
-        <button id="saveOperationBtn" class="primary" type="button">Enregistrer</button>
-        <p id="addMessage" class="message"></p>
-      </article>
-    </section>
-
-    <section id="operations" class="screen">
-      <article class="card">
-        <div class="section-head">
-          <h2>Opérations</h2>
-          <select id="typeFilter">
-            <option value="all">Toutes</option>
-            <option value="expense">Dépenses</option>
-            <option value="income">Revenus</option>
-            <option value="transfer">Virements</option>
-          </select>
-        </div>
-        <input id="searchInput" placeholder="Rechercher…">
-        <div class="filters">
-          <select id="monthFilter"><option value="all">Tous les mois</option></select>
-          <select id="accountFilter"><option value="all">Tous les comptes</option></select>
-          <select id="sortFilter">
-            <option value="date-desc">Plus récentes</option>
-            <option value="date-asc">Plus anciennes</option>
-            <option value="amount-desc">Montant décroissant</option>
-            <option value="amount-asc">Montant croissant</option>
-          </select>
-        </div>
-        <div id="operationsList"></div>
-        <p class="operation-help">Touchez une opération pour la modifier, la dupliquer ou la supprimer.</p>
-      </article>
-    </section>
-
-    <section id="agenda" class="screen">
-      <article class="card">
-        <div class="section-head"><h2>Agenda intelligent</h2><button id="checkRecurringBtn" class="link-btn">Vérifier</button></div>
-        <div id="agendaList"></div>
-      </article>
-      <article class="card">
-        <h2>Échéances automatiques</h2>
-        <div id="rulesList"></div>
-        <button id="addRuleBtn" class="secondary" type="button">Ajouter une échéance</button>
-      </article>
-    </section>
-
-    <section id="accounts" class="screen">
-      <article class="card">
-        <div class="section-head"><h2>Comptes</h2><button id="addAccountBtn" class="link-btn">Ajouter</button></div>
-        <div id="accountsList"></div>
-      </article>
-      <article class="card">
-        <h2>Patrimoine suivi</h2>
-        <div class="account-row total"><span>Total</span><b id="netWorthValue">0,00 €</b></div>
-      </article>
-    </section>
-
-    <section id="stats" class="screen">
-      <article class="card">
-        <h2>Vue du mois</h2>
-        <div class="grid-2">
-          <div class="metric"><span>Revenus</span><b id="statsIncome">0,00 €</b></div>
-          <div class="metric"><span>Dépenses</span><b id="statsExpense">0,00 €</b></div>
-          <div class="metric"><span>Reste prévu</span><b id="statsForecast">0,00 €</b></div>
-          <div class="metric"><span>Mois précédent</span><b id="statsPrevious">0,00 €</b></div>
-        </div>
-      </article>
-      <article class="card">
-        <h2>Dépenses par catégorie</h2>
-        <div id="categoryStats"></div>
-      </article>
-      <article class="card">
-        <h2>Conseil du mois</h2>
-        <p id="statsAdvice"></p>
-      </article>
-    </section>
-
-    <section id="settings" class="screen">
-      <article class="card">
-        <h2>Réglages généraux</h2>
-        <label>Jour de débit CB</label>
-        <input id="cardDayInput" type="number" min="1" max="28">
-        <button id="saveSettingsBtn" class="primary" type="button">Enregistrer</button>
-      </article>
-
-      <article class="card">
-        <h2>Protection des données</h2>
-        <p id="migrationStatus">Recherche des anciennes données…</p>
-        <button id="backupBtn" class="secondary" type="button">Créer une sauvegarde locale</button>
-        <button id="restoreBtn" class="secondary" type="button">Restaurer la sauvegarde locale</button>
-        <button id="exportBtn" class="secondary" type="button">Exporter mes données</button>
-        <label class="secondary import-label">Importer une sauvegarde
-          <input id="importInput" type="file" accept="application/json">
-        </label>
-      </article>
-
-      <article class="card">
-        <h2>Application</h2>
-        <p>Version 2.3 Stable : comptes modifiables et saisie rapide.</p>
-      </article>
-    </section>
-  </main>
-
-  <nav class="bottom-nav" aria-label="Navigation principale">
-    <button data-screen="home" class="active" aria-current="page"><span>🏠</span><small>Accueil</small></button>
-    <button data-screen="add"><span>➕</span><small>Ajouter</small></button>
-    <button data-screen="operations"><span>🧾</span><small>Opérations</small></button>
-    <button data-screen="agenda"><span>📅</span><small>Agenda</small></button>
-    <button data-screen="accounts"><span>💳</span><small>Comptes</small></button>
-    <button data-screen="stats"><span>📊</span><small>Mois</small></button>
-    <button data-screen="settings"><span>⚙️</span><small>Réglages</small></button>
-  </nav>
-
-  <div id="toast" class="toast" aria-live="polite"></div>
-  <script src="app.js?v=2.3.0"></script>
-
-  <div id="accountModal" class="account-modal" aria-hidden="true">
-    <div class="account-modal-backdrop" data-close-account></div>
-    <section class="account-sheet">
-      <div class="account-sheet-head">
-        <h2>Modifier le compte</h2>
-        <button id="closeAccountModalBtn" type="button">✕</button>
-      </div>
-
-      <label>Nom du compte</label>
-      <input id="editAccountName" autocomplete="off">
-
-      <label>Solde actuel</label>
-      <input id="editAccountBalance" inputmode="decimal" placeholder="0,00">
-
-      <button id="saveAccountChangesBtn" class="primary" type="button">Enregistrer</button>
-      <p id="accountModalMessage" class="message"></p>
-    </section>
-  </div>
-</body>
-</html>
+function render(){
+ let m=$('month').value,b=s.balances[m]||{bank:0,card:0};$('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=eur(b.bank);$('cardView').textContent=eur(b.card);
+ let rows=s.entries.filter(e=>e.month===m),inc=rows.filter(e=>e.type==='income').reduce((a,e)=>a+e.amount,0),exp=rows.filter(e=>e.type==='expense').reduce((a,e)=>a+e.amount,0);
+ $('incomeView').textContent=eur(inc);$('expenseView').textContent=eur(exp);
+ let unpaid=s.fixed.filter(f=>!(s.paid[m]||{})[f.id]).reduce((a,f)=>a+f.amount,0);
+ let rest=(+b.bank||0)-(+b.card||0)-unpaid;$('rest').textContent=eur(rest);$('rest').className='big '+(rest<0?'red':'green');
+ $('restText').textContent='Après '+eur(b.card)+' de carte et '+eur(unpaid)+' de prélèvements fixes restant à payer.';
+ let fl=$('fixedList');fl.innerHTML='';if(!s.fixed.length)fl.innerHTML='<div class="empty">Aucun prélèvement fixe enregistré.</div>';
+ s.fixed.forEach(f=>{let paid=!!(s.paid[m]||{})[f.id],d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="secondary pay"></button><button class="del">✕</button>';d.querySelector('.title').textContent=f.label;d.querySelector('.meta').textContent='Tous les mois · '+f.category;d.querySelector('.amt').textContent=eur(f.amount);d.querySelector('.pay').textContent=paid?'Payé ✓':'À payer';d.querySelector('.pay').onclick=()=>{s.paid[m]=s.paid[m]||{};s.paid[m][f.id]=!paid;persist()};d.querySelector('.del').onclick=()=>{s.fixed=s.fixed.filter(x=>x.id!==f.id);persist()};fl.appendChild(d)});
+ let el=$('entryList');el.innerHTML='';if(!rows.length)el.innerHTML='<div class="empty">Aucun mouvement ce mois-ci.</div>';rows.sort((a,b)=>b.date.localeCompare(a.date)).forEach(e=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="del">✕</button>';d.querySelector('.title').textContent=e.label;d.querySelector('.meta').textContent=new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR')+' · '+e.category;let a=d.querySelector('.amt');a.textContent=(e.type==='income'?'+ ':'- ')+eur(e.amount);a.className='amt '+(e.type==='income'?'green':'red');d.querySelector('.del').onclick=()=>{s.entries=s.entries.filter(x=>x.id!==e.id);persist()};el.appendChild(d)});
+}
+$('saveBalance').onclick=()=>{s.balances[$('month').value]={bank:parseFloat($('bank').value)||0,card:parseFloat($('card').value)||0};persist()};
+$('form').onsubmit=e=>{e.preventDefault();let obj={id:crypto.randomUUID(),label:$('label').value.trim(),amount:parseFloat($('amount').value)||0,category:$('category').value};if(mode==='fixed')s.fixed.push(obj);else s.entries.push({...obj,type:mode,date:$('date').value,month:$('month').value});$('label').value='';$('amount').value='';persist()};
+function move(n){let[y,m]=$('month').value.split('-').map(Number);m+=n;if(m<1){m=12;y--}if(m>12){m=1;y++}$('month').value=y+'-'+String(m).padStart(2,'0');render()}$('prev').onclick=()=>move(-1);$('next').onclick=()=>move(1);$('month').onchange=render;
+$('export').onclick=()=>{let blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mon-budget-sauvegarde.json';a.click()};$('import').onclick=()=>$('file').click();$('file').onchange=async e=>{try{s=JSON.parse(await e.target.files[0].text());persist();alert('Sauvegarde importée')}catch{alert('Fichier non reconnu')}};
+render();
+</script></body></html>

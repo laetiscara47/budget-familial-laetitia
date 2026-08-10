@@ -1,16 +1,17 @@
 {
-  "name": "Mon Budget 2.3",
-  "short_name": "Mon Budget",
+  "name": "Mon Budget",
+  "short_name": "Budget",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#f4f7fc",
-  "theme_color": "#1768e8",
+  "background_color": "#f5f6fa",
+  "theme_color": "#f5f6fa",
+  "description": "Budget mensuel simple",
   "icons": [
     {
       "src": "icon.svg",
       "sizes": "any",
-      "type": "image/svg+xml"
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
-  ],
-  "scope": "./"
+  ]
 }

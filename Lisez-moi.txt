@@ -1,0 +1,16 @@
+MON BUDGET SIMPLE — V4 iPHONE
+
+Cette version est préparée pour être installée sur l'écran d'accueil de l'iPhone.
+
+Fichiers à mettre en ligne ensemble :
+- index.html
+- manifest.webmanifest
+- icon.svg
+
+Une fois le site en ligne dans Safari :
+1. Ouvrir l'adresse de Mon Budget.
+2. Toucher Partager.
+3. Choisir « Sur l'écran d'accueil ».
+4. Valider « Ajouter ».
+
+L'application s'ouvrira ensuite depuis son icône « Mon Budget ».
