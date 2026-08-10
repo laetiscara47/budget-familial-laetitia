@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V27.2</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V28</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -291,9 +291,21 @@ function saveEdit(){
  let collection=editing.kind==='entry'?s.entries:editing.kind==='fixed'?s.fixed:s.fixedIncome;
  let obj=collection.find(x=>x.id===editing.id);if(!obj)return;
  let label=$('editLabel').value.trim(),amount=parseFloat($('editAmount').value)||0;if(!label||amount<=0)return;
- obj.label=label;obj.amount=amount;obj.category=$('editCategory').value;
- if(editing.kind==='entry'){obj.date=$('editDate').value;obj.month=obj.date.slice(0,7)}
- else obj.day=Math.max(1,Math.min(28,parseInt($('editDay').value)||1));
+ if(editing.kind==='entry'){
+  const oldAmount=+obj.amount||0, oldMonth=obj.month, oldType=obj.type;
+  const newAmount=amount;
+  obj.label=label;obj.amount=newAmount;obj.category=$('editCategory').value;
+  obj.date=$('editDate').value;obj.month=obj.date.slice(0,7);
+  if(oldType==='expense'){
+    let oldBal=s.balances[oldMonth]||{bank:0,card:0};
+    s.balances[oldMonth]={bank:+oldBal.bank||0,card:Math.max(0,(+oldBal.card||0)-oldAmount)};
+    let newBal=s.balances[obj.month]||{bank:0,card:0};
+    s.balances[obj.month]={bank:+newBal.bank||0,card:(+newBal.card||0)+newAmount};
+  }
+ } else {
+  obj.label=label;obj.amount=amount;obj.category=$('editCategory').value;
+  obj.day=Math.max(1,Math.min(28,parseInt($('editDay').value)||1));
+ }
  closeEdit();persist();
 }
 
@@ -383,7 +395,13 @@ function render(){updateQuickHabits();
  let el=$('entryList');el.innerHTML='';
  let visibleRows=rows.filter(e=>($('movementFilter').value==='all'||e.type===$('movementFilter').value)&&($('movementCategory').value==='all'||e.category===$('movementCategory').value));
  if(!visibleRows.length)el.innerHTML='<div class="empty">Aucun mouvement correspondant.</div>';
- visibleRows.sort((a,b)=>b.date.localeCompare(a.date)).forEach(e=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=e.label;d.querySelector('.meta').textContent=new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR')+' · '+e.category;let a=d.querySelector('.amt');a.textContent=(e.type==='income'?'+ ':'- ')+eur(e.amount);a.className='amt '+(e.type==='income'?'green':'red');d.querySelector('.edit').onclick=()=>openEdit('entry',e.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce mouvement ?')){s.entries=s.entries.filter(x=>x.id!==e.id);persist()}};el.appendChild(d)});
+ visibleRows.sort((a,b)=>b.date.localeCompare(a.date)).forEach(e=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=e.label;d.querySelector('.meta').textContent=new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR')+' · '+e.category;let a=d.querySelector('.amt');a.textContent=(e.type==='income'?'+ ':'- ')+eur(e.amount);a.className='amt '+(e.type==='income'?'green':'red');d.querySelector('.edit').onclick=()=>openEdit('entry',e.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce mouvement ?')){
+ if(e.type==='expense'){
+   let bb=s.balances[e.month]||{bank:0,card:0};
+   s.balances[e.month]={bank:+bb.bank||0,card:Math.max(0,(+bb.card||0)-(+e.amount||0))};
+ }
+ s.entries=s.entries.filter(x=>x.id!==e.id);persist()
+}};el.appendChild(d)});
 }
 function updateQuickHabits(){
  let dl=$('recentLabels'), row=$('habitRow');
