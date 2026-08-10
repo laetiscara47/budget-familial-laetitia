@@ -40,13 +40,14 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V29</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V30</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
  <div class="label">💶 Disponible prévu fin de mois</div>
  <div id="rest" class="big green">0 €</div>
  <div id="restText" class="smalllabel">Après la carte et les prélèvements restant à payer.</div>
+<div id="monthPace" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:14px;font-weight:700"></div>
 </div>
 
 <div id="todaySection" class="section" style="margin-top:0;margin-bottom:10px">
@@ -390,6 +391,11 @@ function render(){updateQuickHabits();
  else daysLeft=0;
  $('daysLeft').textContent=daysLeft;
  let pd=daysLeft>0?rest/daysLeft:0;$('perDay').textContent=eur(pd);$('perDay').className=pd<0?'red':'green';
+ if($('monthPace')){
+   if(daysLeft>0 && rest>=0) $('monthPace').textContent='💡 Repère : '+eur(pd)+' par jour jusqu’à la fin du mois';
+   else if(rest<0) $('monthPace').textContent='⚠️ Prévision négative de '+eur(Math.abs(rest));
+   else $('monthPace').textContent='';
+ }
  let fil=$('fixedIncomeList');fil.innerHTML='';if(!s.fixedIncome.length)fil.innerHTML='<div class="empty">Aucun revenu fixe enregistré.</div>';
  s.fixedIncome.forEach(f=>{let received=!!(s.incomeReceived[m]||{})[f.id],d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt green"></div><button class="secondary pay"></button><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=f.label;d.querySelector('.meta').textContent='Prévu le '+f.day+' de chaque mois';d.querySelector('.amt').textContent=eur(f.amount);d.querySelector('.pay').textContent=received?'Reçu ✓':'À recevoir';d.querySelector('.pay').className='secondary pay '+(received?'statusDone':'statusTodo');d.querySelector('.pay').onclick=()=>{s.incomeReceived[m]=s.incomeReceived[m]||{};s.incomeReceived[m][f.id]=!received;persist()};d.querySelector('.edit').onclick=()=>openEdit('income',f.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce revenu fixe ?')){s.fixedIncome=s.fixedIncome.filter(x=>x.id!==f.id);persist()}};fil.appendChild(d)});
  let fl=$('fixedList');fl.innerHTML='';if(!s.fixed.length)fl.innerHTML='<div class="empty">Aucun prélèvement fixe enregistré.</div>';
