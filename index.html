@@ -27,9 +27,10 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 .progress{height:9px;background:#eceef3;border-radius:999px;overflow:hidden;margin-top:8px}.bar{height:100%;background:var(--blue);width:0}
 .actions{display:flex;gap:8px}.actions button{flex:1}.statusDone{background:#e8f6ef!important;color:#16875d!important}.statusTodo{background:#fff5e8!important;color:#a45e12!important}.monthOverview{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.overviewBox{padding:11px;border:1px solid var(--line);border-radius:12px;background:#f8f9fb}.overviewBox b{display:block;font-size:18px;margin-top:4px}
 .compactSection{padding:12px}.compactSection h2{margin-bottom:8px}.compactSection summary{cursor:pointer;font-weight:800;font-size:16px;list-style:none}.compactSection summary::-webkit-details-marker{display:none}.compactSection summary:after{content:"⌄";float:right;color:var(--muted)}.compactSection details[open] summary:after{content:"⌃"}.compactBody{margin-top:10px}
+.quickStats{display:grid;grid-template-columns:repeat(4,minmax(112px,1fr));gap:8px;overflow-x:auto;padding-bottom:3px;margin-bottom:10px}.quickStat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:11px;min-width:112px}.quickStat .smalllabel{white-space:nowrap}.quickStat b{display:block;font-size:18px;margin-top:4px}.fold{margin-top:10px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:0 14px;box-shadow:0 7px 18px rgba(30,35,50,.05)}.fold>summary{padding:14px 0;cursor:pointer;font-weight:800;font-size:17px;list-style:none}.fold>summary::-webkit-details-marker{display:none}.fold>summary:after{content:"＋";float:right;color:var(--muted)}.fold[open]>summary:after{content:"−"}.foldBody{padding:0 0 14px}.fold .section{box-shadow:none;border:0;padding:0;margin:0}.todayHidden{display:none}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V20</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V21</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -38,69 +39,61 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
  <div id="restText" class="smalllabel">Après la carte et les prélèvements restant à payer.</div>
 </div>
 
-<div class="section" style="margin-top:0;margin-bottom:10px">
+<div id="todaySection" class="section" style="margin-top:0;margin-bottom:10px">
 <h2>📌 Aujourd’hui</h2>
 <div id="todayDueList" class="list"></div>
 <div id="todayDueNote" class="note"></div>
 </div>
 
-<div class="section compactSection" style="margin-top:0;margin-bottom:10px">
-<h2>Repère quotidien</h2>
-<div class="cards">
- <div class="card"><span class="smalllabel">📅 Jours restants</span><b id="daysLeft">0</b></div>
- <div class="card"><span class="smalllabel">💶 Disponible / jour</span><b id="perDay">0,00 €</b></div>
+<div class="quickStats">
+ <div class="quickStat"><span class="smalllabel">🏦 Banque</span><b id="bankView">0 €</b></div>
+ <div class="quickStat"><span class="smalllabel">💳 Carte</span><b id="cardView" class="orange">0 €</b></div>
+ <div class="quickStat"><span class="smalllabel">⬇️ Revenus</span><b id="incomeView" class="green">0 €</b></div>
+ <div class="quickStat"><span class="smalllabel">⬆️ Dépenses</span><b id="expenseView" class="red">0 €</b></div>
 </div>
-<details style="margin-top:8px">
- <summary>Voir les dépenses récentes</summary>
- <div class="compactBody cards">
+
+<details class="fold">
+<summary>📊 Repère quotidien</summary>
+<div class="foldBody">
+ <div class="cards">
+  <div class="card"><span class="smalllabel">📅 Jours restants</span><b id="daysLeft">0</b></div>
+  <div class="card"><span class="smalllabel">💶 Disponible / jour</span><b id="perDay">0,00 €</b></div>
   <div class="card"><span class="smalllabel">🛒 Aujourd’hui</span><b id="spentToday" class="red">0,00 €</b></div>
   <div class="card"><span class="smalllabel">📆 Sur 7 jours</span><b id="spentWeek" class="red">0,00 €</b></div>
  </div>
-</details>
-</div>
+ <div class="note">C’est seulement un repère : vous n’êtes pas obligée de dépenser la même somme chaque jour.</div>
+</div></details>
 
-<div class="section compactSection">
-<h2>Situation actuelle</h2>
-<div class="cards">
- <div class="card"><span class="smalllabel">🏦 Banque</span><b id="bankView">0 €</b></div>
- <div class="card"><span class="smalllabel">💳 Carte</span><b id="cardView" class="orange">0 €</b></div>
- <div class="card"><span class="smalllabel">⬇️ Revenus</span><b id="incomeView" class="green">0 €</b></div>
- <div class="card"><span class="smalllabel">⬆️ Dépenses</span><b id="expenseView" class="red">0 €</b></div>
-</div>
-<div class="note"><b>Disponible maintenant :</b> <span id="situationAvailable">0,00 €</span></div>
-<details style="margin-top:8px">
- <summary>Modifier solde et carte</summary>
- <div class="compactBody grid">
+<details class="fold">
+<summary>✏️ Modifier solde et carte</summary>
+<div class="foldBody">
+ <div class="grid">
   <input id="bank" type="number" step="0.01" inputmode="decimal" placeholder="Solde du compte €">
   <input id="card" type="number" step="0.01" inputmode="decimal" placeholder="Carte en cours €">
   <button id="saveBalance" class="wide">Mettre à jour</button>
  </div>
+ <div class="note"><b>Disponible maintenant :</b> <span id="situationAvailable">0,00 €</span></div>
  <div class="note"><span id="situationDetail">Solde bancaire − carte en cours.</span></div>
-</details>
-</div>
+</div></details>
 
-<div class="section">
-<h2>À venir ce mois-ci</h2>
-<div class="cards">
- <div class="card"><span class="smalllabel">💰 Revenus attendus</span><b id="dashExpected" class="green">0,00 €</b></div>
- <div class="card"><span class="smalllabel">🧾 Charges à payer</span><b id="dashUnpaid" class="orange">0,00 €</b></div>
-</div>
-<div class="note">Ces montants disparaissent automatiquement de la prévision lorsque vous les marquez « Reçu » ou « Payé ».</div>
-<div style="margin-top:10px;padding:11px;border:1px solid var(--line);border-radius:12px;background:#f8f9fb">
- <span class="smalllabel">⏰ Prochaine échéance</span>
- <div id="nextDue" style="font-weight:800;margin-top:4px">Aucune échéance</div>
- <div id="nextDueDetail" class="note" style="margin-top:3px"></div>
-</div>
-</div>
+<details class="fold">
+<summary>📅 À venir ce mois-ci</summary>
+<div class="foldBody">
+ <div class="cards">
+  <div class="card"><span class="smalllabel">💰 Revenus attendus</span><b id="dashExpected" class="green">0,00 €</b></div>
+  <div class="card"><span class="smalllabel">🧾 Charges à payer</span><b id="dashUnpaid" class="orange">0,00 €</b></div>
+ </div>
+ <div style="margin-top:10px;padding:11px;border:1px solid var(--line);border-radius:12px;background:#f8f9fb"><span class="smalllabel">⏰ Prochaine échéance</span><div id="nextDue" style="font-weight:800;margin-top:4px">Aucune échéance</div><div id="nextDueDetail" class="note" style="margin-top:3px"></div></div>
+</div></details>
 
-<div class="section">
-<h2>Suivi des échéances</h2>
-<div class="monthOverview">
- <div class="overviewBox"><span class="smalllabel">✅ Revenus déjà reçus</span><b id="receivedFixed" class="green">0,00 €</b></div>
- <div class="overviewBox"><span class="smalllabel">✅ Charges déjà payées</span><b id="paidFixed" class="green">0,00 €</b></div>
-</div>
-<div class="note">Les éléments marqués « Reçu » ou « Payé » restent enregistrés, mais ne sont plus comptés dans ce qu’il reste à recevoir ou à payer.</div>
-</div>
+<details class="fold">
+<summary>✅ Suivi des échéances</summary>
+<div class="foldBody">
+ <div class="monthOverview">
+  <div class="overviewBox"><span class="smalllabel">Revenus déjà reçus</span><b id="receivedFixed" class="green">0,00 €</b></div>
+  <div class="overviewBox"><span class="smalllabel">Charges déjà payées</span><b id="paidFixed" class="green">0,00 €</b></div>
+ </div>
+</div></details>
 
 <div class="section">
 <h2>Ajouter rapidement</h2>
@@ -122,8 +115,9 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 <div id="fixedNote" class="note" style="display:none">Le montant sera prévu automatiquement chaque mois à la date choisie. Vous pourrez ensuite indiquer « Payé ».</div>
 </div>
 
-<div class="section">
-<h2>Revenus fixes mensuels</h2><div class="note" style="margin-bottom:10px">Enregistrés une seule fois, ils apparaissent tous les mois. « Reçu » est mémorisé séparément pour chaque mois.</div>
+<details class="fold">
+<summary>💰 Revenus fixes mensuels</summary>
+<div class="foldBody"><div class="note" style="margin-bottom:10px">Enregistrés une seule fois, ils apparaissent tous les mois. « Reçu » est mémorisé séparément pour chaque mois.</div>
 <div class="grid">
  <input id="fiLabel" class="wide" placeholder="Ex. Salaire, allocation…">
  <input id="fiAmount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Montant €">
@@ -131,34 +125,42 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
  <button id="addFixedIncome">Ajouter</button>
 </div>
 <div id="fixedIncomeList" class="list" style="margin-top:10px"></div>
-</div>
 
-<div class="section">
-<h2>Prévision du mois</h2>
+
+</div></details>
+<details class="fold">
+<summary>🔮 Prévision du mois</summary>
+<div class="foldBody">
 <div class="cards">
  <div class="card"><span class="smalllabel">Revenus encore attendus</span><b id="expectedIncome" class="green">0 €</b></div>
  <div class="card"><span class="smalllabel">Fixes encore à payer</span><b id="unpaidFixed" class="orange">0 €</b></div>
 </div>
 <div class="note">Le reste à vivre tient compte de la carte, des prélèvements restant à payer et des revenus fixes qui ne sont pas encore reçus.</div>
-</div>
 
-<div class="section">
-<h2>Prélèvements fixes</h2><div class="note" style="margin-bottom:10px">Enregistrés une seule fois, ils apparaissent tous les mois. « Payé » est mémorisé séparément pour chaque mois.</div>
+
+</div></details>
+<details class="fold">
+<summary>🧾 Prélèvements fixes</summary>
+<div class="foldBody"><div class="note" style="margin-bottom:10px">Enregistrés une seule fois, ils apparaissent tous les mois. « Payé » est mémorisé séparément pour chaque mois.</div>
 <div id="fixedList" class="list"></div>
-</div>
 
-<div class="section">
-<h2>Passage au mois suivant</h2>
+
+</div></details>
+<details class="fold">
+<summary>➡️ Passage au mois suivant</summary>
+<div class="foldBody">
 <div class="note" style="margin-bottom:10px">
 Les revenus fixes et prélèvements fixes restent automatiquement enregistrés chaque mois.
 Le statut « Reçu / Payé » reste indépendant pour chaque mois.
 </div>
 <button id="copyPreviousBudgets" class="secondary" style="width:100%">Reprendre les budgets du mois précédent</button>
 <div id="copyBudgetMsg" class="note" style="display:none;margin-top:10px"></div>
-</div>
 
-<div class="section">
-<h2>Budgets du mois</h2>
+
+</div></details>
+<details class="fold">
+<summary>🎯 Budgets du mois</summary>
+<div class="foldBody">
 <div class="note" style="margin-bottom:10px">Facultatif : indiquez seulement les catégories que vous souhaitez surveiller.</div>
 <div class="grid">
  <select id="budgetCat"><option>Courses</option><option>Carburant</option><option>Factures</option><option>Logement</option><option>Voiture</option><option>Santé</option><option>Enfants</option><option>Loisirs</option><option>Animaux</option><option>Autre</option></select>
@@ -166,10 +168,12 @@ Le statut « Reçu / Payé » reste indépendant pour chaque mois.
  <button id="saveBudget" class="wide">Enregistrer le budget</button>
 </div>
 <div id="budgetList" class="list" style="margin-top:10px"></div>
-</div>
 
-<div class="section">
-<h2>Mouvements du mois</h2>
+
+</div></details>
+<details class="fold">
+<summary>📋 Mouvements du mois</summary>
+<div class="foldBody">
 <div class="note" id="movementSummary" style="margin-bottom:10px"></div>
 <div class="grid" style="margin-bottom:10px">
  <select id="movementFilter">
@@ -185,10 +189,12 @@ Le statut « Reçu / Payé » reste indépendant pour chaque mois.
  <button id="resetFilters" class="secondary wide" type="button">Réinitialiser les filtres</button>
 </div>
 <div id="entryList" class="list"></div>
-</div>
 
-<div class="section">
-<h2>Bilan du mois</h2>
+
+</div></details>
+<details class="fold">
+<summary>📊 Bilan du mois</summary>
+<div class="foldBody">
 <div class="cards">
  <div class="card"><span class="smalllabel">Total revenus</span><b id="reportIncome" class="green">0,00 €</b></div>
  <div class="card"><span class="smalllabel">Total dépenses</span><b id="reportExpense" class="red">0,00 €</b></div>
@@ -198,13 +204,16 @@ Le statut « Reçu / Payé » reste indépendant pour chaque mois.
 <div id="reportLargestLabel" class="note"></div>
 <button id="copyReport" class="secondary" style="width:100%;margin-top:10px">Copier le bilan</button>
 <div id="copyReportMsg" class="note" style="display:none">Bilan copié ✓</div>
-</div>
 
-<div class="section">
-<h2>Sauvegarde</h2>
+
+</div></details>
+<details class="fold">
+<summary>💾 Sauvegarde</summary>
+<div class="foldBody">
 <div class="actions"><button id="export" class="secondary">Exporter</button><button id="import" class="secondary">Importer</button></div>
 <input id="file" type="file" accept="application/json" hidden>
-</div>
+
+</div></details>
 </div>
 
 <script>
@@ -298,9 +307,9 @@ function render(){
    s.fixed.forEach(f=>{if(!(s.paid[m]||{})[f.id] && (+f.day||1)<=todayNum)todayItems.push({kind:'fixed',id:f.id,day:+f.day||1,label:f.label,amount:f.amount,over:(+f.day||1)<todayNum})});
    s.fixedIncome.forEach(f=>{if(!(s.incomeReceived[m]||{})[f.id] && (+f.day||1)<=todayNum)todayItems.push({kind:'income',id:f.id,day:+f.day||1,label:f.label,amount:f.amount,over:(+f.day||1)<todayNum})});
  }
- if(!isCurrentMonth){todayBox.innerHTML='<div class="empty">Ce bloc concerne le mois en cours.</div>';todayNote.textContent='';}
- else if(!todayItems.length){todayBox.innerHTML='<div class="empty">✅ Rien en retard ou à traiter aujourd’hui.</div>';todayNote.textContent='Tout est à jour pour le '+todayNum+'.';}
- else {
+ if(!isCurrentMonth){$('todaySection').classList.add('todayHidden');todayBox.innerHTML='';todayNote.textContent='';}
+ else if(!todayItems.length){$('todaySection').classList.add('todayHidden');todayBox.innerHTML='';todayNote.textContent='';}
+ else {$('todaySection').classList.remove('todayHidden');
    todayItems.sort((a,b)=>a.day-b.day).forEach(x=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="secondary pay statusTodo"></button>';d.querySelector('.title').textContent=(x.over?'⚠️ ':'')+x.label;d.querySelector('.meta').textContent=(x.over?'En retard depuis le ':'Prévu aujourd’hui · le ')+x.day;d.querySelector('.amt').textContent=eur(x.amount);let bt=d.querySelector('.pay');bt.textContent=x.kind==='income'?'Reçu ✓':'Payé ✓';bt.onclick=()=>{if(x.kind==='income'){s.incomeReceived[m]=s.incomeReceived[m]||{};s.incomeReceived[m][x.id]=true}else{s.paid[m]=s.paid[m]||{};s.paid[m][x.id]=true}persist()};todayBox.appendChild(d)});
    let overdue=todayItems.filter(x=>x.over).length;todayNote.textContent=overdue?overdue+' échéance'+(overdue>1?'s':'')+' en retard à vérifier.':'Échéance'+(todayItems.length>1?'s':'')+' prévue'+(todayItems.length>1?'s':'')+' aujourd’hui.';
  }
