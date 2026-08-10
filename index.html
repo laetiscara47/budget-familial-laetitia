@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V22</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V23</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -74,10 +74,10 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 <h2>Ajouter rapidement</h2>
 <div class="tabs"><button id="tabExpense" class="active">Dépense</button><button id="tabIncome">Revenu</button><button id="tabFixed">Fixe</button></div>
 <div id="quickExpense" style="display:flex;gap:7px;overflow-x:auto;margin-bottom:10px;padding-bottom:2px">
-<button type="button" class="secondary quickcat" data-cat="Courses">Courses</button>
-<button type="button" class="secondary quickcat" data-cat="Carburant">Carburant</button>
-<button type="button" class="secondary quickcat" data-cat="Loisirs">Loisirs</button>
-<button type="button" class="secondary quickcat" data-cat="Animaux">Animaux</button>
+<button type="button" class="secondary quickcat" data-cat="Courses" data-label="Courses">Courses</button>
+<button type="button" class="secondary quickcat" data-cat="Carburant" data-label="Carburant">Carburant</button>
+<button type="button" class="secondary quickcat" data-cat="Loisirs" data-label="Loisirs">Loisirs</button>
+<button type="button" class="secondary quickcat" data-cat="Animaux" data-label="Animaux">Animaux</button>
 </div>
 <form id="form" class="grid">
  <input id="label" class="wide" placeholder="Nom : courses, salaire, assurance…" required>
@@ -380,7 +380,13 @@ function render(){
  if(!visibleRows.length)el.innerHTML='<div class="empty">Aucun mouvement correspondant.</div>';
  visibleRows.sort((a,b)=>b.date.localeCompare(a.date)).forEach(e=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=e.label;d.querySelector('.meta').textContent=new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR')+' · '+e.category;let a=d.querySelector('.amt');a.textContent=(e.type==='income'?'+ ':'- ')+eur(e.amount);a.className='amt '+(e.type==='income'?'green':'red');d.querySelector('.edit').onclick=()=>openEdit('entry',e.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce mouvement ?')){s.entries=s.entries.filter(x=>x.id!==e.id);persist()}};el.appendChild(d)});
 }
-document.querySelectorAll('.quickcat').forEach(btn=>btn.onclick=()=>{setMode('expense');$('category').value=btn.dataset.cat;$('amount').focus()});
+document.querySelectorAll('.quickcat').forEach(btn=>btn.onclick=()=>{
+ setMode('expense');
+ $('category').value=btn.dataset.cat;
+ $('label').value=btn.dataset.label||btn.dataset.cat;
+ $('amount').value='';
+ $('amount').focus();
+});
 $('copyReport').onclick=copyMonthlyReport;
 document.addEventListener('DOMContentLoaded',()=>{$('saveEdit').onclick=saveEdit;$('cancelEdit').onclick=closeEdit});
 $('copyPreviousBudgets').onclick=copyPreviousBudgets;
