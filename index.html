@@ -28,11 +28,11 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 .actions{display:flex;gap:8px}.actions button{flex:1}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel</div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V7</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
- <div class="label">💶 Reste à vivre estimé</div>
+ <div class="label">💶 Disponible prévu fin de mois</div>
  <div id="rest" class="big green">0 €</div>
  <div id="restText" class="smalllabel">Après la carte et les prélèvements restant à payer.</div>
 </div>
@@ -62,7 +62,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
  <input id="amount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Montant €" required>
  <input id="date" type="date" required>
  <input id="fixedDay" class="wide" type="number" min="1" max="28" inputmode="numeric" placeholder="Jour du prélèvement (1 à 28)" style="display:none">
- <select id="category" class="wide"><option>Courses</option><option>Factures</option><option>Logement</option><option>Voiture</option><option>Santé</option><option>Enfants</option><option>Loisirs</option><option>Autre</option></select>
+ <select id="category" class="wide"><option>Courses</option><option>Carburant</option><option>Factures</option><option>Logement</option><option>Voiture</option><option>Santé</option><option>Enfants</option><option>Loisirs</option><option>Animaux</option><option>Autre</option></select>
  <button class="wide" id="addBtn">Ajouter la dépense</button>
 </form>
 <div id="fixedNote" class="note" style="display:none">Le montant sera prévu automatiquement chaque mois à la date choisie. Vous pourrez ensuite indiquer « Payé ».</div>
@@ -97,7 +97,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 <h2>Budgets du mois</h2>
 <div class="note" style="margin-bottom:10px">Facultatif : indiquez seulement les catégories que vous souhaitez surveiller.</div>
 <div class="grid">
- <select id="budgetCat"><option>Courses</option><option>Factures</option><option>Logement</option><option>Voiture</option><option>Santé</option><option>Enfants</option><option>Loisirs</option><option>Autre</option></select>
+ <select id="budgetCat"><option>Courses</option><option>Carburant</option><option>Factures</option><option>Logement</option><option>Voiture</option><option>Santé</option><option>Enfants</option><option>Loisirs</option><option>Animaux</option><option>Autre</option></select>
  <input id="budgetAmount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Budget €">
  <button id="saveBudget" class="wide">Enregistrer le budget</button>
 </div>
@@ -133,8 +133,10 @@ function render(){
  let unpaid=s.fixed.filter(f=>!(s.paid[m]||{})[f.id]).reduce((a,f)=>a+f.amount,0);
  let expected=s.fixedIncome.filter(f=>!(s.incomeReceived[m]||{})[f.id]).reduce((a,f)=>a+f.amount,0);
  $('expectedIncome').textContent=eur(expected);$('unpaidFixed').textContent=eur(unpaid);
- let rest=(+b.bank||0)-(+b.card||0)-unpaid+expected;$('rest').textContent=eur(rest);$('rest').className='big '+(rest<0?'red':'green');
- $('restText').textContent='Après la carte et les charges à venir, en ajoutant les revenus fixes encore attendus.';
+ let availableNow=(+b.bank||0)-(+b.card||0);
+ $('availableNow').textContent=eur(availableNow);$('availableNow').className=availableNow<0?'red':'green';
+ let rest=availableNow-unpaid+expected;$('rest').textContent=eur(rest);$('rest').className='big '+(rest<0?'red':'green');
+ $('restText').textContent='Prévision après la carte, les prélèvements encore à payer et les revenus fixes encore attendus.';
  let fil=$('fixedIncomeList');fil.innerHTML='';if(!s.fixedIncome.length)fil.innerHTML='<div class="empty">Aucun revenu fixe enregistré.</div>';
  s.fixedIncome.forEach(f=>{let received=!!(s.incomeReceived[m]||{})[f.id],d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt green"></div><button class="secondary pay"></button><button class="del">✕</button>';d.querySelector('.title').textContent=f.label;d.querySelector('.meta').textContent='Prévu le '+f.day+' de chaque mois';d.querySelector('.amt').textContent=eur(f.amount);d.querySelector('.pay').textContent=received?'Reçu ✓':'À recevoir';d.querySelector('.pay').onclick=()=>{s.incomeReceived[m]=s.incomeReceived[m]||{};s.incomeReceived[m][f.id]=!received;persist()};d.querySelector('.del').onclick=()=>{s.fixedIncome=s.fixedIncome.filter(x=>x.id!==f.id);persist()};fil.appendChild(d)});
  let fl=$('fixedList');fl.innerHTML='';if(!s.fixed.length)fl.innerHTML='<div class="empty">Aucun prélèvement fixe enregistré.</div>';
