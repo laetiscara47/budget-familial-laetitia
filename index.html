@@ -28,7 +28,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 .actions{display:flex;gap:8px}.actions button{flex:1}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V15</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V16</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -271,7 +271,6 @@ function render(){
  $('nextDue').textContent=next?('Le '+next.day+' · '+next.label):'Aucune échéance';
  $('nextDueDetail').textContent=next?(next.type+' · '+eur(next.amount)):'Tout est à jour pour ce mois.';
  let availableNow=(+b.bank||0)-(+b.card||0);
- $('availableNow').textContent=eur(availableNow);$('availableNow').className=availableNow<0?'red':'green';
  $('situationAvailable').textContent=eur(availableNow);$('situationAvailable').className=availableNow<0?'red':'green';
  let rest=availableNow-unpaid+expected;$('rest').textContent=eur(rest);$('rest').className='big '+(rest<0?'red':'green');
  $('restText').textContent='Après la carte, les prélèvements restant à payer et les revenus fixes encore attendus.';
