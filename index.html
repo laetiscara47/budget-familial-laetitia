@@ -28,7 +28,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 .actions{display:flex;gap:8px}.actions button{flex:1}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V16</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V17</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -294,7 +294,7 @@ function render(){
 }
 document.querySelectorAll('.quickcat').forEach(btn=>btn.onclick=()=>{setMode('expense');$('category').value=btn.dataset.cat;$('amount').focus()});
 $('copyReport').onclick=copyMonthlyReport;
-$('saveEdit').onclick=saveEdit;$('cancelEdit').onclick=closeEdit;
+document.addEventListener('DOMContentLoaded',()=>{$('saveEdit').onclick=saveEdit;$('cancelEdit').onclick=closeEdit});
 $('copyPreviousBudgets').onclick=copyPreviousBudgets;
 $('saveBudget').onclick=()=>{let m=$('month').value,cat=$('budgetCat').value,amount=parseFloat($('budgetAmount').value)||0;if(amount<=0)return;s.budgets[m]=s.budgets[m]||{};s.budgets[m][cat]=amount;$('budgetAmount').value='';persist()};
 $('addFixedIncome').onclick=()=>{let label=$('fiLabel').value.trim(),amount=parseFloat($('fiAmount').value)||0,day=Math.max(1,Math.min(28,parseInt($('fiDay').value)||1));if(!label||amount<=0)return;s.fixedIncome.push({id:crypto.randomUUID(),label,amount,day});$('fiLabel').value='';$('fiAmount').value='';$('fiDay').value='';persist()};
