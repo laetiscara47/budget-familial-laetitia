@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V23</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V24</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -86,6 +86,9 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
  <input id="fixedDay" class="wide" type="number" min="1" max="28" inputmode="numeric" placeholder="Jour du prélèvement (1 à 28)" style="display:none">
  <select id="category" class="wide"><option>Courses</option><option>Carburant</option><option>Factures</option><option>Logement</option><option>Voiture</option><option>Santé</option><option>Enfants</option><option>Loisirs</option><option>Animaux</option><option>Autre</option></select>
  <button class="wide" id="addBtn">Ajouter la dépense</button>
+<button class="secondary" id="undoLastBtn" type="button" style="margin-top:10px;width:100%">
+↩️ Annuler la dernière saisie
+</button>
 </form>
 <div id="fixedNote" class="note" style="display:none">Le montant sera prévu automatiquement chaque mois à la date choisie. Vous pourrez ensuite indiquer « Payé ».</div>
 </div>
@@ -414,5 +417,39 @@ render();
   </div>
  </div>
 </div>
+
+
+<script>
+(function(){
+  const b=document.getElementById('undoLastBtn');
+  if(!b) return;
+  b.addEventListener('click', function(){
+    try{
+      const d=load();
+      const arr=d.movements||d.transactions||[];
+      if(!arr.length){ alert("Aucune saisie à annuler."); return; }
+
+      let idx=-1;
+      for(let i=arr.length-1;i>=0;i--){
+        const x=arr[i];
+        if(!x.month || x.month===currentMonthKey()){ idx=i; break; }
+      }
+      if(idx<0){ alert("Aucune saisie à annuler pour ce mois."); return; }
+
+      const x=arr[idx];
+      const nom=x.label||x.name||x.category||"Dernière saisie";
+      const montant=Number(x.amount||0).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2});
+      if(!confirm("Annuler : "+nom+" — "+montant+" € ?")) return;
+
+      arr.splice(idx,1);
+      if(d.movements) d.movements=arr; else d.transactions=arr;
+      save(d);
+      render();
+    }catch(e){
+      alert("Impossible d’annuler cette saisie.");
+    }
+  });
+})();
+</script>
 
 </body></html>
