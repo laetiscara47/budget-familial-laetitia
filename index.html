@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V27.1</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V27.2</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -456,7 +456,15 @@ render();
       const nom=last.x.label||'Dernière saisie';
       const montant=Number(last.x.amount||0).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});
       if(!confirm('Annuler : '+nom+' — '+montant+' € ?')) return;
-      if(last.kind==='entry') s.entries.splice(last.i,1); else s.fixed.splice(last.i,1);
+      if(last.kind==='entry'){
+        const removed=s.entries[last.i];
+        s.entries.splice(last.i,1);
+        if(removed && removed.type==='expense'){
+          const mm=removed.month;
+          const bb=s.balances[mm]||{bank:0,card:0};
+          s.balances[mm]={bank:+bb.bank||0,card:Math.max(0,(+bb.card||0)-(+removed.amount||0))};
+        }
+      } else s.fixed.splice(last.i,1);
       persist();
     }catch(e){
       alert('Impossible d’annuler cette saisie.');
