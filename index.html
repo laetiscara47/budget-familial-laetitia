@@ -23,12 +23,12 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 .card b{display:block;font-size:19px;margin-top:4px}.section{margin-top:11px}.section h2{font-size:18px;margin:0 0 11px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.wide{grid-column:1/-1}.note{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.4}
 .tabs{display:flex;gap:7px;margin-bottom:10px}.tabs button{flex:1;background:#eef0f6;color:#444}.tabs button.active{background:var(--blue);color:white}
-.list{display:flex;flex-direction:column;gap:8px}.item{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;padding:10px}.main{flex:1;min-width:0}.title{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.meta{font-size:12px;color:var(--muted);margin-top:2px}.amt{font-weight:800}.del{background:#f0f1f4;color:#555;padding:8px 10px}.empty{text-align:center;color:var(--muted);padding:14px}
+.list{display:flex;flex-direction:column;gap:8px}.item{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;padding:10px}.main{flex:1;min-width:0}.title{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.meta{font-size:12px;color:var(--muted);margin-top:2px}.amt{font-weight:800}.del,.edit{background:#f0f1f4;color:#555;padding:8px 10px}.edit{background:#eef0f6}.empty{text-align:center;color:var(--muted);padding:14px}
 .progress{height:9px;background:#eceef3;border-radius:999px;overflow:hidden;margin-top:8px}.bar{height:100%;background:var(--blue);width:0}
 .actions{display:flex;gap:8px}.actions button{flex:1}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V9</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V10</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -146,6 +146,31 @@ function persist(){localStorage.setItem(KEY,JSON.stringify(s));render()}
 function setMode(m){mode=m;['Expense','Income','Fixed'].forEach(x=>$('tab'+x).classList.remove('active'));$('tab'+m[0].toUpperCase()+m.slice(1)).classList.add('active');$('fixedNote').style.display=m==='fixed'?'block':'none';$('fixedDay').style.display=m==='fixed'?'block':'none';$('addBtn').textContent=m==='expense'?'Ajouter la dépense':m==='income'?'Ajouter le revenu':'Ajouter le prélèvement fixe'}
 $('tabExpense').onclick=()=>setMode('expense');$('tabIncome').onclick=()=>setMode('income');$('tabFixed').onclick=()=>setMode('fixed');
 
+
+let editing=null;
+function openEdit(kind,id){
+ editing={kind,id}; let obj;
+ if(kind==='entry') obj=s.entries.find(x=>x.id===id);
+ if(kind==='fixed') obj=s.fixed.find(x=>x.id===id);
+ if(kind==='income') obj=s.fixedIncome.find(x=>x.id===id);
+ if(!obj)return;
+ $('editLabel').value=obj.label||'';$('editAmount').value=obj.amount||'';$('editCategory').value=obj.category||'Autre';
+ $('editDate').style.display=kind==='entry'?'block':'none';$('editDate').value=obj.date||'';
+ $('editDay').style.display=kind==='entry'?'none':'block';$('editDay').value=obj.day||1;
+ $('editModal').style.display='flex';
+}
+function closeEdit(){$('editModal').style.display='none';editing=null}
+function saveEdit(){
+ if(!editing)return;
+ let collection=editing.kind==='entry'?s.entries:editing.kind==='fixed'?s.fixed:s.fixedIncome;
+ let obj=collection.find(x=>x.id===editing.id);if(!obj)return;
+ let label=$('editLabel').value.trim(),amount=parseFloat($('editAmount').value)||0;if(!label||amount<=0)return;
+ obj.label=label;obj.amount=amount;obj.category=$('editCategory').value;
+ if(editing.kind==='entry'){obj.date=$('editDate').value;obj.month=obj.date.slice(0,7)}
+ else obj.day=Math.max(1,Math.min(28,parseInt($('editDay').value)||1));
+ closeEdit();persist();
+}
+
 function previousMonth(m){
  let [y,mo]=m.split('-').map(Number);mo--;if(mo===0){mo=12;y--}
  return y+'-'+String(mo).padStart(2,'0')
@@ -176,14 +201,15 @@ function render(){
  let rest=availableNow-unpaid+expected;$('rest').textContent=eur(rest);$('rest').className='big '+(rest<0?'red':'green');
  $('restText').textContent='Après la carte, les prélèvements restant à payer et les revenus fixes encore attendus.';
  let fil=$('fixedIncomeList');fil.innerHTML='';if(!s.fixedIncome.length)fil.innerHTML='<div class="empty">Aucun revenu fixe enregistré.</div>';
- s.fixedIncome.forEach(f=>{let received=!!(s.incomeReceived[m]||{})[f.id],d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt green"></div><button class="secondary pay"></button><button class="del">✕</button>';d.querySelector('.title').textContent=f.label;d.querySelector('.meta').textContent='Prévu le '+f.day+' de chaque mois';d.querySelector('.amt').textContent=eur(f.amount);d.querySelector('.pay').textContent=received?'Reçu ✓':'À recevoir';d.querySelector('.pay').onclick=()=>{s.incomeReceived[m]=s.incomeReceived[m]||{};s.incomeReceived[m][f.id]=!received;persist()};d.querySelector('.del').onclick=()=>{s.fixedIncome=s.fixedIncome.filter(x=>x.id!==f.id);persist()};fil.appendChild(d)});
+ s.fixedIncome.forEach(f=>{let received=!!(s.incomeReceived[m]||{})[f.id],d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt green"></div><button class="secondary pay"></button><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=f.label;d.querySelector('.meta').textContent='Prévu le '+f.day+' de chaque mois';d.querySelector('.amt').textContent=eur(f.amount);d.querySelector('.pay').textContent=received?'Reçu ✓':'À recevoir';d.querySelector('.pay').onclick=()=>{s.incomeReceived[m]=s.incomeReceived[m]||{};s.incomeReceived[m][f.id]=!received;persist()};d.querySelector('.edit').onclick=()=>openEdit('income',f.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce revenu fixe ?')){s.fixedIncome=s.fixedIncome.filter(x=>x.id!==f.id);persist()}};fil.appendChild(d)});
  let fl=$('fixedList');fl.innerHTML='';if(!s.fixed.length)fl.innerHTML='<div class="empty">Aucun prélèvement fixe enregistré.</div>';
- s.fixed.forEach(f=>{let paid=!!(s.paid[m]||{})[f.id],d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="secondary pay"></button><button class="del">✕</button>';d.querySelector('.title').textContent=f.label;d.querySelector('.meta').textContent='Le '+(f.day||'?')+' de chaque mois · '+f.category;d.querySelector('.amt').textContent=eur(f.amount);d.querySelector('.pay').textContent=paid?'Payé ✓':'À payer';d.querySelector('.pay').onclick=()=>{s.paid[m]=s.paid[m]||{};s.paid[m][f.id]=!paid;persist()};d.querySelector('.del').onclick=()=>{s.fixed=s.fixed.filter(x=>x.id!==f.id);persist()};fl.appendChild(d)});
+ s.fixed.forEach(f=>{let paid=!!(s.paid[m]||{})[f.id],d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="secondary pay"></button><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=f.label;d.querySelector('.meta').textContent='Le '+(f.day||'?')+' de chaque mois · '+f.category;d.querySelector('.amt').textContent=eur(f.amount);d.querySelector('.pay').textContent=paid?'Payé ✓':'À payer';d.querySelector('.pay').onclick=()=>{s.paid[m]=s.paid[m]||{};s.paid[m][f.id]=!paid;persist()};d.querySelector('.edit').onclick=()=>openEdit('fixed',f.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce prélèvement fixe ?')){s.fixed=s.fixed.filter(x=>x.id!==f.id);persist()}};fl.appendChild(d)});
  let bl=$('budgetList');bl.innerHTML='';let bm=s.budgets[m]||{}, cats=Object.keys(bm);
  if(!cats.length) bl.innerHTML='<div class="empty">Aucun budget par catégorie. Vous pouvez utiliser l’application sans cette option.</div>';
  cats.forEach(cat=>{let limit=+bm[cat]||0,spent=rows.filter(e=>e.type==='expense'&&e.category===cat).reduce((a,e)=>a+e.amount,0),left=limit-spent,d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div><div class="progress"><div class="bar"></div></div></div><div class="amt"></div><button class="del">✕</button>';d.querySelector('.title').textContent=cat;d.querySelector('.meta').textContent=eur(spent)+' dépensés sur '+eur(limit);let pct=limit>0?Math.min(100,(spent/limit)*100):0;d.querySelector('.bar').style.width=pct+'%';let a=d.querySelector('.amt');a.textContent=eur(left);a.className='amt '+(left<0?'red':'green');d.querySelector('.del').onclick=()=>{delete s.budgets[m][cat];persist()};bl.appendChild(d)});
- let el=$('entryList');el.innerHTML='';if(!rows.length)el.innerHTML='<div class="empty">Aucun mouvement ce mois-ci.</div>';rows.sort((a,b)=>b.date.localeCompare(a.date)).forEach(e=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="del">✕</button>';d.querySelector('.title').textContent=e.label;d.querySelector('.meta').textContent=new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR')+' · '+e.category;let a=d.querySelector('.amt');a.textContent=(e.type==='income'?'+ ':'- ')+eur(e.amount);a.className='amt '+(e.type==='income'?'green':'red');d.querySelector('.del').onclick=()=>{s.entries=s.entries.filter(x=>x.id!==e.id);persist()};el.appendChild(d)});
+ let el=$('entryList');el.innerHTML='';if(!rows.length)el.innerHTML='<div class="empty">Aucun mouvement ce mois-ci.</div>';rows.sort((a,b)=>b.date.localeCompare(a.date)).forEach(e=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=e.label;d.querySelector('.meta').textContent=new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR')+' · '+e.category;let a=d.querySelector('.amt');a.textContent=(e.type==='income'?'+ ':'- ')+eur(e.amount);a.className='amt '+(e.type==='income'?'green':'red');d.querySelector('.edit').onclick=()=>openEdit('entry',e.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce mouvement ?')){s.entries=s.entries.filter(x=>x.id!==e.id);persist()}};el.appendChild(d)});
 }
+$('saveEdit').onclick=saveEdit;$('cancelEdit').onclick=closeEdit;
 $('copyPreviousBudgets').onclick=copyPreviousBudgets;
 $('saveBudget').onclick=()=>{let m=$('month').value,cat=$('budgetCat').value,amount=parseFloat($('budgetAmount').value)||0;if(amount<=0)return;s.budgets[m]=s.budgets[m]||{};s.budgets[m][cat]=amount;$('budgetAmount').value='';persist()};
 $('addFixedIncome').onclick=()=>{let label=$('fiLabel').value.trim(),amount=parseFloat($('fiAmount').value)||0,day=Math.max(1,Math.min(28,parseInt($('fiDay').value)||1));if(!label||amount<=0)return;s.fixedIncome.push({id:crypto.randomUUID(),label,amount,day});$('fiLabel').value='';$('fiAmount').value='';$('fiDay').value='';persist()};
@@ -192,4 +218,20 @@ $('form').onsubmit=e=>{e.preventDefault();let obj={id:crypto.randomUUID(),label:
 function move(n){let[y,m]=$('month').value.split('-').map(Number);m+=n;if(m<1){m=12;y--}if(m>12){m=1;y++}$('month').value=y+'-'+String(m).padStart(2,'0');render()}$('prev').onclick=()=>move(-1);$('next').onclick=()=>move(1);$('month').onchange=render;
 $('export').onclick=()=>{let blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mon-budget-sauvegarde.json';a.click()};$('import').onclick=()=>$('file').click();$('file').onchange=async e=>{try{s=JSON.parse(await e.target.files[0].text());persist();alert('Sauvegarde importée')}catch{alert('Fichier non reconnu')}};
 render();
-</script></body></html>
+</script>
+<div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:50;padding:20px;align-items:center;justify-content:center">
+ <div class="section" style="width:min(100%,520px);margin:0;max-height:85vh;overflow:auto">
+  <h2>Modifier</h2>
+  <div class="grid">
+   <input id="editLabel" class="wide" placeholder="Nom">
+   <input id="editAmount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Montant €">
+   <input id="editDate" type="date">
+   <input id="editDay" type="number" min="1" max="28" inputmode="numeric" placeholder="Jour du mois">
+   <select id="editCategory" class="wide"><option>Courses</option><option>Carburant</option><option>Factures</option><option>Logement</option><option>Voiture</option><option>Santé</option><option>Enfants</option><option>Loisirs</option><option>Animaux</option><option>Autre</option></select>
+   <button id="saveEdit">Enregistrer les modifications</button>
+   <button id="cancelEdit" class="secondary">Annuler</button>
+  </div>
+ </div>
+</div>
+
+</body></html>
