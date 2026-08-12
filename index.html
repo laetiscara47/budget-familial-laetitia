@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V43</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V44</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -244,6 +244,18 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
  <div class="note" style="margin-top:10px">Ce contrôle ne modifie aucune donnée : il vous indique simplement ce qu’il reste à vérifier avant de passer au mois suivant.</div>
 </div></details>
 <details class="fold">
+<summary>🧳 Dépenses exceptionnelles prévues</summary>
+<div class="foldBody">
+ <div class="note" style="margin-bottom:10px">Pour anticiper une réparation, une sortie, un cadeau ou toute dépense inhabituelle sans la compter comme déjà payée.</div>
+ <div class="grid">
+  <input id="exceptionLabel" placeholder="Ex. Révision voiture">
+  <input id="exceptionAmount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Montant €">
+ </div>
+ <button id="addException" type="button" style="width:100%;margin-top:8px">Ajouter à la prévision</button>
+ <div id="exceptionList" class="list" style="margin-top:10px"></div>
+ <div class="card" style="margin-top:10px"><span class="smalllabel">Total exceptionnel prévu</span><b id="exceptionTotal" class="orange">0,00 €</b></div>
+</div></details>
+<details class="fold">
 <summary>📝 Notes du mois</summary>
 <div class="foldBody">
  <div class="note" style="margin-bottom:10px">Gardez ici les dépenses exceptionnelles, rappels ou informations utiles pour le mois sélectionné.</div>
@@ -339,7 +351,7 @@ Le statut « Reçu / Payé » reste indépendant pour chaque mois.
 <script>
 const KEY='monBudgetSimpleV3';
 let s=JSON.parse(localStorage.getItem(KEY)||'{"entries":[],"fixed":[],"fixedIncome":[],"budgets":{},"balances":{},"paid":{},"incomeReceived":{}}');
-s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.budgets=s.budgets||{};s.balances=s.balances||{};s.paid=s.paid||{};s.incomeReceived=s.incomeReceived||{};s.savingGoals=s.savingGoals||{};s.savingDone=s.savingDone||{};s.safetyMargins=s.safetyMargins||{};s.monthNotes=s.monthNotes||{};
+s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.budgets=s.budgets||{};s.balances=s.balances||{};s.paid=s.paid||{};s.incomeReceived=s.incomeReceived||{};s.savingGoals=s.savingGoals||{};s.savingDone=s.savingDone||{};s.safetyMargins=s.safetyMargins||{};s.monthNotes=s.monthNotes||{};s.exceptions=s.exceptions||{};
 const $=x=>document.getElementById(x), eur=n=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(+n||0);
 let mode='expense'; const today=new Date(); $('month').value=today.toISOString().slice(0,7);$('date').value=today.toISOString().slice(0,10);
 function persist(){localStorage.setItem(KEY,JSON.stringify(s));render()}
@@ -408,7 +420,13 @@ function copyPreviousBudgets(){
  persist();
 }
 function render(){updateQuickHabits();
- let m=$('month').value,b=s.balances[m]||{bank:0,card:0};$('monthNotes').value=s.monthNotes[m]||'';$('monthNotesSaved').style.display='none';$('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=eur(b.bank);$('cardView').textContent=eur(b.card);
+ let m=$('month').value,b=s.balances[m]||{bank:0,card:0};$('monthNotes').value=s.monthNotes[m]||'';$('monthNotesSaved').style.display='none';
+ let exRows=s.exceptions[m]||[],exList=$('exceptionList');exList.innerHTML='';
+ let exTotal=exRows.reduce((a,x)=>a+(+x.amount||0),0);
+ $('exceptionTotal').textContent=eur(exTotal);
+ if(!exRows.length)exList.innerHTML='<div class="empty">Aucune dépense exceptionnelle prévue.</div>';
+ exRows.forEach((x,i)=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div></div><div class="amt orange"></div><button class="del" type="button">✕</button>';d.querySelector('.title').textContent=x.label;d.querySelector('.amt').textContent=eur(x.amount);d.querySelector('.del').onclick=()=>{s.exceptions[m].splice(i,1);persist()};exList.appendChild(d)});
+$('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=eur(b.bank);$('cardView').textContent=eur(b.card);
  let rows=s.entries.filter(e=>e.month===m),inc=rows.filter(e=>e.type==='income').reduce((a,e)=>a+e.amount,0),exp=rows.filter(e=>e.type==='expense').reduce((a,e)=>a+e.amount,0);
  $('incomeView').textContent=eur(inc);$('expenseView').textContent=eur(exp);
  $('reportIncome').textContent=eur(inc);$('reportExpense').textContent=eur(exp);
@@ -615,6 +633,7 @@ $('form').onsubmit=e=>{e.preventDefault();let obj={id:crypto.randomUUID(),label:
 }$('label').value='';$('amount').value='';persist()};
 function move(n){let[y,m]=$('month').value.split('-').map(Number);m+=n;if(m<1){m=12;y--}if(m>12){m=1;y++}$('month').value=y+'-'+String(m).padStart(2,'0');render()}$('prev').onclick=()=>move(-1);$('next').onclick=()=>move(1);$('resetFilters').onclick=()=>{$('movementFilter').value='all';$('movementCategory').value='all';render()};
 $('movementFilter').onchange=render;$('movementCategory').onchange=render;
+$('addException').onclick=()=>{let m=$('month').value,label=$('exceptionLabel').value.trim(),amount=parseFloat($('exceptionAmount').value)||0;if(!label||amount<=0)return;s.exceptions[m]=s.exceptions[m]||[];s.exceptions[m].push({id:crypto.randomUUID(),label,amount});$('exceptionLabel').value='';$('exceptionAmount').value='';persist()};
 $('saveMonthNotes').onclick=()=>{let m=$('month').value;s.monthNotes[m]=$('monthNotes').value.trim();localStorage.setItem(KEY,JSON.stringify(s));$('monthNotesSaved').style.display='block'};
 $('goNextMonth').onclick=()=>{move(1)};
 $('month').onchange=render;
