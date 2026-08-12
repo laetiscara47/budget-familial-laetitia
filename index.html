@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V56</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V57</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -161,6 +161,16 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </div></details>
   <details class="fold">
+<summary>📉 Rythme des dépenses</summary>
+<div class="foldBody">
+ <div class="cards">
+  <div class="card"><span class="smalllabel">Moyenne dépensée / jour</span><b id="avgSpentDay">0,00 €</b></div>
+  <div class="card"><span class="smalllabel">Dépenses du mois</span><b id="spentSoFar" class="red">0,00 €</b></div>
+  <div class="card wide"><span class="smalllabel">Projection au même rythme</span><b id="spendingProjection">0,00 €</b></div>
+ </div>
+ <div id="spendingPaceMessage" class="note" style="margin-top:10px"></div>
+</div></details>
+<details class="fold">
 <summary>📅 Dépenses par semaine</summary>
 <div class="foldBody">
  <div id="weeklySpending" class="list"></div>
@@ -617,6 +627,17 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
  s.fixedIncome.forEach(f=>{let received=!!(s.incomeReceived[m]||{})[f.id],d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt green"></div><button class="secondary pay"></button><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=f.label;d.querySelector('.meta').textContent='Prévu le '+f.day+' de chaque mois';d.querySelector('.amt').textContent=eur(f.amount);d.querySelector('.pay').textContent=received?'Reçu ✓':'À recevoir';d.querySelector('.pay').className='secondary pay '+(received?'statusDone':'statusTodo');d.querySelector('.pay').onclick=()=>{s.incomeReceived[m]=s.incomeReceived[m]||{};s.incomeReceived[m][f.id]=!received;persist()};d.querySelector('.edit').onclick=()=>openEdit('income',f.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce revenu fixe ?')){s.fixedIncome=s.fixedIncome.filter(x=>x.id!==f.id);persist()}};fil.appendChild(d)});
  let fl=$('fixedList');fl.innerHTML='';if(!s.fixed.length)fl.innerHTML='<div class="empty">Aucun prélèvement fixe enregistré.</div>';
  s.fixed.forEach(f=>{let paid=!!(s.paid[m]||{})[f.id],d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="secondary pay"></button><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=f.label;d.querySelector('.meta').textContent='Le '+(f.day||'?')+' de chaque mois · '+f.category;d.querySelector('.amt').textContent=eur(f.amount);d.querySelector('.pay').textContent=paid?'Payé ✓':'À payer';d.querySelector('.pay').className='secondary pay '+(paid?'statusDone':'statusTodo');d.querySelector('.pay').onclick=()=>{s.paid[m]=s.paid[m]||{};s.paid[m][f.id]=!paid;persist()};d.querySelector('.edit').onclick=()=>openEdit('fixed',f.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce prélèvement fixe ?')){s.fixed=s.fixed.filter(x=>x.id!==f.id);persist()}};fl.appendChild(d)});
+ let paceExpenses=rows.filter(e=>e.type==='expense').reduce((a,e)=>a+(+e.amount||0),0);
+ let nowPace=new Date(), selectedNow=(nowPace.getFullYear()===yy&&nowPace.getMonth()===mm);
+ let daysInMonth=new Date(yy,mm+1,0).getDate();
+ let elapsedDays=selectedNow?Math.max(1,nowPace.getDate()):daysInMonth;
+ let avgSpent=paceExpenses/elapsedDays, projectedSpent=avgSpent*daysInMonth;
+ $('avgSpentDay').textContent=eur(avgSpent);
+ $('spentSoFar').textContent=eur(paceExpenses);
+ $('spendingProjection').textContent=eur(projectedSpent);
+ $('spendingPaceMessage').textContent=selectedNow
+   ?'Au rythme actuel, vos dépenses enregistrées atteindraient environ '+eur(projectedSpent)+' sur l’ensemble du mois.'
+   :'Pour un mois terminé, la projection correspond aux dépenses réellement enregistrées.';
  let ws=$('weeklySpending');ws.innerHTML='';
  let weekDefs=[[1,7],[8,14],[15,21],[22,28],[29,31]];
  let weekVals=weekDefs.map(([a,z])=>rows.filter(e=>e.type==='expense'&&parseInt((e.date||'').slice(8,10))>=a&&parseInt((e.date||'').slice(8,10))<=z).reduce((s,e)=>s+(+e.amount||0),0));
