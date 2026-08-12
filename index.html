@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V32</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V33</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -160,6 +160,11 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 <div class="foldBody">
 <div class="note" style="margin-bottom:10px">Répartition automatique des dépenses enregistrées ce mois-ci.</div>
 <div id="categoryBreakdown" class="list"></div>
+</div></details>
+<details class="fold">
+<summary>🚦 État du budget</summary>
+<div class="foldBody">
+ <div id="budgetStatus" class="list"></div>
 </div></details>
 <details class="fold">
 <summary>📈 Comparaison avec le mois précédent</summary>
@@ -417,6 +422,15 @@ function render(){updateQuickHabits();
  let catRows=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]),totalCat=catRows.reduce((a,x)=>a+x[1],0);
  if(!catRows.length)cb.innerHTML='<div class="empty">Aucune dépense enregistrée ce mois-ci.</div>';
  catRows.forEach(([cat,val])=>{let pct=totalCat>0?(val/totalCat)*100:0,d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div><div class="progress"><div class="bar"></div></div></div><div class="amt red"></div>';d.querySelector('.title').textContent=cat;d.querySelector('.meta').textContent=pct.toLocaleString('fr-FR',{maximumFractionDigits:0})+' % des dépenses';d.querySelector('.bar').style.width=pct+'%';d.querySelector('.amt').textContent=eur(val);cb.appendChild(d)});
+ let bs=$('budgetStatus');bs.innerHTML='';
+ let status=document.createElement('div');status.className='item';
+ let statusTitle='',statusText='';
+ if(rest<0){statusTitle='🔴 Budget à surveiller';statusText='La prévision de fin de mois est négative de '+eur(Math.abs(rest))+'.';}
+ else if(rest===0){statusTitle='🟠 Budget à l’équilibre';statusText='Il ne reste pas de marge prévue pour la fin du mois.';}
+ else if(daysLeft>0 && pd<20){statusTitle='🟠 Marge limitée';statusText='Il reste '+eur(rest)+' prévus, soit environ '+eur(pd)+' par jour.';}
+ else {statusTitle='🟢 Budget confortable';statusText='Il reste '+eur(rest)+' prévus pour la fin du mois'+(daysLeft>0?', soit environ '+eur(pd)+' par jour.':'.');}
+ status.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div>';
+ status.querySelector('.title').textContent=statusTitle;status.querySelector('.meta').textContent=statusText;bs.appendChild(status);
  let mc=$('monthCompare');mc.innerHTML='';
  let curKey=currentMonth, curDate=new Date(curKey+'-01T12:00:00');
  let prevDate=new Date(curDate.getFullYear(),curDate.getMonth()-1,1);
