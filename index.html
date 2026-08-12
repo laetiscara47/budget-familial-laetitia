@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V34</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V35</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -423,9 +423,9 @@ function render(){updateQuickHabits();
  else if(new Date(yy,mm-1,1)>new Date(nowD.getFullYear(),nowD.getMonth(),nowD.getDate())) daysLeft=lastDay;
  else daysLeft=0;
  $('daysLeft').textContent=daysLeft;
- let pd=daysLeft>0?rest/daysLeft:0;$('perDay').textContent=eur(pd);$('perDay').className=pd<0?'red':'green';
+ let pd=daysLeft>0?afterSaving/daysLeft:0;$('perDay').textContent=eur(pd);$('perDay').className=pd<0?'red':'green';
  if($('monthPace')){
-   if(daysLeft>0 && rest>=0) $('monthPace').textContent='💡 Repère : '+eur(pd)+' par jour jusqu’à la fin du mois';
+   if(daysLeft>0 && afterSaving>=0) $('monthPace').textContent='💡 Repère après épargne : '+eur(pd)+' par jour jusqu’à la fin du mois';
    else if(rest<0) $('monthPace').textContent='⚠️ Prévision négative de '+eur(Math.abs(rest));
    else $('monthPace').textContent='';
  }
