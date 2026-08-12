@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V50</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V51</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -331,6 +331,12 @@ Le statut « Reçu / Payé » reste indépendant pour chaque mois.
   <option value="all">Tout afficher</option>
   <option value="expense">Dépenses seulement</option>
   <option value="income">Revenus seulement</option>
+ </select>
+ <select id="movementPayment">
+  <option value="all">Tous les paiements</option>
+  <option value="card">💳 Carte</option>
+  <option value="bank">🏦 Compte</option>
+  <option value="cash">💶 Espèces</option>
  </select>
  <select id="movementCategory">
   <option value="all">Toutes catégories</option>
@@ -635,7 +641,7 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
  if(!recentRows.length) recent.innerHTML='<div class="empty">Aucune opération ce mois-ci.</div>';
  recentRows.forEach(e=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div>';d.querySelector('.title').textContent=e.label;let payLabel=e.type==='expense'?(e.payment==='bank'?'🏦 Compte':e.payment==='cash'?'💶 Espèces':'💳 Carte'):'💰 Revenu';d.querySelector('.meta').textContent=new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR')+' · '+e.category+' · '+payLabel;let a=d.querySelector('.amt');a.textContent=(e.type==='income'?'+ ':'- ')+eur(e.amount);a.className='amt '+(e.type==='income'?'green':'red');recent.appendChild(d)});
  let el=$('entryList');el.innerHTML='';
- let visibleRows=rows.filter(e=>($('movementFilter').value==='all'||e.type===$('movementFilter').value)&&($('movementCategory').value==='all'||e.category===$('movementCategory').value));
+ let visibleRows=rows.filter(e=>($('movementFilter').value==='all'||e.type===$('movementFilter').value)&&($('movementCategory').value==='all'||e.category===$('movementCategory').value)&&($('movementPayment').value==='all'||(e.type==='expense'&&(e.payment||'card')===$('movementPayment').value)));
  if(!visibleRows.length)el.innerHTML='<div class="empty">Aucun mouvement correspondant.</div>';
  visibleRows.sort((a,b)=>b.date.localeCompare(a.date)).forEach(e=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=e.label;let payLabel2=e.type==='expense'?(e.payment==='bank'?'🏦 Compte':e.payment==='cash'?'💶 Espèces':'💳 Carte'):'💰 Revenu';d.querySelector('.meta').textContent=new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR')+' · '+e.category+' · '+payLabel2;let a=d.querySelector('.amt');a.textContent=(e.type==='income'?'+ ':'- ')+eur(e.amount);a.className='amt '+(e.type==='income'?'green':'red');d.querySelector('.edit').onclick=()=>openEdit('entry',e.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce mouvement ?')){
  if(e.type==='expense'){
@@ -681,8 +687,8 @@ $('form').onsubmit=e=>{e.preventDefault();let obj={id:crypto.randomUUID(),label:
    s.balances[mm]={bank:+bb.bank||0,card:(+bb.card||0)+obj.amount};
  }
 }$('label').value='';$('amount').value='';persist()};
-function move(n){let[y,m]=$('month').value.split('-').map(Number);m+=n;if(m<1){m=12;y--}if(m>12){m=1;y++}$('month').value=y+'-'+String(m).padStart(2,'0');render()}$('prev').onclick=()=>move(-1);$('next').onclick=()=>move(1);$('resetFilters').onclick=()=>{$('movementFilter').value='all';$('movementCategory').value='all';render()};
-$('movementFilter').onchange=render;$('movementCategory').onchange=render;
+function move(n){let[y,m]=$('month').value.split('-').map(Number);m+=n;if(m<1){m=12;y--}if(m>12){m=1;y++}$('month').value=y+'-'+String(m).padStart(2,'0');render()}$('prev').onclick=()=>move(-1);$('next').onclick=()=>move(1);$('resetFilters').onclick=()=>{$('movementFilter').value='all';$('movementCategory').value='all';$('movementPayment').value='all';render()};
+$('movementFilter').onchange=render;$('movementCategory').onchange=render;$('movementPayment').onchange=render;
 $('addException').onclick=()=>{let m=$('month').value,label=$('exceptionLabel').value.trim(),amount=parseFloat($('exceptionAmount').value)||0;if(!label||amount<=0)return;s.exceptions[m]=s.exceptions[m]||[];s.exceptions[m].push({id:crypto.randomUUID(),label,amount});$('exceptionLabel').value='';$('exceptionAmount').value='';persist()};
 $('saveMonthNotes').onclick=()=>{let m=$('month').value;s.monthNotes[m]=$('monthNotes').value.trim();localStorage.setItem(KEY,JSON.stringify(s));$('monthNotesSaved').style.display='block'};
 $('goNextMonth').onclick=()=>{move(1)};
