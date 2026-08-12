@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V47</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V48</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -92,7 +92,12 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
  <input id="amount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Montant €" required>
  <input id="date" type="date" required>
  <input id="fixedDay" class="wide" type="number" min="1" max="28" inputmode="numeric" placeholder="Jour du prélèvement (1 à 28)" style="display:none">
- <select id="category" class="wide"><option>Courses</option><option>Carburant</option><option>Factures</option><option>Logement</option><option>Voiture</option><option>Santé</option><option>Enfants</option><option>Loisirs</option><option>Animaux</option><option>Autre</option></select>
+ <select id="paymentMethod" class="wide">
+<option value="card">💳 Carte bancaire</option>
+<option value="bank">🏦 Compte / prélèvement</option>
+<option value="cash">💶 Espèces</option>
+</select>
+<select id="category" class="wide"><option>Courses</option><option>Carburant</option><option>Factures</option><option>Logement</option><option>Voiture</option><option>Santé</option><option>Enfants</option><option>Loisirs</option><option>Animaux</option><option>Autre</option></select>
  <button class="wide" id="addBtn">Ajouter la dépense</button>
 <button class="secondary" id="undoLastBtn" type="button" style="margin-top:10px;width:100%">
 ↩️ Annuler la dernière saisie
@@ -355,7 +360,7 @@ s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.bu
 const $=x=>document.getElementById(x), eur=n=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(+n||0);
 let mode='expense'; const today=new Date(); $('month').value=today.toISOString().slice(0,7);$('date').value=today.toISOString().slice(0,10);
 function persist(){localStorage.setItem(KEY,JSON.stringify(s));render()}
-function setMode(m){mode=m;['Expense','Income','Fixed'].forEach(x=>$('tab'+x).classList.remove('active'));$('tab'+m[0].toUpperCase()+m.slice(1)).classList.add('active');$('fixedNote').style.display=m==='fixed'?'block':'none';$('fixedDay').style.display=m==='fixed'?'block':'none';$('addBtn').textContent=m==='expense'?'Ajouter la dépense':m==='income'?'Ajouter le revenu':'Ajouter le prélèvement fixe';updateQuickHabits()}
+function setMode(m){mode=m;['Expense','Income','Fixed'].forEach(x=>$('tab'+x).classList.remove('active'));$('tab'+m[0].toUpperCase()+m.slice(1)).classList.add('active');$('fixedNote').style.display=m==='fixed'?'block':'none';$('fixedDay').style.display=m==='fixed'?'block':'none';$('addBtn').textContent=m==='expense'?'Ajouter la dépense':m==='income'?'Ajouter le revenu':'Ajouter le prélèvement fixe';updateQuickHabits();if($('paymentMethod'))$('paymentMethod').style.display=m==='expense'?'block':'none'}
 $('tabExpense').onclick=()=>setMode('expense');$('tabIncome').onclick=()=>setMode('income');$('tabFixed').onclick=()=>setMode('fixed');
 
 
@@ -650,9 +655,10 @@ $('addFixedIncome').onclick=()=>{let label=$('fiLabel').value.trim(),amount=pars
 $('saveSavingGoal').onclick=()=>{let m=$('month').value,v=Math.max(0,parseFloat($('savingGoal').value)||0),d=Math.max(0,parseFloat($('savingDone').value)||0),sm=Math.max(0,parseFloat($('safetyMargin').value)||0);s.savingGoals[m]=v;s.savingDone[m]=d;s.safetyMargins[m]=sm;persist()};
 $('saveBalance').onclick=()=>{s.balances[$('month').value]={bank:parseFloat($('bank').value)||0,card:parseFloat($('card').value)||0};persist()};
 $('form').onsubmit=e=>{e.preventDefault();let obj={id:crypto.randomUUID(),label:$('label').value.trim(),amount:parseFloat($('amount').value)||0,category:$('category').value};if(mode==='fixed'){obj.day=Math.max(1,Math.min(28,parseInt($('fixedDay').value)||1));s.fixed.push(obj);$('fixedDay').value=''}else{
- let entry={...obj,type:mode,date:$('date').value,month:$('month').value};
+ let payment=mode==='expense'?($('paymentMethod').value||'card'):'bank';
+ let entry={...obj,type:mode,date:$('date').value,month:$('month').value,payment};
  s.entries.push(entry);
- if(mode==='expense'){
+ if(mode==='expense'&&payment==='card'){
    let mm=$('month').value;
    let bb=s.balances[mm]||{bank:0,card:0};
    s.balances[mm]={bank:+bb.bank||0,card:(+bb.card||0)+obj.amount};
