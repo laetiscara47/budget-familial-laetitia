@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V41</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V42</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -244,6 +244,16 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
  <div class="note" style="margin-top:10px">Ce contrôle ne modifie aucune donnée : il vous indique simplement ce qu’il reste à vérifier avant de passer au mois suivant.</div>
 </div></details>
 <details class="fold">
+<summary>🗓️ Préparer le mois prochain</summary>
+<div class="foldBody">
+ <div class="cards">
+  <div class="card"><span class="smalllabel">Revenus fixes prévus</span><b id="nextIncomeTotal" class="green">0,00 €</b></div>
+  <div class="card"><span class="smalllabel">Prélèvements fixes prévus</span><b id="nextFixedTotal" class="orange">0,00 €</b></div>
+ </div>
+ <div id="nextMonthName" class="note" style="margin-top:10px"></div>
+ <button id="goNextMonth" class="secondary" type="button" style="width:100%;margin-top:10px">Voir le mois prochain →</button>
+</div></details>
+<details class="fold">
 <summary>➡️ Passage au mois suivant</summary>
 <div class="foldBody">
 <div class="note" style="margin-bottom:10px">
@@ -410,6 +420,12 @@ function render(){updateQuickHabits();
   let receivedFixed=s.fixedIncome.filter(f=>(s.incomeReceived[m]||{})[f.id]).reduce((a,f)=>a+f.amount,0);
   let paidFixed=s.fixed.filter(f=>(s.paid[m]||{})[f.id]).reduce((a,f)=>a+f.amount,0);
   $('receivedFixed').textContent=eur(receivedFixed);$('paidFixed').textContent=eur(paidFixed);
+ let nextD=new Date(yy,mm,1),nextKey=nextD.getFullYear()+'-'+String(nextD.getMonth()+1).padStart(2,'0');
+ let nextIncomeTotal=s.fixedIncome.reduce((a,f)=>a+(+f.amount||0),0);
+ let nextFixedTotal=s.fixed.reduce((a,f)=>a+(+f.amount||0),0);
+ $('nextIncomeTotal').textContent=eur(nextIncomeTotal);
+ $('nextFixedTotal').textContent=eur(nextFixedTotal);
+ $('nextMonthName').textContent='Prévision des éléments fixes pour '+nextD.toLocaleDateString('fr-FR',{month:'long',year:'numeric'})+'.';
  let closeList=$('monthCloseList');closeList.innerHTML='';
  let closeChecks=[
   {ok:unpaid===0,label:'Prélèvements fixes',detail:unpaid===0?'Tous les prélèvements sont marqués payés.':eur(unpaid)+' restent à marquer payés.'},
@@ -591,6 +607,7 @@ $('form').onsubmit=e=>{e.preventDefault();let obj={id:crypto.randomUUID(),label:
 }$('label').value='';$('amount').value='';persist()};
 function move(n){let[y,m]=$('month').value.split('-').map(Number);m+=n;if(m<1){m=12;y--}if(m>12){m=1;y++}$('month').value=y+'-'+String(m).padStart(2,'0');render()}$('prev').onclick=()=>move(-1);$('next').onclick=()=>move(1);$('resetFilters').onclick=()=>{$('movementFilter').value='all';$('movementCategory').value='all';render()};
 $('movementFilter').onchange=render;$('movementCategory').onchange=render;
+$('goNextMonth').onclick=()=>{move(1)};
 $('month').onchange=render;
 $('export').onclick=()=>{let blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mon-budget-sauvegarde.json';a.click()};$('import').onclick=()=>$('file').click();$('file').onchange=async e=>{try{s=JSON.parse(await e.target.files[0].text());persist();alert('Sauvegarde importée')}catch{alert('Fichier non reconnu')}};
 render();
