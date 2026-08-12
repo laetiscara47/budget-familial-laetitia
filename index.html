@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V40</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V41</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -238,6 +238,12 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
  </div>
 </div></details>
   <details class="fold">
+<summary>✅ Clôture du mois</summary>
+<div class="foldBody">
+ <div id="monthCloseList" class="list"></div>
+ <div class="note" style="margin-top:10px">Ce contrôle ne modifie aucune donnée : il vous indique simplement ce qu’il reste à vérifier avant de passer au mois suivant.</div>
+</div></details>
+<details class="fold">
 <summary>➡️ Passage au mois suivant</summary>
 <div class="foldBody">
 <div class="note" style="margin-bottom:10px">
@@ -404,6 +410,15 @@ function render(){updateQuickHabits();
   let receivedFixed=s.fixedIncome.filter(f=>(s.incomeReceived[m]||{})[f.id]).reduce((a,f)=>a+f.amount,0);
   let paidFixed=s.fixed.filter(f=>(s.paid[m]||{})[f.id]).reduce((a,f)=>a+f.amount,0);
   $('receivedFixed').textContent=eur(receivedFixed);$('paidFixed').textContent=eur(paidFixed);
+ let closeList=$('monthCloseList');closeList.innerHTML='';
+ let closeChecks=[
+  {ok:unpaid===0,label:'Prélèvements fixes',detail:unpaid===0?'Tous les prélèvements sont marqués payés.':eur(unpaid)+' restent à marquer payés.'},
+  {ok:expected===0,label:'Revenus fixes',detail:expected===0?'Tous les revenus sont marqués reçus.':eur(expected)+' restent à marquer reçus.'},
+  {ok:(+b.card||0)===0,label:'Carte bancaire',detail:(+b.card||0)===0?'Carte en cours à 0 €.':eur(b.card)+' sont encore indiqués sur la carte.'},
+  {ok:true,label:'Sauvegarde',detail:'Pensez à exporter une sauvegarde avant de changer de mois.'}
+ ];
+ closeChecks.forEach(x=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div>';d.querySelector('.title').textContent=x.label;d.querySelector('.meta').textContent=x.detail;d.querySelector('.amt').textContent=x.ok?'✓':'À vérifier';d.querySelector('.amt').className='amt '+(x.ok?'green':'orange');closeList.appendChild(d)});
+
  let dueItems=[];
  s.fixed.forEach(f=>{if(!(s.paid[m]||{})[f.id])dueItems.push({day:+f.day||1,label:f.label,amount:f.amount,type:'À payer'})});
  s.fixedIncome.forEach(f=>{if(!(s.incomeReceived[m]||{})[f.id])dueItems.push({day:+f.day||1,label:f.label,amount:f.amount,type:'À recevoir'})});
