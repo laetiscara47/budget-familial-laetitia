@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V49</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V50</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -161,6 +161,17 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </div></details>
   <details class="fold">
+<summary>💳 Dépenses par moyen de paiement</summary>
+<div class="foldBody">
+ <div class="cards">
+  <div class="card"><span class="smalllabel">💳 Carte</span><b id="payCardTotal">0,00 €</b></div>
+  <div class="card"><span class="smalllabel">🏦 Compte</span><b id="payBankTotal">0,00 €</b></div>
+  <div class="card"><span class="smalllabel">💶 Espèces</span><b id="payCashTotal">0,00 €</b></div>
+  <div class="card"><span class="smalllabel">Total dépenses</span><b id="payAllTotal" class="red">0,00 €</b></div>
+ </div>
+ <div class="note" style="margin-top:10px">Répartition des dépenses réellement enregistrées pour le mois sélectionné.</div>
+</div></details>
+<details class="fold">
 <summary>📊 Dépenses par catégorie</summary>
 <div class="foldBody">
 <div class="note" style="margin-bottom:10px">Répartition automatique des dépenses enregistrées ce mois-ci.</div>
@@ -425,7 +436,13 @@ function copyPreviousBudgets(){
  persist();
 }
 function render(){updateQuickHabits();
- let m=$('month').value,b=s.balances[m]||{bank:0,card:0};$('monthNotes').value=s.monthNotes[m]||'';$('monthNotesSaved').style.display='none';
+ let m=$('month').value,b=s.balances[m]||{bank:0,card:0};
+ let paymentExpenses=s.entries.filter(e=>e.month===m&&e.type==='expense');
+ let payCard=paymentExpenses.filter(e=>!e.payment||e.payment==='card').reduce((a,e)=>a+(+e.amount||0),0);
+ let payBank=paymentExpenses.filter(e=>e.payment==='bank').reduce((a,e)=>a+(+e.amount||0),0);
+ let payCash=paymentExpenses.filter(e=>e.payment==='cash').reduce((a,e)=>a+(+e.amount||0),0);
+ $('payCardTotal').textContent=eur(payCard);$('payBankTotal').textContent=eur(payBank);
+ $('payCashTotal').textContent=eur(payCash);$('payAllTotal').textContent=eur(payCard+payBank+payCash);$('monthNotes').value=s.monthNotes[m]||'';$('monthNotesSaved').style.display='none';
  let exRows=s.exceptions[m]||[],exList=$('exceptionList');exList.innerHTML='';
  let exTotal=exRows.reduce((a,x)=>a+(+x.amount||0),0);
  $('exceptionTotal').textContent=eur(exTotal);
