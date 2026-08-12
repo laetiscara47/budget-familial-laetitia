@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V42</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V43</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -244,6 +244,14 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
  <div class="note" style="margin-top:10px">Ce contrôle ne modifie aucune donnée : il vous indique simplement ce qu’il reste à vérifier avant de passer au mois suivant.</div>
 </div></details>
 <details class="fold">
+<summary>📝 Notes du mois</summary>
+<div class="foldBody">
+ <div class="note" style="margin-bottom:10px">Gardez ici les dépenses exceptionnelles, rappels ou informations utiles pour le mois sélectionné.</div>
+ <textarea id="monthNotes" placeholder="Ex. Révision voiture, anniversaire, remboursement attendu…" style="width:100%;min-height:100px;padding:12px;border:1px solid var(--line);border-radius:12px;font:inherit;resize:vertical"></textarea>
+ <button id="saveMonthNotes" type="button" style="width:100%;margin-top:8px">Enregistrer la note</button>
+ <div id="monthNotesSaved" class="note" style="display:none">Note enregistrée ✓</div>
+</div></details>
+<details class="fold">
 <summary>🗓️ Préparer le mois prochain</summary>
 <div class="foldBody">
  <div class="cards">
@@ -331,7 +339,7 @@ Le statut « Reçu / Payé » reste indépendant pour chaque mois.
 <script>
 const KEY='monBudgetSimpleV3';
 let s=JSON.parse(localStorage.getItem(KEY)||'{"entries":[],"fixed":[],"fixedIncome":[],"budgets":{},"balances":{},"paid":{},"incomeReceived":{}}');
-s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.budgets=s.budgets||{};s.balances=s.balances||{};s.paid=s.paid||{};s.incomeReceived=s.incomeReceived||{};s.savingGoals=s.savingGoals||{};s.savingDone=s.savingDone||{};s.safetyMargins=s.safetyMargins||{};
+s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.budgets=s.budgets||{};s.balances=s.balances||{};s.paid=s.paid||{};s.incomeReceived=s.incomeReceived||{};s.savingGoals=s.savingGoals||{};s.savingDone=s.savingDone||{};s.safetyMargins=s.safetyMargins||{};s.monthNotes=s.monthNotes||{};
 const $=x=>document.getElementById(x), eur=n=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(+n||0);
 let mode='expense'; const today=new Date(); $('month').value=today.toISOString().slice(0,7);$('date').value=today.toISOString().slice(0,10);
 function persist(){localStorage.setItem(KEY,JSON.stringify(s));render()}
@@ -400,7 +408,7 @@ function copyPreviousBudgets(){
  persist();
 }
 function render(){updateQuickHabits();
- let m=$('month').value,b=s.balances[m]||{bank:0,card:0};$('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=eur(b.bank);$('cardView').textContent=eur(b.card);
+ let m=$('month').value,b=s.balances[m]||{bank:0,card:0};$('monthNotes').value=s.monthNotes[m]||'';$('monthNotesSaved').style.display='none';$('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=eur(b.bank);$('cardView').textContent=eur(b.card);
  let rows=s.entries.filter(e=>e.month===m),inc=rows.filter(e=>e.type==='income').reduce((a,e)=>a+e.amount,0),exp=rows.filter(e=>e.type==='expense').reduce((a,e)=>a+e.amount,0);
  $('incomeView').textContent=eur(inc);$('expenseView').textContent=eur(exp);
  $('reportIncome').textContent=eur(inc);$('reportExpense').textContent=eur(exp);
@@ -607,6 +615,7 @@ $('form').onsubmit=e=>{e.preventDefault();let obj={id:crypto.randomUUID(),label:
 }$('label').value='';$('amount').value='';persist()};
 function move(n){let[y,m]=$('month').value.split('-').map(Number);m+=n;if(m<1){m=12;y--}if(m>12){m=1;y++}$('month').value=y+'-'+String(m).padStart(2,'0');render()}$('prev').onclick=()=>move(-1);$('next').onclick=()=>move(1);$('resetFilters').onclick=()=>{$('movementFilter').value='all';$('movementCategory').value='all';render()};
 $('movementFilter').onchange=render;$('movementCategory').onchange=render;
+$('saveMonthNotes').onclick=()=>{let m=$('month').value;s.monthNotes[m]=$('monthNotes').value.trim();localStorage.setItem(KEY,JSON.stringify(s));$('monthNotesSaved').style.display='block'};
 $('goNextMonth').onclick=()=>{move(1)};
 $('month').onchange=render;
 $('export').onclick=()=>{let blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mon-budget-sauvegarde.json';a.click()};$('import').onclick=()=>$('file').click();$('file').onchange=async e=>{try{s=JSON.parse(await e.target.files[0].text());persist();alert('Sauvegarde importée')}catch{alert('Fichier non reconnu')}};
