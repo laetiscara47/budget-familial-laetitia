@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V53</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V54</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -346,6 +346,11 @@ Le statut « Reçu / Payé » reste indépendant pour chaque mois.
  </select>
  <button id="resetFilters" class="secondary wide" type="button">Réinitialiser les filtres</button>
 </div>
+<div class="card" style="margin:10px 0">
+ <span class="smalllabel">Total de la sélection affichée</span>
+ <b id="filteredTotal">0,00 €</b>
+ <div id="filteredCount" class="note" style="margin-top:4px"></div>
+</div>
 <div id="entryList" class="list"></div><div class="note" style="margin-top:10px">↻ Réutiliser remplit automatiquement la saisie avec le même nom, montant, catégorie et moyen de paiement. Vous pouvez modifier avant d’ajouter.</div>
 
 
@@ -644,6 +649,12 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
  let el=$('entryList');el.innerHTML='';
  let searchTerm=($('movementSearch').value||'').trim().toLocaleLowerCase('fr');
  let visibleRows=rows.filter(e=>($('movementFilter').value==='all'||e.type===$('movementFilter').value)&&($('movementCategory').value==='all'||e.category===$('movementCategory').value)&&($('movementPayment').value==='all'||(e.type==='expense'&&(e.payment||'card')===$('movementPayment').value))&&(!searchTerm||(e.label||'').toLocaleLowerCase('fr').includes(searchTerm)));
+ let filteredExpenses=visibleRows.filter(e=>e.type==='expense').reduce((a,e)=>a+(+e.amount||0),0);
+ let filteredIncome=visibleRows.filter(e=>e.type==='income').reduce((a,e)=>a+(+e.amount||0),0);
+ let filteredNet=filteredIncome-filteredExpenses;
+ $('filteredTotal').textContent=(filteredNet>=0?'+ ':'- ')+eur(Math.abs(filteredNet));
+ $('filteredTotal').className=filteredNet<0?'red':'green';
+ $('filteredCount').textContent=visibleRows.length+' opération'+(visibleRows.length>1?'s':'')+' · Dépenses '+eur(filteredExpenses)+' · Revenus '+eur(filteredIncome);
  if(!visibleRows.length)el.innerHTML='<div class="empty">Aucun mouvement correspondant.</div>';
  visibleRows.sort((a,b)=>b.date.localeCompare(a.date)).forEach(e=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="reuse" title="Réutiliser">↻</button><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=e.label;let payLabel2=e.type==='expense'?(e.payment==='bank'?'🏦 Compte':e.payment==='cash'?'💶 Espèces':'💳 Carte'):'💰 Revenu';d.querySelector('.meta').textContent=new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR')+' · '+e.category+' · '+payLabel2;let a=d.querySelector('.amt');a.textContent=(e.type==='income'?'+ ':'- ')+eur(e.amount);a.className='amt '+(e.type==='income'?'green':'red');d.querySelector('.reuse').onclick=()=>{
  setMode(e.type);
