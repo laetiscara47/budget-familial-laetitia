@@ -40,13 +40,13 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V44</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V45</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
  <div class="label">💶 Disponible prévu fin de mois</div>
  <div id="rest" class="big green">0 €</div>
- <div id="restText" class="smalllabel">Après la carte et les prélèvements restant à payer.</div>
+ <div id="restText" class="smalllabel">Après la carte, les prélèvements et les dépenses exceptionnelles prévues.</div>
 <div id="monthPace" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:14px;font-weight:700"></div>
 </div>
 
@@ -484,7 +484,9 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
  $('nextDueDetail').textContent=next?(next.type+' · '+eur(next.amount)):'Tout est à jour pour ce mois.';
  let availableNow=(+b.bank||0)-(+b.card||0);
  $('situationAvailable').textContent=eur(availableNow);$('situationAvailable').className=availableNow<0?'red':'green';
- let rest=availableNow-unpaid+expected;$('rest').textContent=eur(rest);$('rest').className='big '+(rest<0?'red':'green');let savingGoal=+(s.savingGoals[m]||0),afterSaving=rest-savingGoal;
+ let exceptionalPlanned=(s.exceptions[m]||[]).reduce((a,x)=>a+(+x.amount||0),0);
+ let rest=availableNow-unpaid+expected-exceptionalPlanned;
+ $('rest').textContent=eur(rest);$('rest').className='big '+(rest<0?'red':'green');let savingGoal=+(s.savingGoals[m]||0),afterSaving=rest-savingGoal;
  $('savingGoal').value=savingGoal||'';
  $('savingGoalView').textContent=eur(savingGoal);
  let savingDone=+(s.savingDone[m]||0);
@@ -528,10 +530,11 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
  let spendable=afterSaving-safety;
  $('endForecast').textContent=eur(rest);
  $('endReserved').textContent=eur(savingGoal+safety);
+ if($('endMonthMessage')) $('endMonthMessage').dataset.exceptional=exceptionalPlanned;
  $('endFree').textContent=eur(spendable);
  $('endFree').className=spendable<0?'red':'green';
  $('endMonthMessage').textContent=spendable>=0
-   ?'Si les prévisions se réalisent, il resterait '+eur(spendable)+' réellement libres en fin de mois après vos réserves.'
+   ?'Si les prévisions se réalisent, il resterait '+eur(spendable)+' réellement libres en fin de mois après vos réserves'+(exceptionalPlanned>0?' et '+eur(exceptionalPlanned)+' de dépenses exceptionnelles prévues':'')+'.'
    :'Avec vos réserves actuelles, il manquerait '+eur(Math.abs(spendable))+' en fin de mois.';
  let pd=daysLeft>0?spendable/daysLeft:0;$('perDay').textContent=eur(pd);$('perDay').className=pd<0?'red':'green';
  if($('monthPace')){
