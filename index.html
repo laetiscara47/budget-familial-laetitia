@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V39</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V40</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -178,6 +178,16 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
   <div class="card wide"><span class="smalllabel">Progression de l’objectif</span><b id="savingProgressText">0 %</b><div class="progress"><div id="savingProgressBar" class="bar"></div></div></div>
   <div class="card wide"><span class="smalllabel">Épargne des derniers mois</span><div id="savingHistory" style="margin-top:8px"></div></div>
  </div>
+</div></details>
+<details class="fold">
+<summary>🏁 Fin de mois</summary>
+<div class="foldBody">
+ <div class="cards">
+  <div class="card"><span class="smalllabel">Disponible prévu</span><b id="endForecast">0,00 €</b></div>
+  <div class="card"><span class="smalllabel">Réservé</span><b id="endReserved">0,00 €</b></div>
+  <div class="card wide"><span class="smalllabel">Réellement libre</span><b id="endFree" class="green">0,00 €</b></div>
+ </div>
+ <div id="endMonthMessage" class="note" style="margin-top:10px"></div>
 </div></details>
 <details class="fold">
 <summary>🚦 État du budget</summary>
@@ -458,7 +468,15 @@ function render(){updateQuickHabits();
  else if(new Date(yy,mm-1,1)>new Date(nowD.getFullYear(),nowD.getMonth(),nowD.getDate())) daysLeft=lastDay;
  else daysLeft=0;
  $('daysLeft').textContent=daysLeft;
- let spendable=afterSaving-safety;let pd=daysLeft>0?spendable/daysLeft:0;$('perDay').textContent=eur(pd);$('perDay').className=pd<0?'red':'green';
+ let spendable=afterSaving-safety;
+ $('endForecast').textContent=eur(rest);
+ $('endReserved').textContent=eur(savingGoal+safety);
+ $('endFree').textContent=eur(spendable);
+ $('endFree').className=spendable<0?'red':'green';
+ $('endMonthMessage').textContent=spendable>=0
+   ?'Si les prévisions se réalisent, il resterait '+eur(spendable)+' réellement libres en fin de mois après vos réserves.'
+   :'Avec vos réserves actuelles, il manquerait '+eur(Math.abs(spendable))+' en fin de mois.';
+ let pd=daysLeft>0?spendable/daysLeft:0;$('perDay').textContent=eur(pd);$('perDay').className=pd<0?'red':'green';
  if($('monthPace')){
    if(daysLeft>0 && spendable>=0) $('monthPace').textContent='💡 Repère réellement dépensable : '+eur(pd)+' par jour jusqu’à la fin du mois';
    else if(spendable<0) $('monthPace').textContent='⚠️ Marge dépassée de '+eur(Math.abs(spendable));
