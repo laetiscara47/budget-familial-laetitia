@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V54</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V55</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -333,6 +333,13 @@ Le statut « Reçu / Payé » reste indépendant pour chaque mois.
   <option value="income">Revenus seulement</option>
  </select>
  <input id="movementSearch" class="wide" type="search" placeholder="🔎 Rechercher une opération…">
+ <select id="movementSort" class="wide">
+  <option value="dateDesc">Plus récentes d’abord</option>
+  <option value="dateAsc">Plus anciennes d’abord</option>
+  <option value="amountDesc">Montant : du plus élevé</option>
+  <option value="amountAsc">Montant : du plus faible</option>
+  <option value="labelAsc">Nom : A → Z</option>
+ </select>
  <select id="movementPayment">
   <option value="all">Tous les paiements</option>
   <option value="card">💳 Carte</option>
@@ -656,7 +663,14 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
  $('filteredTotal').className=filteredNet<0?'red':'green';
  $('filteredCount').textContent=visibleRows.length+' opération'+(visibleRows.length>1?'s':'')+' · Dépenses '+eur(filteredExpenses)+' · Revenus '+eur(filteredIncome);
  if(!visibleRows.length)el.innerHTML='<div class="empty">Aucun mouvement correspondant.</div>';
- visibleRows.sort((a,b)=>b.date.localeCompare(a.date)).forEach(e=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="reuse" title="Réutiliser">↻</button><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=e.label;let payLabel2=e.type==='expense'?(e.payment==='bank'?'🏦 Compte':e.payment==='cash'?'💶 Espèces':'💳 Carte'):'💰 Revenu';d.querySelector('.meta').textContent=new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR')+' · '+e.category+' · '+payLabel2;let a=d.querySelector('.amt');a.textContent=(e.type==='income'?'+ ':'- ')+eur(e.amount);a.className='amt '+(e.type==='income'?'green':'red');d.querySelector('.reuse').onclick=()=>{
+ let sortMode=$('movementSort').value;
+ visibleRows.sort((a,b)=>{
+   if(sortMode==='dateAsc')return a.date.localeCompare(b.date);
+   if(sortMode==='amountDesc')return (+b.amount||0)-(+a.amount||0);
+   if(sortMode==='amountAsc')return (+a.amount||0)-(+b.amount||0);
+   if(sortMode==='labelAsc')return (a.label||'').localeCompare(b.label||'','fr',{sensitivity:'base'});
+   return b.date.localeCompare(a.date);
+ }).forEach(e=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="reuse" title="Réutiliser">↻</button><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=e.label;let payLabel2=e.type==='expense'?(e.payment==='bank'?'🏦 Compte':e.payment==='cash'?'💶 Espèces':'💳 Carte'):'💰 Revenu';d.querySelector('.meta').textContent=new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR')+' · '+e.category+' · '+payLabel2;let a=d.querySelector('.amt');a.textContent=(e.type==='income'?'+ ':'- ')+eur(e.amount);a.className='amt '+(e.type==='income'?'green':'red');d.querySelector('.reuse').onclick=()=>{
  setMode(e.type);
  $('label').value=e.label||'';
  $('amount').value=e.amount||'';
@@ -710,8 +724,8 @@ $('form').onsubmit=e=>{e.preventDefault();let obj={id:crypto.randomUUID(),label:
    s.balances[mm]={bank:+bb.bank||0,card:(+bb.card||0)+obj.amount};
  }
 }$('label').value='';$('amount').value='';persist()};
-function move(n){let[y,m]=$('month').value.split('-').map(Number);m+=n;if(m<1){m=12;y--}if(m>12){m=1;y++}$('month').value=y+'-'+String(m).padStart(2,'0');render()}$('prev').onclick=()=>move(-1);$('next').onclick=()=>move(1);$('resetFilters').onclick=()=>{$('movementFilter').value='all';$('movementCategory').value='all';$('movementPayment').value='all';$('movementSearch').value='';render()};
-$('movementFilter').onchange=render;$('movementCategory').onchange=render;$('movementPayment').onchange=render;$('movementSearch').oninput=render;
+function move(n){let[y,m]=$('month').value.split('-').map(Number);m+=n;if(m<1){m=12;y--}if(m>12){m=1;y++}$('month').value=y+'-'+String(m).padStart(2,'0');render()}$('prev').onclick=()=>move(-1);$('next').onclick=()=>move(1);$('resetFilters').onclick=()=>{$('movementFilter').value='all';$('movementCategory').value='all';$('movementPayment').value='all';$('movementSearch').value='';$('movementSort').value='dateDesc';render()};
+$('movementFilter').onchange=render;$('movementCategory').onchange=render;$('movementPayment').onchange=render;$('movementSearch').oninput=render;$('movementSort').onchange=render;
 $('addException').onclick=()=>{let m=$('month').value,label=$('exceptionLabel').value.trim(),amount=parseFloat($('exceptionAmount').value)||0;if(!label||amount<=0)return;s.exceptions[m]=s.exceptions[m]||[];s.exceptions[m].push({id:crypto.randomUUID(),label,amount});$('exceptionLabel').value='';$('exceptionAmount').value='';persist()};
 $('saveMonthNotes').onclick=()=>{let m=$('month').value;s.monthNotes[m]=$('monthNotes').value.trim();localStorage.setItem(KEY,JSON.stringify(s));$('monthNotesSaved').style.display='block'};
 $('goNextMonth').onclick=()=>{move(1)};
