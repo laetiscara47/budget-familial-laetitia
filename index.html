@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V30</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V31</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -156,6 +156,12 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </div></details>
   <details class="fold">
+<summary>📊 Dépenses par catégorie</summary>
+<div class="foldBody">
+<div class="note" style="margin-bottom:10px">Répartition automatique des dépenses enregistrées ce mois-ci.</div>
+<div id="categoryBreakdown" class="list"></div>
+</div></details>
+<details class="fold">
 <summary>🎯 Budgets du mois</summary>
 <div class="foldBody">
 <div class="note" style="margin-bottom:10px">Facultatif : indiquez seulement les catégories que vous souhaitez surveiller.</div>
@@ -400,6 +406,12 @@ function render(){updateQuickHabits();
  s.fixedIncome.forEach(f=>{let received=!!(s.incomeReceived[m]||{})[f.id],d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt green"></div><button class="secondary pay"></button><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=f.label;d.querySelector('.meta').textContent='Prévu le '+f.day+' de chaque mois';d.querySelector('.amt').textContent=eur(f.amount);d.querySelector('.pay').textContent=received?'Reçu ✓':'À recevoir';d.querySelector('.pay').className='secondary pay '+(received?'statusDone':'statusTodo');d.querySelector('.pay').onclick=()=>{s.incomeReceived[m]=s.incomeReceived[m]||{};s.incomeReceived[m][f.id]=!received;persist()};d.querySelector('.edit').onclick=()=>openEdit('income',f.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce revenu fixe ?')){s.fixedIncome=s.fixedIncome.filter(x=>x.id!==f.id);persist()}};fil.appendChild(d)});
  let fl=$('fixedList');fl.innerHTML='';if(!s.fixed.length)fl.innerHTML='<div class="empty">Aucun prélèvement fixe enregistré.</div>';
  s.fixed.forEach(f=>{let paid=!!(s.paid[m]||{})[f.id],d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="secondary pay"></button><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=f.label;d.querySelector('.meta').textContent='Le '+(f.day||'?')+' de chaque mois · '+f.category;d.querySelector('.amt').textContent=eur(f.amount);d.querySelector('.pay').textContent=paid?'Payé ✓':'À payer';d.querySelector('.pay').className='secondary pay '+(paid?'statusDone':'statusTodo');d.querySelector('.pay').onclick=()=>{s.paid[m]=s.paid[m]||{};s.paid[m][f.id]=!paid;persist()};d.querySelector('.edit').onclick=()=>openEdit('fixed',f.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce prélèvement fixe ?')){s.fixed=s.fixed.filter(x=>x.id!==f.id);persist()}};fl.appendChild(d)});
+ let cb=$('categoryBreakdown');cb.innerHTML='';
+ let catTotals={};
+ rows.filter(e=>e.type==='expense').forEach(e=>{let c=e.category||'Autre';catTotals[c]=(catTotals[c]||0)+(+e.amount||0)});
+ let catRows=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]),totalCat=catRows.reduce((a,x)=>a+x[1],0);
+ if(!catRows.length)cb.innerHTML='<div class="empty">Aucune dépense enregistrée ce mois-ci.</div>';
+ catRows.forEach(([cat,val])=>{let pct=totalCat>0?(val/totalCat)*100:0,d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div><div class="progress"><div class="bar"></div></div></div><div class="amt red"></div>';d.querySelector('.title').textContent=cat;d.querySelector('.meta').textContent=pct.toLocaleString('fr-FR',{maximumFractionDigits:0})+' % des dépenses';d.querySelector('.bar').style.width=pct+'%';d.querySelector('.amt').textContent=eur(val);cb.appendChild(d)});
  let bl=$('budgetList');bl.innerHTML='';let bm=s.budgets[m]||{}, cats=Object.keys(bm);
  if(!cats.length) bl.innerHTML='<div class="empty">Aucun budget par catégorie. Vous pouvez utiliser l’application sans cette option.</div>';
  cats.forEach(cat=>{let limit=+bm[cat]||0,spent=rows.filter(e=>e.type==='expense'&&e.category===cat).reduce((a,e)=>a+e.amount,0),left=limit-spent,d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div><div class="progress"><div class="bar"></div></div></div><div class="amt"></div><button class="del">✕</button>';d.querySelector('.title').textContent=cat;d.querySelector('.meta').textContent=eur(spent)+' dépensés sur '+eur(limit);let pct=limit>0?Math.min(100,(spent/limit)*100):0;d.querySelector('.bar').style.width=pct+'%';let a=d.querySelector('.amt');a.textContent=eur(left);a.className='amt '+(left<0?'red':'green');d.querySelector('.del').onclick=()=>{delete s.budgets[m][cat];persist()};bl.appendChild(d)});
