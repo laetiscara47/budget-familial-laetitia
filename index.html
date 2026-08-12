@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V31</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V32</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -160,6 +160,11 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 <div class="foldBody">
 <div class="note" style="margin-bottom:10px">Répartition automatique des dépenses enregistrées ce mois-ci.</div>
 <div id="categoryBreakdown" class="list"></div>
+</div></details>
+<details class="fold">
+<summary>📈 Comparaison avec le mois précédent</summary>
+<div class="foldBody">
+ <div id="monthCompare" class="list"></div>
 </div></details>
 <details class="fold">
 <summary>🎯 Budgets du mois</summary>
@@ -412,6 +417,26 @@ function render(){updateQuickHabits();
  let catRows=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]),totalCat=catRows.reduce((a,x)=>a+x[1],0);
  if(!catRows.length)cb.innerHTML='<div class="empty">Aucune dépense enregistrée ce mois-ci.</div>';
  catRows.forEach(([cat,val])=>{let pct=totalCat>0?(val/totalCat)*100:0,d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div><div class="progress"><div class="bar"></div></div></div><div class="amt red"></div>';d.querySelector('.title').textContent=cat;d.querySelector('.meta').textContent=pct.toLocaleString('fr-FR',{maximumFractionDigits:0})+' % des dépenses';d.querySelector('.bar').style.width=pct+'%';d.querySelector('.amt').textContent=eur(val);cb.appendChild(d)});
+ let mc=$('monthCompare');mc.innerHTML='';
+ let curKey=currentMonth, curDate=new Date(curKey+'-01T12:00:00');
+ let prevDate=new Date(curDate.getFullYear(),curDate.getMonth()-1,1);
+ let prevKey=prevDate.getFullYear()+'-'+String(prevDate.getMonth()+1).padStart(2,'0');
+ let curExp=s.entries.filter(e=>e.month===curKey&&e.type==='expense').reduce((a,e)=>a+(+e.amount||0),0);
+ let prevExp=s.entries.filter(e=>e.month===prevKey&&e.type==='expense').reduce((a,e)=>a+(+e.amount||0),0);
+ let curInc=s.entries.filter(e=>e.month===curKey&&e.type==='income').reduce((a,e)=>a+(+e.amount||0),0);
+ let prevInc=s.entries.filter(e=>e.month===prevKey&&e.type==='income').reduce((a,e)=>a+(+e.amount||0),0);
+ function compRow(label,cur,prev,expense){
+   let d=document.createElement('div');d.className='item';
+   let diff=cur-prev,pct=prev?Math.abs(diff/prev*100):null;
+   let msg=prev===0?(cur===0?'Aucune donnée sur les deux mois':'Pas de donnée le mois précédent'):(diff===0?'Identique au mois précédent':(diff>0?'+ ':'- ')+eur(Math.abs(diff))+(pct!==null?' · '+pct.toLocaleString('fr-FR',{maximumFractionDigits:0})+' %':''));
+   d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div>';
+   d.querySelector('.title').textContent=label;d.querySelector('.meta').textContent=msg;
+   let a=d.querySelector('.amt');a.textContent=eur(cur);
+   if(expense&&diff>0)a.className='amt red';else if(expense&&diff<0)a.className='amt green';else a.className='amt';
+   mc.appendChild(d);
+ }
+ compRow('Dépenses saisies',curExp,prevExp,true);
+ compRow('Revenus saisis',curInc,prevInc,false);
  let bl=$('budgetList');bl.innerHTML='';let bm=s.budgets[m]||{}, cats=Object.keys(bm);
  if(!cats.length) bl.innerHTML='<div class="empty">Aucun budget par catégorie. Vous pouvez utiliser l’application sans cette option.</div>';
  cats.forEach(cat=>{let limit=+bm[cat]||0,spent=rows.filter(e=>e.type==='expense'&&e.category===cat).reduce((a,e)=>a+e.amount,0),left=limit-spent,d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div><div class="progress"><div class="bar"></div></div></div><div class="amt"></div><button class="del">✕</button>';d.querySelector('.title').textContent=cat;d.querySelector('.meta').textContent=eur(spent)+' dépensés sur '+eur(limit);let pct=limit>0?Math.min(100,(spent/limit)*100):0;d.querySelector('.bar').style.width=pct+'%';let a=d.querySelector('.amt');a.textContent=eur(left);a.className='amt '+(left<0?'red':'green');d.querySelector('.del').onclick=()=>{delete s.budgets[m][cat];persist()};bl.appendChild(d)});
