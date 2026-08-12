@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V52</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V53</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -346,7 +346,7 @@ Le statut « Reçu / Payé » reste indépendant pour chaque mois.
  </select>
  <button id="resetFilters" class="secondary wide" type="button">Réinitialiser les filtres</button>
 </div>
-<div id="entryList" class="list"></div>
+<div id="entryList" class="list"></div><div class="note" style="margin-top:10px">↻ Réutiliser remplit automatiquement la saisie avec le même nom, montant, catégorie et moyen de paiement. Vous pouvez modifier avant d’ajouter.</div>
 
 
 </div></details>
@@ -645,7 +645,17 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
  let searchTerm=($('movementSearch').value||'').trim().toLocaleLowerCase('fr');
  let visibleRows=rows.filter(e=>($('movementFilter').value==='all'||e.type===$('movementFilter').value)&&($('movementCategory').value==='all'||e.category===$('movementCategory').value)&&($('movementPayment').value==='all'||(e.type==='expense'&&(e.payment||'card')===$('movementPayment').value))&&(!searchTerm||(e.label||'').toLocaleLowerCase('fr').includes(searchTerm)));
  if(!visibleRows.length)el.innerHTML='<div class="empty">Aucun mouvement correspondant.</div>';
- visibleRows.sort((a,b)=>b.date.localeCompare(a.date)).forEach(e=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=e.label;let payLabel2=e.type==='expense'?(e.payment==='bank'?'🏦 Compte':e.payment==='cash'?'💶 Espèces':'💳 Carte'):'💰 Revenu';d.querySelector('.meta').textContent=new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR')+' · '+e.category+' · '+payLabel2;let a=d.querySelector('.amt');a.textContent=(e.type==='income'?'+ ':'- ')+eur(e.amount);a.className='amt '+(e.type==='income'?'green':'red');d.querySelector('.edit').onclick=()=>openEdit('entry',e.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce mouvement ?')){
+ visibleRows.sort((a,b)=>b.date.localeCompare(a.date)).forEach(e=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="reuse" title="Réutiliser">↻</button><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=e.label;let payLabel2=e.type==='expense'?(e.payment==='bank'?'🏦 Compte':e.payment==='cash'?'💶 Espèces':'💳 Carte'):'💰 Revenu';d.querySelector('.meta').textContent=new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR')+' · '+e.category+' · '+payLabel2;let a=d.querySelector('.amt');a.textContent=(e.type==='income'?'+ ':'- ')+eur(e.amount);a.className='amt '+(e.type==='income'?'green':'red');d.querySelector('.reuse').onclick=()=>{
+ setMode(e.type);
+ $('label').value=e.label||'';
+ $('amount').value=e.amount||'';
+ $('category').value=e.category||'Autre';
+ if(e.type==='expense'&&$('paymentMethod'))$('paymentMethod').value=e.payment||'card';
+ $('date').value=new Date().toISOString().slice(0,10);
+ $('amount').focus();
+ window.scrollTo({top:0,behavior:'smooth'});
+};
+d.querySelector('.edit').onclick=()=>openEdit('entry',e.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce mouvement ?')){
  if(e.type==='expense'){
    let bb=s.balances[e.month]||{bank:0,card:0};
    s.balances[e.month]={bank:+bb.bank||0,card:Math.max(0,(+bb.card||0)-(+e.amount||0))};
