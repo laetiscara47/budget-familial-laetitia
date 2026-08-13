@@ -105,7 +105,7 @@ body.entrySimple #undoLastBtn{grid-column:1/-1}
 .smartEntry button{padding:8px 10px;white-space:nowrap}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V160-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V170-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -523,6 +523,8 @@ Le statut « Reçu / Payé » reste indépendant pour chaque mois.
     <button id="safeDownload" type="button">Télécharger une sauvegarde</button>
     <button id="safeRestore" class="secondary" type="button">Restaurer la copie automatique</button>
    </div>
+   <button id="beforeUpdateBackup" class="secondary" type="button" style="width:100%;margin-top:8px">🛡️ Sauvegarder avant une mise à jour</button>
+   <div id="dataHealth" class="note" style="margin-top:8px"></div>
   </div>
   <details class="fold">
 <summary>📋 Mouvements du mois</summary>
@@ -606,13 +608,15 @@ function openBySummary(text){
 }
 function closeOtherMainMenus(current){
 $('globalUndoBtn').onclick=restoreLastChange;
-$('safeDownload').onclick=()=>{
- makeSafetyCopy();updateSafeStatus();
- let blob=new Blob([JSON.stringify({version:'V160-SAFE',exportedAt:new Date().toISOString(),data:s},null,2)],{type:'application/json'});
+function downloadSafetyFile(prefix){
+ makeSafetyCopy();updateSafeStatus();updateDataHealth();
+ let blob=new Blob([JSON.stringify({version:'V170-SAFE',exportedAt:new Date().toISOString(),data:s},null,2)],{type:'application/json'});
  let a=document.createElement('a');a.href=URL.createObjectURL(blob);
- a.download='mon-budget-sauvegarde-securite-'+new Date().toISOString().slice(0,10)+'.json';
- a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);showToast('Sauvegarde téléchargée ✓');
-};
+ a.download=(prefix||'mon-budget-sauvegarde-securite')+'-'+new Date().toISOString().slice(0,10)+'.json';
+ a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+$('safeDownload').onclick=()=>{downloadSafetyFile('mon-budget-sauvegarde-securite');showToast('Sauvegarde téléchargée ✓')};
+$('beforeUpdateBackup').onclick=()=>{downloadSafetyFile('AVANT-MISE-A-JOUR-mon-budget');showToast('Sauvegarde avant mise à jour créée ✓')};
 $('safeRestore').onclick=()=>{
  let p=getSafetyCopy();
  if(!p){showToast('Aucune copie automatique disponible');return}
@@ -736,6 +740,18 @@ function updateSafeStatus(){
  el.textContent='Copie automatique disponible · '+d.toLocaleDateString('fr-FR')+' '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
 }
 
+
+function updateDataHealth(){
+ let el=$('dataHealth');if(!el||typeof s==='undefined')return;
+ let nEntries=(s.entries||[]).length,nFixed=(s.fixed||[]).length,nIncome=(s.fixedIncome||[]).length;
+ let issues=[];
+ if(!Array.isArray(s.entries))issues.push('opérations');
+ if(!Array.isArray(s.fixed))issues.push('prélèvements');
+ if(!Array.isArray(s.fixedIncome))issues.push('revenus fixes');
+ if(issues.length)el.textContent='⚠️ Vérification nécessaire : '+issues.join(', ')+'.';
+ else el.textContent='✓ Données lisibles · '+nEntries+' opération'+(nEntries!==1?'s':'')+' · '+nFixed+' prélèvement'+(nFixed!==1?'s':'')+' · '+nIncome+' revenu'+(nIncome!==1?'s':'')+' fixe'+(nIncome!==1?'s':'');
+}
+
 const KEY='monBudgetSimpleV3';
 let s=JSON.parse(localStorage.getItem(KEY)||'{"entries":[],"fixed":[],"fixedIncome":[],"budgets":{},"balances":{},"paid":{},"incomeReceived":{}}');
 s.routineDay=s.routineDay||0;s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.budgets=s.budgets||{};s.balances=s.balances||{};s.paid=s.paid||{};s.incomeReceived=s.incomeReceived||{};s.savingGoals=s.savingGoals||{};s.savingDone=s.savingDone||{};s.safetyMargins=s.safetyMargins||{};s.monthNotes=s.monthNotes||{};s.exceptions=s.exceptions||{};
@@ -754,7 +770,7 @@ function persist(){
    localStorage.setItem(SAFE_KEY,JSON.stringify({savedAt:new Date().toISOString(),data:oldData}));
   }else makeSafetyCopy();
  }catch(e){}
- localStorage.setItem(KEY,JSON.stringify(s));render();updateSafeStatus();
+ localStorage.setItem(KEY,JSON.stringify(s));render();updateSafeStatus();updateDataHealth();
 }
 function updateEntryChoiceSummary(){
  if(!$('entryChoiceSummary'))return;
@@ -1451,7 +1467,7 @@ render();
   });
 })();
 
-try{if(!getSafetyCopy())makeSafetyCopy();updateSafeStatus()}catch(e){}
+try{if(!getSafetyCopy())makeSafetyCopy();updateSafeStatus();updateDataHealth()}catch(e){}
 </script>
 
 <div id="globalUndo" class="globalUndo" style="display:none">
