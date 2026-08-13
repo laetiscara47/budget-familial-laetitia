@@ -38,9 +38,30 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 .menuBody>.fold{box-shadow:none;border:1px solid var(--line);margin-top:8px}
 .menuBody>.fold>summary{font-size:15px;padding:12px 0}
 
+
+/* V80 — simplification et confort iPhone */
+.quickActions{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:4px 0 10px}
+.quickActions button{padding:10px 6px;font-size:12px;line-height:1.15;min-height:48px}
+.quickActions .secondary{background:#fff}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:#20232a;color:#fff;padding:11px 16px;border-radius:999px;font-size:13px;font-weight:700;opacity:0;pointer-events:none;transition:.2s;z-index:100;max-width:90%;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.homeRecent{margin-top:10px}
+.homeRecent>summary{font-size:15px!important;padding:11px 0!important}
+@media(max-width:520px){
+ .app{padding:12px 10px 78px}
+ h1{font-size:25px}
+ .hero{padding:14px}
+ .hero .big{font-size:30px}
+ .quickStats{display:grid;grid-template-columns:1fr 1fr;overflow:visible;gap:7px}
+ .quickStat{min-width:0;padding:10px}
+ .quickStat b{font-size:17px}
+ .section{padding:12px}
+ .quickActions{grid-template-columns:repeat(4,1fr)}
+}
+
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V75</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V80</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -71,10 +92,17 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 
 
-<div class="section" style="margin-top:0;margin-bottom:10px">
- <h2 style="margin-bottom:8px">🕘 Dernières opérations</h2>
- <div id="recentEntries" class="list"></div>
+<div class="quickActions" aria-label="Accès rapides">
+ <button id="qaAdd" class="secondary" type="button">➕<br>Ajouter</button>
+ <button id="qaBalance" class="secondary" type="button">🏦<br>Solde</button>
+ <button id="qaHistory" class="secondary" type="button">📋<br>Historique</button>
+ <button id="qaBackup" class="secondary" type="button">💾<br>Sauvegarder</button>
 </div>
+
+<details class="fold homeRecent">
+ <summary>🕘 Dernières opérations</summary>
+ <div class="foldBody"><div id="recentEntries" class="list"></div></div>
+</details>
 
 <div class="section">
 <h2>Ajouter rapidement</h2>
@@ -107,7 +135,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 </div>
 
 <details class="menuGroup">
- <summary>🔮 Prévisions & détails</summary>
+ <summary>🔮 Prévisions</summary>
  <div class="menuBody">
   <details class="fold">
 <summary>📊 Repère quotidien</summary>
@@ -285,7 +313,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 </details>
 
 <details class="menuGroup">
- <summary>🗓️ Gestion mensuelle</summary>
+ <summary>🗓️ Gérer le mois</summary>
  <div class="menuBody">
   <details class="fold">
 <summary>✏️ Modifier solde et carte</summary>
@@ -437,6 +465,27 @@ Le statut « Reçu / Payé » reste indépendant pour chaque mois.
 </div>
 
 <script>
+
+let toastTimer=null;
+function showToast(msg){
+ let x=$('toast');if(!x)return;
+ x.textContent=msg;x.classList.add('show');
+ clearTimeout(toastTimer);toastTimer=setTimeout(()=>x.classList.remove('show'),1800);
+}
+function openBySummary(text){
+ let all=[...document.querySelectorAll('details')];
+ let target=all.find(d=>{let s=d.querySelector(':scope > summary');return s&&s.textContent.includes(text)});
+ if(!target)return null;
+ let p=target.parentElement;
+ while(p){if(p.tagName==='DETAILS')p.open=true;p=p.parentElement}
+ target.open=true;
+ target.scrollIntoView({behavior:'smooth',block:'start'});
+ return target;
+}
+function closeOtherMainMenus(current){
+ document.querySelectorAll('details.menuGroup').forEach(d=>{if(d!==current)d.open=false});
+}
+
 const KEY='monBudgetSimpleV3';
 let s=JSON.parse(localStorage.getItem(KEY)||'{"entries":[],"fixed":[],"fixedIncome":[],"budgets":{},"balances":{},"paid":{},"incomeReceived":{}}');
 s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.budgets=s.budgets||{};s.balances=s.balances||{};s.paid=s.paid||{};s.incomeReceived=s.incomeReceived||{};s.savingGoals=s.savingGoals||{};s.savingDone=s.savingDone||{};s.safetyMargins=s.safetyMargins||{};s.monthNotes=s.monthNotes||{};s.exceptions=s.exceptions||{};
@@ -843,7 +892,7 @@ $('copyPreviousBudgets').onclick=copyPreviousBudgets;
 $('saveBudget').onclick=()=>{let m=$('month').value,cat=$('budgetCat').value,amount=parseFloat($('budgetAmount').value)||0;if(amount<=0)return;s.budgets[m]=s.budgets[m]||{};s.budgets[m][cat]=amount;$('budgetAmount').value='';persist()};
 $('addFixedIncome').onclick=()=>{let label=$('fiLabel').value.trim(),amount=parseFloat($('fiAmount').value)||0,day=Math.max(1,Math.min(28,parseInt($('fiDay').value)||1));if(!label||amount<=0)return;s.fixedIncome.push({id:crypto.randomUUID(),label,amount,day});$('fiLabel').value='';$('fiAmount').value='';$('fiDay').value='';persist()};
 $('saveSavingGoal').onclick=()=>{let m=$('month').value,v=Math.max(0,parseFloat($('savingGoal').value)||0),d=Math.max(0,parseFloat($('savingDone').value)||0),sm=Math.max(0,parseFloat($('safetyMargin').value)||0);s.savingGoals[m]=v;s.savingDone[m]=d;s.safetyMargins[m]=sm;persist()};
-$('saveBalance').onclick=()=>{s.balances[$('month').value]={bank:parseFloat($('bank').value)||0,card:parseFloat($('card').value)||0};persist()};
+$('saveBalance').onclick=()=>{s.balances[$('month').value]={bank:parseFloat($('bank').value)||0,card:parseFloat($('card').value)||0};persist();showToast('Solde et carte mis à jour ✓')};
 $('form').onsubmit=e=>{e.preventDefault();let btn=$('addBtn');if(btn.dataset.busy==='1')return;
  let enteredLabel=$('label').value.trim();
  if(!enteredLabel){alert('Indiquez un nom pour l’opération.');$('label').focus();return}
@@ -869,13 +918,19 @@ $('form').onsubmit=e=>{e.preventDefault();let btn=$('addBtn');if(btn.dataset.bus
 }$('label').value='';$('amount').value='';
  let resetToday=new Date().toISOString().slice(0,10),resetMonth=$('month').value;
  $('date').value=(resetMonth===resetToday.slice(0,7))?resetToday:resetMonth+'-01';
- persist();$('label').focus();updateAddReady();setTimeout(()=>{btn.dataset.busy='0';btn.disabled=false},450)};
+ persist();showToast(mode==='expense'?'Dépense enregistrée ✓':mode==='income'?'Revenu enregistré ✓':'Prélèvement enregistré ✓');$('label').focus();updateAddReady();setTimeout(()=>{btn.dataset.busy='0';btn.disabled=false},450)};
 function move(n){let[y,m]=$('month').value.split('-').map(Number);m+=n;if(m<1){m=12;y--}if(m>12){m=1;y++}$('month').value=y+'-'+String(m).padStart(2,'0');localStorage.setItem('budget_last_month',$('month').value);let today=new Date().toISOString().slice(0,10),selected=$('month').value;$('date').value=(selected===today.slice(0,7))?today:selected+'-01';render()}$('prev').onclick=()=>move(-1);$('next').onclick=()=>move(1);$('resetFilters').onclick=()=>{$('movementFilter').value='all';$('movementCategory').value='all';$('movementPayment').value='all';$('movementSearch').value='';$('movementSort').value='dateDesc';render()};
+document.querySelectorAll('details.menuGroup').forEach(d=>d.addEventListener('toggle',()=>{if(d.open)closeOtherMainMenus(d)}));
 if($('label'))$('label').oninput=updateAddReady;
 if($('label'))$('label').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();$('amount').focus()}};
 if($('amount'))$('amount').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();$('date').focus()}};
 
 if($('amount'))$('amount').oninput=updateAddReady;
+
+$('qaAdd').onclick=()=>{document.getElementById('form').scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>$('label').focus(),250)};
+$('qaBalance').onclick=()=>{openBySummary('Modifier solde et carte');setTimeout(()=>$('bank').focus(),300)};
+$('qaHistory').onclick=()=>openBySummary('Mouvements du mois');
+$('qaBackup').onclick=()=>{$('export').click()};
 if($('paymentMethod'))$('paymentMethod').onchange=()=>localStorage.setItem('budget_last_payment',$('paymentMethod').value);
 if($('category'))$('category').onchange=()=>localStorage.setItem('budget_last_category',$('category').value);
 $('movementFilter').onchange=render;$('movementCategory').onchange=render;$('movementPayment').onchange=render;$('movementSearch').oninput=render;$('movementSort').onchange=render;
@@ -888,7 +943,7 @@ $('month').onchange=()=>{
  $('date').value=(selected===today.slice(0,7))?today:selected+'-01';
  render()
 };
-$('export').onclick=()=>{let blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mon-budget-sauvegarde.json';a.click()};$('import').onclick=()=>$('file').click();$('file').onchange=async e=>{try{s=JSON.parse(await e.target.files[0].text());persist();alert('Sauvegarde importée')}catch{alert('Fichier non reconnu')}};
+$('export').onclick=()=>{let blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mon-budget-sauvegarde.json';a.click();showToast('Sauvegarde exportée ✓')};$('import').onclick=()=>$('file').click();$('file').onchange=async e=>{try{s=JSON.parse(await e.target.files[0].text());persist();alert('Sauvegarde importée')}catch{alert('Fichier non reconnu')}};
 try{
  let todayISO=new Date().toISOString().slice(0,10);
  if($('month').value===todayISO.slice(0,7)) $('date').value=todayISO;
@@ -943,4 +998,5 @@ render();
 })();
 </script>
 
+<div id="toast" class="toast"></div>
 </body></html>
