@@ -122,9 +122,15 @@ body.essentialMode .monthCompare{display:block!important}
 .categoryFill{height:100%;background:currentColor;border-radius:999px}
 .categoryAmount{font-weight:800;white-space:nowrap}
 body.essentialMode .categorySnapshot{display:block!important}
+
+.projectionGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}
+.projectionGrid>div{border:1px solid var(--line);border-radius:11px;padding:9px;background:#fafbff}
+.projectionGrid span{display:block;font-size:11px;color:#666;margin-bottom:3px}
+.projectionGrid b{font-size:16px}
+body.essentialMode .monthProjection{display:block!important}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V230-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V240-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -170,6 +176,15 @@ body.essentialMode .categorySnapshot{display:block!important}
  <h2 style="margin-bottom:7px">🏷️ Où part mon budget ?</h2>
  <div id="categorySnapshotText" class="note"></div>
  <div id="categorySnapshotBars" class="categoryBars"></div>
+</div>
+
+<div class="section monthProjection" style="margin-top:0;margin-bottom:10px">
+ <h2 style="margin-bottom:7px">🔭 Jusqu’à la fin du mois</h2>
+ <div id="monthProjectionText" class="note"></div>
+ <div class="projectionGrid">
+  <div><span>Jours restants</span><b id="projectionDays">—</b></div>
+  <div><span>Repère quotidien</span><b id="projectionDaily">—</b></div>
+ </div>
 </div>
 
 <div class="section dailyActions" style="margin-top:0;margin-bottom:10px">
@@ -1254,6 +1269,20 @@ if($('compareMonthText')){
     diff<0?'Dépenses saisies en baisse de '+eur(Math.abs(diff))+'.':
            'Dépenses saisies en hausse de '+eur(diff)+'.';
   $('compareMonthText').textContent=expenseText+' · '+prev+' : '+eur(prevT.expense)+' · '+m+' : '+eur(curT.expense);
+ }
+}
+if($('monthProjectionText')){
+ $('projectionDays').textContent=String(Math.max(0,daysLeft));
+ $('projectionDaily').textContent=eur(pd);
+ $('projectionDaily').className=pd<0?'red':'green';
+ if(daysLeft<=0){
+  $('monthProjectionText').textContent='Le mois sélectionné est terminé.';
+ }else if(spendable<0){
+  $('monthProjectionText').textContent='Les montants prévus dépassent actuellement ce qui reste réellement disponible.';
+ }else if(pd<10){
+  $('monthProjectionText').textContent='Marge quotidienne serrée : gardez un œil sur les dépenses variables.';
+ }else{
+  $('monthProjectionText').textContent='Repère simple pour répartir ce qui reste réellement dépensable jusqu’à la fin du mois.';
  }
 }
 if($('snapAvailable')){
