@@ -243,9 +243,44 @@ body.simpleEssential #quickActions .quickGrid>*:nth-child(3)::after{content:"�
 body.simpleEssential .statGrid>*:nth-child(n+3){display:none!important}
 body.simpleEssential .statGrid{grid-template-columns:1fr 1fr!important}
 body.simpleEssential #monthDetailsCard{display:none!important}
+
+/* SIMPLE-4 — véritable tableau de bord Essentiel indépendant */
+.simple4Dashboard{display:none}
+body.simple4TrueEssential .simple4Dashboard{display:block;margin:10px 18px 22px}
+.simple4Available{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px}
+.simple4Label{color:var(--muted);font-size:13px}
+.simple4Amount{font-size:32px;font-weight:800;color:#348f62;margin:5px 0}
+.simple4Sub{font-size:12px;color:var(--muted);line-height:1.35}
+.simple4Actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.simple4Actions button{min-height:48px;font-size:14px}
+.simple4Actions .simple4Wide{grid-column:1/-1}
+.simple4Stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.simple4Stats>div{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px}
+.simple4Stats span{display:block;color:var(--muted);font-size:12px}
+.simple4Stats b{display:block;font-size:20px;margin-top:5px}
+body.simple4TrueEssential #simple4OriginalArea{display:none!important}
 </style></head>
-<body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-3-SAFE</span></div>
+<body>
+<div id="simple4Dashboard" class="simple4Dashboard">
+  <div class="simple4Available">
+    <div class="simple4Label">💶 Disponible prévu fin de mois</div>
+    <div id="simple4AvailableValue" class="simple4Amount">—</div>
+    <div class="simple4Sub">Après la carte, les prélèvements restant à payer et les revenus fixes encore attendus.</div>
+  </div>
+
+  <div class="simple4Actions">
+    <button id="simple4Add" type="button" class="primary">＋ Dépense</button>
+    <button id="simple4Due" type="button" class="secondary">📌 Échéances</button>
+    <button id="simple4Balance" type="button" class="secondary simple4Wide">🏦 Mettre à jour le solde</button>
+  </div>
+
+  <div class="simple4Stats">
+    <div><span>🏦 Banque</span><b id="simple4Bank">—</b></div>
+    <div><span>💳 Carte</span><b id="simple4Card">—</b></div>
+  </div>
+</div>
+<div class="app">
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-4-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -1432,6 +1467,60 @@ function applyUltraSimpleHome(){
  applySimpleMode();
 }
 
+
+function simple4FindButton(text){
+ return [...document.querySelectorAll('button')].find(b=>(b.textContent||'').includes(text) && !b.id.startsWith('simple4'));
+}
+function simple4Refresh(){
+ const dash=$('simple4Dashboard'); if(!dash)return;
+ // Read values from the application's own rendered fields to preserve all calculations.
+ const all=[...document.querySelectorAll('body *')];
+ const available=all.find(e=>(e.textContent||'').trim().match(/^-?[\d\s.,]+\s*€$/) &&
+   e.parentElement && (e.parentElement.textContent||'').includes('Disponible prévu fin de mois'));
+ if(available)$('simple4AvailableValue').textContent=available.textContent.trim();
+
+ const labelValue=(label)=>{
+   const lab=all.find(e=>(e.textContent||'').trim()===label);
+   if(!lab)return null;
+   let p=lab.parentElement;
+   for(let n=0;n<4&&p;n++,p=p.parentElement){
+     const val=[...p.querySelectorAll('*')].find(e=>(e.textContent||'').trim().match(/^-?[\d\s.,]+\s*€$/));
+     if(val)return val.textContent.trim();
+   }
+   return null;
+ };
+ $('simple4Bank').textContent=labelValue('Banque')||'—';
+ $('simple4Card').textContent=labelValue('Carte')||'—';
+}
+function simple4Setup(){
+ const dash=$('simple4Dashboard'); if(!dash)return;
+
+ // Put dashboard immediately after the Essential/Complete selector.
+ const essentialBtn=simple4FindButton('Essentiel');
+ if(essentialBtn){
+   let selector=essentialBtn.parentElement;
+   if(selector && dash.previousElementSibling!==selector) selector.insertAdjacentElement('afterend',dash);
+ }
+ // Wrap everything after dashboard as original area once, so Essential can hide it deterministically.
+ if(!document.getElementById('simple4OriginalArea') && dash.parentElement){
+   const wrap=document.createElement('div');wrap.id='simple4OriginalArea';
+   let n=dash.nextSibling;
+   while(n){let next=n.nextSibling;wrap.appendChild(n);n=next}
+   dash.parentElement.appendChild(wrap);
+ }
+ // Directly delegate the 3 essential actions to the existing proven buttons.
+ $('simple4Add').onclick=()=>{let b=simple4FindButton('Ajouter');if(b)b.click()};
+ $('simple4Due').onclick=()=>{let b=simple4FindButton('Échéances');if(b)b.click()};
+ $('simple4Balance').onclick=()=>{let b=simple4FindButton('Solde');if(b)b.click()};
+
+ if(essentialBtn)essentialBtn.addEventListener('click',()=>setTimeout(()=>{document.body.classList.add('simple4TrueEssential');simple4Refresh()},0));
+ const completeBtn=simple4FindButton('Complet');
+ if(completeBtn)completeBtn.addEventListener('click',()=>document.body.classList.remove('simple4TrueEssential'));
+
+ document.body.classList.add('simple4TrueEssential');
+ setTimeout(simple4Refresh,50);
+}
+
 const KEY='monBudgetSimpleV3';
 let s=JSON.parse(localStorage.getItem(KEY)||'{"entries":[],"fixed":[],"fixedIncome":[],"budgets":{},"balances":{},"paid":{},"incomeReceived":{}}');
 s.routineDay=s.routineDay||0;s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.budgets=s.budgets||{};s.balances=s.balances||{};s.paid=s.paid||{};s.incomeReceived=s.incomeReceived||{};s.savingGoals=s.savingGoals||{};s.savingDone=s.savingDone||{};s.safetyMargins=s.safetyMargins||{};s.monthNotes=s.monthNotes||{};s.exceptions=s.exceptions||{};
@@ -2016,6 +2105,8 @@ d.querySelector('.edit').onclick=()=>openEdit('entry',e.id);d.querySelector('.de
  try{refreshFixedIncomeVisibleList()}catch(e){console.error('fixed income render',e)}
 
  setTimeout(()=>{try{applyUltraSimpleHome()}catch(e){}},0);
+
+ setTimeout(()=>{try{simple4Refresh()}catch(e){}},0);
 }
 function updateQuickHabits(){
  let dl=$('recentLabels'), row=$('habitRow');
@@ -2235,6 +2326,8 @@ document.addEventListener('DOMContentLoaded',()=>{
  if(b)b.onclick=toggleSimpleAdvanced;
  setTimeout(applyUltraSimpleHome,80);
 });
+
+document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
 </script>
 
 <div id="globalUndo" class="globalUndo" style="display:none">
