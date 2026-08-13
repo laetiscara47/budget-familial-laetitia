@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V68</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V69</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -854,6 +854,10 @@ $('saveMonthNotes').onclick=()=>{let m=$('month').value;s.monthNotes[m]=$('month
 $('goNextMonth').onclick=()=>{move(1)};
 $('month').onchange=()=>{localStorage.setItem('budget_last_month',$('month').value);render()};
 $('export').onclick=()=>{let blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mon-budget-sauvegarde.json';a.click()};$('import').onclick=()=>$('file').click();$('file').onchange=async e=>{try{s=JSON.parse(await e.target.files[0].text());persist();alert('Sauvegarde importée')}catch{alert('Fichier non reconnu')}};
+try{
+ let todayISO=new Date().toISOString().slice(0,10);
+ if($('month').value===todayISO.slice(0,7)) $('date').value=todayISO;
+}catch(e){}
 render();
 </script>
 <div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:50;padding:20px;align-items:center;justify-content:center">
