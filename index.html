@@ -72,8 +72,8 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 @media(max-width:520px){.monthSteps{grid-template-columns:1fr 1fr}.monthSteps button{font-size:12px;padding:9px}}
 
 
-.viewMode{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:0 0 10px}
-.viewMode button{padding:11px 10px;font-size:13px;min-height:44px;touch-action:manipulation}
+.viewMode{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:0 0 10px;position:relative;z-index:20}
+.viewMode button{padding:11px 10px;font-size:13px;min-height:44px;touch-action:manipulation;pointer-events:auto!important;position:relative;z-index:21}
 body.essentialMode .optionalHome{display:none!important}
 body.essentialMode .quickStats{margin-bottom:8px}
 
@@ -106,7 +106,7 @@ body.entrySimple #undoLastBtn{grid-column:1/-1}
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V160</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V161</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -613,8 +613,12 @@ $('routineGo').onclick=()=>{openBySummary('Gérer le mois');setTimeout(()=>docum
 $('restoreSafety').onclick=()=>{if(restoreSafetyBackup())showToast('Sauvegarde restaurée ✓');else showToast('Aucune sauvegarde à restaurer')};
 $('toggleEntryDetails').onclick=()=>setEntryMode(document.body.classList.contains('entrySimple')?'full':'simple');
 setEntryMode(localStorage.getItem('budget_entry_mode')||'simple');
-$('viewEssential').addEventListener('click',e=>{e.preventDefault();setViewMode('essential')});
-$('viewFull').addEventListener('click',e=>{e.preventDefault();setViewMode('full')});
+function bindViewButtons(){
+ let be=$('viewEssential'),bf=$('viewFull');
+ if(be)be.onclick=function(e){if(e)e.preventDefault();setViewMode('essential');return false};
+ if(bf)bf.onclick=function(e){if(e)e.preventDefault();setViewMode('full');return false};
+}
+bindViewButtons();
 setViewMode(localStorage.getItem('budget_view_mode')||'essential');
  document.querySelectorAll('details.menuGroup').forEach(d=>{if(d!==current)d.open=false});
 }
@@ -623,9 +627,10 @@ setViewMode(localStorage.getItem('budget_view_mode')||'essential');
 function setViewMode(v){
  let essential=v!=='full';
  document.body.classList.toggle('essentialMode',essential);
+ document.querySelectorAll('.optionalHome').forEach(el=>el.style.display=essential?'none':'');
  let be=$('viewEssential'),bf=$('viewFull');
- if(be){be.className=essential?'':'secondary';be.setAttribute('aria-pressed',essential?'true':'false')}
- if(bf){bf.className=essential?'secondary':'';bf.setAttribute('aria-pressed',essential?'false':'true')}
+ if(be){be.classList.toggle('secondary',!essential);be.setAttribute('aria-pressed',essential?'true':'false')}
+ if(bf){bf.classList.toggle('secondary',essential);bf.setAttribute('aria-pressed',essential?'false':'true')}
  try{localStorage.setItem('budget_view_mode',essential?'essential':'full')}catch(e){}
 }
 
