@@ -144,9 +144,15 @@ body.essentialMode .compactMonthDetails{display:block!important}
  .entryToolButtons{flex-direction:column;align-items:stretch}
  .entryToolButtons button{padding:6px 8px}
 }
+
+.recentEntryWrap{margin:0 0 8px}
+.recentEntryChips{display:flex;gap:6px;overflow-x:auto;padding:5px 0 2px;scrollbar-width:none}
+.recentEntryChips::-webkit-scrollbar{display:none}
+.recentEntryChips button{flex:0 0 auto;padding:7px 9px;font-size:11px;white-space:nowrap}
+.compactCollapse{width:100%;margin:0 0 7px;padding:7px;font-size:11px}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V290-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V300-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -185,7 +191,7 @@ body.essentialMode .compactMonthDetails{display:block!important}
 
 <details id="compactMonthDetails" class="fold compactMonthDetails">
  <summary>📊 Détails du mois <span id="compactHint" class="compactHint">comparaison · catégories · projection</span></summary>
- <div class="foldBody compactMonthBody">
+ <div class="foldBody compactMonthBody"><button id="collapseMonthDetails" class="secondary compactCollapse" type="button">↑ Refermer les détails</button>
 <div class="section monthCompare" style="margin-top:0;margin-bottom:10px">
  <h2 style="margin-bottom:7px">↔️ Par rapport au mois précédent</h2>
  <div id="compareMonthText" class="note"></div>
@@ -216,7 +222,7 @@ body.essentialMode .compactMonthDetails{display:block!important}
   <button id="dailyAdd" type="button">➕ Ajouter</button>
   <button id="dailyDue" class="secondary" type="button">📌 Échéances</button>
   <button id="dailyBalance" class="secondary" type="button">🏦 Solde</button>
-  <button id="dailyBackup" class="secondary" type="button">🛡️ Sauvegarde</button>
+  <button id="dailyMonthCheck" class="secondary" type="button">✓ Faire le point</button>
  </div>
 </div>
 
@@ -288,6 +294,7 @@ body.essentialMode .compactMonthDetails{display:block!important}
  <div><b id="smartEntryTitle">✨ Suggestion</b><div id="smartEntryText" class="note"></div></div>
  <button id="smartEntryApply" class="secondary" type="button">Utiliser</button>
 </div>
+<div id="recentEntryWrap" class="recentEntryWrap" style="display:none"><span class="note">Récents</span><div id="recentEntryChips" class="recentEntryChips"></div></div>
 <div class="entryTools">
  <span class="note">Saisie rapide <span id="entryChoiceSummary"></span></span>
  <div class="entryToolButtons">
@@ -716,7 +723,7 @@ $('safeDownload').onclick=()=>{downloadSafetyFile('mon-budget-sauvegarde-securit
 $('dailyAdd').onclick=()=>{document.getElementById('form').scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>$('label').focus(),250)};
 $('dailyDue').onclick=()=>openBySummary('À venir ce mois-ci');
 $('dailyBalance').onclick=()=>openBySummary('Modifier solde et carte');
-$('dailyBackup').onclick=()=>openBySummary('Historique & sauvegarde');
+$('dailyMonthCheck').onclick=runMonthlyCheck;
 if($('compactMonthDetails'))$('compactMonthDetails').addEventListener('toggle',()=>{
  try{localStorage.setItem(UI_DETAILS_KEY,$('compactMonthDetails').open?'1':'0')}catch(e){}
  updateCompactDetailsHint();
@@ -750,6 +757,7 @@ $('attentionAction').onclick=()=>{if(attentionTarget)openBySummary(attentionTarg
 $('routineGo').onclick=()=>{openBySummary('Gérer le mois');setTimeout(()=>document.querySelector('.monthGuide')?.scrollIntoView({behavior:'smooth',block:'start'}),200)};
 $('restoreSafety').onclick=()=>{if(restoreSafetyBackup())showToast('Sauvegarde restaurée ✓');else showToast('Aucune sauvegarde à restaurer')};
 $('repeatLastEntry').onclick=repeatLastEntry;
+$('collapseMonthDetails').onclick=()=>{let d=$('compactMonthDetails');if(d){d.open=false;d.scrollIntoView({behavior:'smooth',block:'center'})}};
 $('clearQuickEntry').onclick=clearQuickEntry;
 $('toggleEntryDetails').onclick=()=>setEntryMode(document.body.classList.contains('entrySimple')?'full':'simple');
 setEntryMode(localStorage.getItem('budget_entry_mode')||'simple');
@@ -957,6 +965,24 @@ function clearQuickEntry(){
  if($('label'))$('label').focus();
 }
 
+
+function recentEntriesForMode(limit=4){
+ let seen=new Set(),rows=(s.entries||[]).filter(e=>e.type===mode).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')),out=[];
+ for(let e of rows){let k=((e.label||'')+'|'+(e.category||'')+'|'+(e.payment||'')).toLowerCase();if(!e.label||seen.has(k))continue;seen.add(k);out.push(e);if(out.length>=limit)break}
+ return out;
+}
+function fillEntryFromExisting(e){
+ if(!e)return;$('label').value=e.label||'';$('amount').value=e.amount||'';$('category').value=e.category||'Autre';
+ if(mode==='expense'&&$('paymentMethod'))$('paymentMethod').value=e.payment||'card';
+ updateAddReady();updateEntryChoiceSummary();$('amount').focus();$('amount').select();
+}
+function renderRecentEntryChips(){
+ let w=$('recentEntryWrap'),b=$('recentEntryChips');if(!w||!b)return;let rows=recentEntriesForMode();b.innerHTML='';
+ if(mode==='fixed'||!rows.length){w.style.display='none';return}w.style.display='block';
+ rows.forEach(e=>{let x=document.createElement('button');x.type='button';x.className='secondary';x.textContent=(e.label||'Opération')+' · '+eur(e.amount||0);x.onclick=()=>fillEntryFromExisting(e);b.appendChild(x)});
+}
+function runMonthlyCheck(){openBySummary('Gérer le mois');setTimeout(()=>document.querySelector('.monthGuide')?.scrollIntoView({behavior:'smooth',block:'start'}),180)}
+
 const KEY='monBudgetSimpleV3';
 let s=JSON.parse(localStorage.getItem(KEY)||'{"entries":[],"fixed":[],"fixedIncome":[],"budgets":{},"balances":{},"paid":{},"incomeReceived":{}}');
 s.routineDay=s.routineDay||0;s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.budgets=s.budgets||{};s.balances=s.balances||{};s.paid=s.paid||{};s.incomeReceived=s.incomeReceived||{};s.savingGoals=s.savingGoals||{};s.savingDone=s.savingDone||{};s.safetyMargins=s.safetyMargins||{};s.monthNotes=s.monthNotes||{};s.exceptions=s.exceptions||{};
@@ -1013,7 +1039,7 @@ function updateAddButton(){
  else if(mode==='income')btn.textContent='Ajouter le revenu · '+monthName;
  else btn.textContent='Ajouter le prélèvement fixe';
 }
-function setMode(m){mode=m;['Expense','Income','Fixed'].forEach(x=>$('tab'+x).classList.remove('active'));$('tab'+m[0].toUpperCase()+m.slice(1)).classList.add('active');$('fixedNote').style.display=m==='fixed'?'block':'none';$('fixedDay').style.display=m==='fixed'?'block':'none';$('addBtn').textContent=m==='expense'?'Ajouter la dépense':m==='income'?'Ajouter le revenu':'Ajouter le prélèvement fixe';updateQuickHabits();if($('paymentMethod'))$('paymentMethod').style.display=m==='expense'?'block':'none';updateAddButton();updateSmartSuggestion();refreshRepeatLastEntry();if(m==='fixed'){setEntryMode('full')}else{setEntryMode(localStorage.getItem('budget_entry_mode')||'simple')}}
+function setMode(m){mode=m;['Expense','Income','Fixed'].forEach(x=>$('tab'+x).classList.remove('active'));$('tab'+m[0].toUpperCase()+m.slice(1)).classList.add('active');$('fixedNote').style.display=m==='fixed'?'block':'none';$('fixedDay').style.display=m==='fixed'?'block':'none';$('addBtn').textContent=m==='expense'?'Ajouter la dépense':m==='income'?'Ajouter le revenu':'Ajouter le prélèvement fixe';updateQuickHabits();if($('paymentMethod'))$('paymentMethod').style.display=m==='expense'?'block':'none';updateAddButton();updateSmartSuggestion();renderRecentEntryChips();refreshRepeatLastEntry();if(m==='fixed'){setEntryMode('full')}else{setEntryMode(localStorage.getItem('budget_entry_mode')||'simple')}}
 $('tabExpense').onclick=()=>setMode('expense');try{
  let savedCategory=localStorage.getItem('budget_last_category');
  if(savedCategory && $('category') && [...$('category').options].some(o=>o.value===savedCategory)) $('category').value=savedCategory;
@@ -1606,7 +1632,7 @@ $('form').onsubmit=e=>{e.preventDefault();let btn=$('addBtn');if(btn.dataset.bus
 }$('label').value='';$('amount').value='';
  let resetToday=new Date().toISOString().slice(0,10),resetMonth=$('month').value;
  $('date').value=(resetMonth===resetToday.slice(0,7))?resetToday:resetMonth+'-01';
- persist();showToast(mode==='expense'?'Dépense enregistrée ✓':mode==='income'?'Revenu enregistré ✓':'Prélèvement enregistré ✓');$('label').focus();updateAddReady();if($('smartEntry'))$('smartEntry').style.display='none';smartSuggestion=null;setTimeout(()=>{btn.dataset.busy='0';btn.disabled=false},450)};
+ persist();showToast(mode==='expense'?'Dépense enregistrée ✓':mode==='income'?'Revenu enregistré ✓':'Prélèvement enregistré ✓');$('label').focus();updateAddReady();if($('smartEntry'))$('smartEntry').style.display='none';smartSuggestion=null;renderRecentEntryChips();setTimeout(()=>{btn.dataset.busy='0';btn.disabled=false},450)};
 function nextMonthKey(m){
  let [y,mo]=m.split('-').map(Number);mo++;
  if(mo>12){mo=1;y++}
@@ -1747,6 +1773,7 @@ render();
 try{if(!getSafetyCopy())makeSafetyCopy();updateSafeStatus();updateDataHealth();runUpdateCheck()}catch(e){}
 try{refreshRepeatLastEntry()}catch(e){}
 try{restoreLastEntryChoices()}catch(e){}
+try{renderRecentEntryChips()}catch(e){}
 </script>
 
 <div id="globalUndo" class="globalUndo" style="display:none">
