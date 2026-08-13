@@ -107,9 +107,15 @@ body.entrySimple #undoLastBtn{grid-column:1/-1}
 .dailyActionGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .dailyActionGrid button{min-height:44px;padding:9px 8px;font-size:12px}
 body.essentialMode .dailyActions{display:block!important}
+
+.snapshotGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.snapshotGrid>div{border:1px solid var(--line);border-radius:11px;padding:9px;background:#fafbff}
+.snapshotGrid span{display:block;font-size:11px;color:#666;margin-bottom:3px}
+.snapshotGrid b{font-size:16px}
+body.essentialMode .monthSnapshot{display:block!important}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V200-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V210-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -134,6 +140,16 @@ body.essentialMode .dailyActions{display:block!important}
  <div class="attentionHead"><b id="attentionTitle">✓ Tout va bien</b><span id="attentionBadge"></span></div>
  <div id="attentionText" class="note" style="margin-top:5px"></div>
  <button id="attentionAction" class="secondary" type="button" style="display:none;width:100%;margin-top:8px">Voir</button>
+</div>
+
+<div class="section monthSnapshot" style="margin-top:0;margin-bottom:10px">
+ <h2 style="margin-bottom:7px">🧾 Résumé du mois</h2>
+ <div class="snapshotGrid">
+  <div><span>Disponible maintenant</span><b id="snapAvailable">—</b></div>
+  <div><span>Reste réellement dépensable</span><b id="snapSpendable">—</b></div>
+  <div><span>Échéances à suivre</span><b id="snapDue">—</b></div>
+  <div><span>Repère / jour</span><b id="snapPerDay">—</b></div>
+ </div>
 </div>
 
 <div class="section dailyActions" style="margin-top:0;margin-bottom:10px">
@@ -1164,6 +1180,16 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
  if($('dailyActionHint')){
  let p=dueItems.length;
  $('dailyActionHint').textContent=p?p+' échéance'+(p>1?'s':'')+' à suivre ce mois-ci.':'Aucune échéance en attente.';
+}
+if($('snapAvailable')){
+ $('snapAvailable').textContent=eur(availableNow);
+ $('snapAvailable').className=availableNow<0?'red':'green';
+ $('snapSpendable').textContent=eur(spendable);
+ $('snapSpendable').className=spendable<0?'red':'green';
+ $('snapDue').textContent=String(dueItems.length);
+ $('snapDue').className=dueItems.length?'orange':'green';
+ $('snapPerDay').textContent=eur(pd);
+ $('snapPerDay').className=pd<0?'red':'green';
 }
  if($('monthPace')){
    if(daysLeft>0 && spendable>=0) $('monthPace').textContent='💡 Repère réellement dépensable : '+eur(pd)+' par jour jusqu’à la fin du mois';
