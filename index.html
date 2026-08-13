@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V71</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V72</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -448,7 +448,15 @@ try{
 }catch(e){}
 $('date').value=today.toISOString().slice(0,10);
 function persist(){localStorage.setItem(KEY,JSON.stringify(s));render()}
-function setMode(m){mode=m;['Expense','Income','Fixed'].forEach(x=>$('tab'+x).classList.remove('active'));$('tab'+m[0].toUpperCase()+m.slice(1)).classList.add('active');$('fixedNote').style.display=m==='fixed'?'block':'none';$('fixedDay').style.display=m==='fixed'?'block':'none';$('addBtn').textContent=m==='expense'?'Ajouter la dépense':m==='income'?'Ajouter le revenu':'Ajouter le prélèvement fixe';updateQuickHabits();if($('paymentMethod'))$('paymentMethod').style.display=m==='expense'?'block':'none'}
+function updateAddButton(){
+ let btn=$('addBtn');if(!btn)return;
+ let mv=$('month').value, d=mv?new Date(mv+'-01T12:00:00'):new Date();
+ let monthName=d.toLocaleDateString('fr-FR',{month:'long'});
+ if(mode==='expense')btn.textContent='Ajouter la dépense · '+monthName;
+ else if(mode==='income')btn.textContent='Ajouter le revenu · '+monthName;
+ else btn.textContent='Ajouter le prélèvement fixe';
+}
+function setMode(m){mode=m;['Expense','Income','Fixed'].forEach(x=>$('tab'+x).classList.remove('active'));$('tab'+m[0].toUpperCase()+m.slice(1)).classList.add('active');$('fixedNote').style.display=m==='fixed'?'block':'none';$('fixedDay').style.display=m==='fixed'?'block':'none';$('addBtn').textContent=m==='expense'?'Ajouter la dépense':m==='income'?'Ajouter le revenu':'Ajouter le prélèvement fixe';updateQuickHabits();if($('paymentMethod'))$('paymentMethod').style.display=m==='expense'?'block':'none';updateAddButton()}
 $('tabExpense').onclick=()=>setMode('expense');try{
  let savedCategory=localStorage.getItem('budget_last_category');
  if(savedCategory && $('category') && [...$('category').options].some(o=>o.value===savedCategory)) $('category').value=savedCategory;
@@ -518,7 +526,7 @@ function copyPreviousBudgets(){
  $('copyBudgetMsg').textContent='Budgets du mois précédent repris ✓';
  persist();
 }
-function render(){updateQuickHabits();
+function render(){updateAddButton();updateQuickHabits();
  let m=$('month').value,b=s.balances[m]||{bank:0,card:0};
  let paymentExpenses=s.entries.filter(e=>e.month===m&&e.type==='expense');
  let payCard=paymentExpenses.filter(e=>!e.payment||e.payment==='card').reduce((a,e)=>a+(+e.amount||0),0);
