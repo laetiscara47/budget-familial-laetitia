@@ -323,7 +323,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
   <button id="simple5Undo" class="secondary simple5Undo" type="button" hidden>↩️ Annuler la dernière action</button>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-6.3.2-M-VARIABLE-FIX</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-6.3.3-ANTI-DOUBLONS-VRAI</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -2655,7 +2655,43 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
 <script>
 /* SIMPLE-6.1-SAFE — ajout prélèvement robuste */
 (function(){
+ function normFixed(v){
+  return String(v||'').trim().toLocaleLowerCase('fr-FR').replace(/\\s+/g,' ');
+ }
+ function sameFixed(a,b){
+  return normFixed(a.label)===normFixed(b.label)
+    && Math.abs((Number(a.amount)||0)-(Number(b.amount)||0))<0.005
+    && (Number(a.day)||0)===(Number(b.day)||0);
+ }
+ function cleanFixedDuplicates(){
+  if(!s || !Array.isArray(s.fixed)) return 0;
+  var kept=[], removed=0;
+  s.fixed.forEach(function(item){
+   var existing=kept.find(function(k){ return sameFixed(k,item); });
+   if(!existing){ kept.push(item); return; }
+   removed++;
+   if(s.paid && typeof s.paid==='object'){
+    Object.keys(s.paid).forEach(function(month){
+     var statuses=s.paid[month];
+     if(statuses && statuses[item.id]){
+      statuses[existing.id]=true;
+     }
+     if(statuses) delete statuses[item.id];
+    });
+   }
+  });
+  if(removed){
+   s.fixed=kept;
+   if(typeof persist==='function') persist();
+  }
+  return removed;
+ }
  function install(){
+  var removed=0;
+  try{ removed=cleanFixedDuplicates(); }catch(e){ console.error(e); }
+  if(removed && typeof render==='function') render();
+  if(removed && typeof showToast==='function')
+   showToast(removed+' doublon'+(removed>1?'s':'')+' supprimé'+(removed>1?'s':'')+' ✓');
   var btn=document.getElementById('addSimpleFixed');
   if(!btn)return;
   btn.type='button';
@@ -2673,6 +2709,11 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
    try{
     if(!s || typeof s!=='object') throw new Error('Données budget indisponibles');
     if(!Array.isArray(s.fixed))s.fixed=[];
+    var candidate={label:label,amount:amount,day:day};
+    if(s.fixed.some(function(x){return sameFixed(x,candidate)})){
+     alert('Ce prélèvement existe déjà : '+label+' — '+amount.toFixed(2).replace('.',',')+' € — jour '+day+'.');
+     return false;
+    }
     var id=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():'fixe_'+Date.now();
     s.fixed.push({id:id,label:label,amount:amount,day:day,category:'Fixe'});
     /* Use the application's own persistence path; it knows its private storage key. */
@@ -2694,4 +2735,4 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
 })();
 </script>
 
-\n<script>\n/* SIMPLE-6.3.3 — anti-doublons prélèvements fixes */\n(function(){\n function norm(v){return String(v||'').trim().toLocaleLowerCase('fr-FR').replace(/\\s+/g,' ')}\n function same(a,b){return norm(a.label)===norm(b.label) && Math.abs((+a.amount||0)-(+b.amount||0))<0.005 && (+a.day||0)===(+b.day||0)}\n function cleanDuplicates(){\n  if(!window.s||!Array.isArray(s.fixed))return 0;\n  var keep=[], removed=[];\n  s.fixed.forEach(function(x){\n   var found=keep.find(function(k){return same(k,x)});\n   if(found){\n    removed.push(x);\n    /* Si un doublon était marqué payé, conserver ce statut sur l'exemplaire gardé. */\n    if(s.paid&&typeof s.paid==='object'){\n     Object.keys(s.paid).forEach(function(mm){\n      if(s.paid[mm]&&s.paid[mm][x.id])s.paid[mm][found.id]=true;\n      if(s.paid[mm])delete s.paid[mm][x.id];\n     });\n    }\n   }else keep.push(x);\n  });\n  if(removed.length){s.fixed=keep;if(typeof persist==='function')persist();}\n  return removed.length;\n }\n function install(){\n  var n=cleanDuplicates();\n  if(n&&typeof render==='function')render();\n  if(n&&typeof showToast==='function')showToast(n+' doublon'+(n>1?'s':'')+' supprimé'+(n>1?'s':'')+' ✓');\n  var btn=document.getElementById('addSimpleFixed');\n  if(!btn)return;\n  btn.type='button';\n  btn.onclick=function(e){\n   e.preventDefault();e.stopPropagation();\n   var le=document.getElementById('sfLabel'),ae=document.getElementById('sfAmount'),de=document.getElementById('sfDay');\n   var item={label:(le.value||'').trim(),amount:Number(String(ae.value||'').replace(',','.')),day:parseInt(de.value,10)};\n   if(!item.label){alert('Indiquez le nom du prélèvement.');le.focus();return false}\n   if(!isFinite(item.amount)||item.amount<=0){alert('Indiquez un montant supérieur à 0 €.');ae.focus();return false}\n   if(!Number.isInteger(item.day)||item.day<1||item.day>28){alert('Indiquez un jour entre 1 et 28.');de.focus();return false}\n   if(!Array.isArray(s.fixed))s.fixed=[];\n   if(s.fixed.some(function(x){return same(x,item)})){\n    alert('Ce prélèvement existe déjà : '+item.label+' — '+item.amount.toFixed(2).replace('.',',')+' € — jour '+item.day+'.');\n    return false;\n   }\n   var id=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():'fixe_'+Date.now();\n   s.fixed.push({id:id,label:item.label,amount:item.amount,day:item.day,category:'Fixe'});\n   if(typeof persist==='function')persist();\n   le.value='';ae.value='';de.value='';\n   if(typeof render==='function')render();\n   if(typeof showToast==='function')showToast('Prélèvement '+item.label+' enregistré ✓');\n   return false;\n  };\n }\n if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();\n})();\n</script>\n</body></html>
+</body></html>
