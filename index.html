@@ -65,7 +65,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V82</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V83</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -111,6 +111,12 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
   <div class="card"><span class="smalllabel">Repère disponible / jour</span><b id="homePerDay">0,00 €</b></div>
  </div>
  <div id="homeTodayMsg" class="note" style="margin-top:8px"></div>
+</div>
+
+<div class="section" style="margin-top:0;margin-bottom:10px">
+ <h2 style="margin-bottom:8px">📌 À faire</h2>
+ <div id="homeTodo" class="list"></div>
+ <button id="qaTodo" class="secondary" type="button" style="width:100%;margin-top:8px">Voir toutes les échéances</button>
 </div>
 
 <details class="fold homeRecent">
@@ -690,6 +696,23 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
  let next=futureDue[0]||dueItems.sort((a,b)=>a.day-b.day)[0]||null;
  $('nextDue').textContent=next?('Le '+next.day+' · '+next.label):'Aucune échéance';
  $('nextDueDetail').textContent=next?(next.type+' · '+eur(next.amount)):'Tout est à jour pour ce mois.';
+ if($('homeTodo')){
+  let todo=$('homeTodo');todo.innerHTML='';
+  let todoRows=dueItems.slice().sort((a,b)=>a.day-b.day);
+  let currentSelected=m===new Date().toISOString().slice(0,7);
+  let dayNow=new Date().getDate();
+  let relevant=(currentSelected?todoRows.filter(x=>x.day>=dayNow):todoRows).slice(0,3);
+  if(!relevant.length)relevant=todoRows.slice(0,3);
+  if(!relevant.length)todo.innerHTML='<div class="empty">Rien à faire pour ce mois.</div>';
+  relevant.forEach(x=>{
+   let d=document.createElement('div');d.className='item';
+   d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div>';
+   d.querySelector('.title').textContent=(x.kind==='income'?'💰 ':'🧾 ')+x.label;
+   d.querySelector('.meta').textContent='Le '+x.day+' du mois';
+   let a=d.querySelector('.amt');a.textContent=eur(x.amount);a.className='amt '+(x.kind==='income'?'green':'orange');
+   todo.appendChild(d);
+  });
+ }
  let availableNow=(+b.bank||0)-(+b.card||0);
  $('situationAvailable').textContent=eur(availableNow);$('situationAvailable').className=availableNow<0?'red':'green';
  let exceptionalPlanned=(s.exceptions[m]||[]).reduce((a,x)=>a+(+x.amount||0),0);
@@ -985,6 +1008,7 @@ $('qaAdd').onclick=()=>{document.getElementById('form').scrollIntoView({behavior
 $('qaBalance').onclick=()=>{openBySummary('Modifier solde et carte');setTimeout(()=>$('bank').focus(),300)};
 $('qaHistory').onclick=()=>openBySummary('Mouvements du mois');
 $('qaBackup').onclick=()=>{$('export').click()};
+$('qaTodo').onclick=()=>openBySummary('À venir ce mois-ci');
 $('qaToday').onclick=()=>{
  let today=new Date().toISOString().slice(0,10);
  $('month').value=today.slice(0,7);$('date').value=today;
