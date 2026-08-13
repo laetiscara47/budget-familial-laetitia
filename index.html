@@ -205,9 +205,13 @@ body.essentialMode .compactMonthDetails{display:block!important}
 .integrityBadge.warn{background:#fff5e8}
 
 
+
+/* V1000.4 — correctif ciblé affichage revenus fixes */
+#fixedIncomeList{display:grid;gap:7px}
+#fixedIncomeList .fixedIncomeVisibleRow{display:grid}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V1000.3-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V1000.4-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -1295,6 +1299,46 @@ function updateIntegrityBadge(){
 
 
 
+
+function refreshFixedIncomeVisibleList(){
+ const fil=$('fixedIncomeList');
+ if(!fil)return;
+ fil.innerHTML='';
+ const rows=Array.isArray(s.fixedIncome)?s.fixedIncome:[];
+ if(!rows.length){
+   fil.innerHTML='<div class="empty">Aucun revenu fixe enregistré dans cette version.</div>';
+   return;
+ }
+ rows.forEach(f=>{
+   const received=!!((s.incomeReceived&&s.incomeReceived[m])||{})[f.id];
+   const d=document.createElement('div');d.className='item fixedIncomeVisibleRow';
+   d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt green"></div><button class="secondary pay"></button><button class="edit">✎</button><button class="del">✕</button>';
+   d.querySelector('.title').textContent=f.label||'Revenu';
+   d.querySelector('.meta').textContent='Prévu le '+(f.day||'?')+' de chaque mois';
+   d.querySelector('.amt').textContent=eur(+f.amount||0);
+   const pay=d.querySelector('.pay');
+   pay.textContent=received?'Reçu ✓':'À recevoir';
+   pay.className='secondary pay '+(received?'statusDone':'statusTodo');
+   pay.onclick=()=>{
+     rememberLastChange('Statut revenu');
+     s.incomeReceived=s.incomeReceived||{};
+     s.incomeReceived[m]=s.incomeReceived[m]||{};
+     s.incomeReceived[m][f.id]=!received;
+     persist();
+     render();
+   };
+   d.querySelector('.edit').onclick=()=>openEdit('income',f.id);
+   d.querySelector('.del').onclick=()=>{
+     if(confirm('Supprimer ce revenu fixe ?')){
+       rememberLastChange('Suppression revenu');
+       s.fixedIncome=s.fixedIncome.filter(x=>x.id!==f.id);
+       persist();render();
+     }
+   };
+   fil.appendChild(d);
+ });
+}
+
 const KEY='monBudgetSimpleV3';
 let s=JSON.parse(localStorage.getItem(KEY)||'{"entries":[],"fixed":[],"fixedIncome":[],"budgets":{},"balances":{},"paid":{},"incomeReceived":{}}');
 s.routineDay=s.routineDay||0;s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.budgets=s.budgets||{};s.balances=s.balances||{};s.paid=s.paid||{};s.incomeReceived=s.incomeReceived||{};s.savingGoals=s.savingGoals||{};s.savingDone=s.savingDone||{};s.safetyMargins=s.safetyMargins||{};s.monthNotes=s.monthNotes||{};s.exceptions=s.exceptions||{};
@@ -1875,6 +1919,8 @@ d.querySelector('.edit').onclick=()=>openEdit('entry',e.id);d.querySelector('.de
  }
  s.entries=s.entries.filter(x=>x.id!==e.id);persist()
 }};el.appendChild(d)});
+
+ try{refreshFixedIncomeVisibleList()}catch(e){console.error('fixed income render',e)}
 }
 function updateQuickHabits(){
  let dl=$('recentLabels'), row=$('habitRow');
@@ -2084,6 +2130,10 @@ try{refreshRepeatLastEntry()}catch(e){}
 try{restoreLastEntryChoices()}catch(e){}
 try{renderRecentEntryChips()}catch(e){}
 try{renderFavoriteEntryChips()}catch(e){}
+
+document.addEventListener('DOMContentLoaded',()=>{
+ setTimeout(()=>{try{refreshFixedIncomeVisibleList()}catch(e){}},50);
+});
 </script>
 
 <div id="globalUndo" class="globalUndo" style="display:none">
