@@ -115,9 +115,16 @@ body.essentialMode .dailyActions{display:block!important}
 body.essentialMode .monthSnapshot{display:block!important}
 
 body.essentialMode .monthCompare{display:block!important}
+
+.categoryBars{display:grid;gap:7px;margin-top:8px}
+.categoryRow{display:grid;grid-template-columns:minmax(75px,1fr) 2fr auto;align-items:center;gap:7px;font-size:11px}
+.categoryTrack{height:8px;border-radius:999px;background:#eceef4;overflow:hidden}
+.categoryFill{height:100%;background:currentColor;border-radius:999px}
+.categoryAmount{font-weight:800;white-space:nowrap}
+body.essentialMode .categorySnapshot{display:block!important}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V220-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V230-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -157,6 +164,12 @@ body.essentialMode .monthCompare{display:block!important}
 <div class="section monthCompare" style="margin-top:0;margin-bottom:10px">
  <h2 style="margin-bottom:7px">↔️ Par rapport au mois précédent</h2>
  <div id="compareMonthText" class="note"></div>
+</div>
+
+<div class="section categorySnapshot" style="margin-top:0;margin-bottom:10px">
+ <h2 style="margin-bottom:7px">🏷️ Où part mon budget ?</h2>
+ <div id="categorySnapshotText" class="note"></div>
+ <div id="categorySnapshotBars" class="categoryBars"></div>
 </div>
 
 <div class="section dailyActions" style="margin-top:0;margin-bottom:10px">
@@ -836,6 +849,17 @@ function monthEntryTotals(m){
  };
 }
 
+
+function monthCategoryTotals(m){
+ let totals={};
+ (s.entries||[]).forEach(e=>{
+  if(e.type!=='expense'||(e.date||'').slice(0,7)!==m)return;
+  let c=e.category||'Autre';
+  totals[c]=(totals[c]||0)+(+e.amount||0);
+ });
+ return Object.entries(totals).sort((a,b)=>b[1]-a[1]);
+}
+
 const KEY='monBudgetSimpleV3';
 let s=JSON.parse(localStorage.getItem(KEY)||'{"entries":[],"fixed":[],"fixedIncome":[],"budgets":{},"balances":{},"paid":{},"incomeReceived":{}}');
 s.routineDay=s.routineDay||0;s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.budgets=s.budgets||{};s.balances=s.balances||{};s.paid=s.paid||{};s.incomeReceived=s.incomeReceived||{};s.savingGoals=s.savingGoals||{};s.savingDone=s.savingDone||{};s.safetyMargins=s.safetyMargins||{};s.monthNotes=s.monthNotes||{};s.exceptions=s.exceptions||{};
@@ -1201,6 +1225,24 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
  if($('dailyActionHint')){
  let p=dueItems.length;
  $('dailyActionHint').textContent=p?p+' échéance'+(p>1?'s':'')+' à suivre ce mois-ci.':'Aucune échéance en attente.';
+}
+if($('categorySnapshotText')){
+ let cats=monthCategoryTotals(m),box=$('categorySnapshotBars');
+ box.innerHTML='';
+ if(!cats.length){
+  $('categorySnapshotText').textContent='Aucune dépense saisie pour ce mois.';
+ }else{
+  let total=cats.reduce((a,x)=>a+x[1],0),top=cats.slice(0,3),max=top[0][1]||1;
+  $('categorySnapshotText').textContent='Les 3 catégories les plus importantes parmi les dépenses saisies.';
+  top.forEach(([name,amount])=>{
+   let row=document.createElement('div');row.className='categoryRow';
+   let label=document.createElement('span');label.textContent=name;
+   let track=document.createElement('div');track.className='categoryTrack';
+   let fill=document.createElement('div');fill.className='categoryFill';fill.style.width=Math.max(4,amount/max*100)+'%';
+   let val=document.createElement('span');val.className='categoryAmount';val.textContent=eur(amount);
+   track.appendChild(fill);row.append(label,track,val);box.appendChild(row);
+  });
+ }
 }
 if($('compareMonthText')){
  let prev=previousMonthKey(m),curT=monthEntryTotals(m),prevT=monthEntryTotals(prev);
