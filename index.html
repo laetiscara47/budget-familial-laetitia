@@ -323,7 +323,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
   <button id="simple5Undo" class="secondary simple5Undo" type="button" hidden>↩️ Annuler la dernière action</button>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-6.4.1.1</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-6.4.2</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -1442,7 +1442,7 @@ function refreshFixedIncomeVisibleList(){
  rows.forEach(f=>{
    const received=!!((s.incomeReceived&&s.incomeReceived[m])||{})[f.id];
    const d=document.createElement('div');d.className='item fixedIncomeVisibleRow';
-   d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt green"></div><button class="secondary pay"></button><button class="edit">✎</button><button class="del">✕</button>';
+   d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt green"></div><div class="fixedBtns"><button class="secondary pay"></button><button class="edit">✏️ Modifier</button><button class="del">🗑️ Supprimer</button></div>';
    d.querySelector('.title').textContent=f.label||'Revenu';
    d.querySelector('.meta').textContent='Prévu le '+(f.day||'?')+' de chaque mois';
    d.querySelector('.amt').textContent=eur(+f.amount||0);
@@ -2234,7 +2234,29 @@ if($('monthProjectionText')){
    else $('monthPace').textContent='';
  }
  let fil=$('fixedIncomeList');fil.innerHTML='';if(!s.fixedIncome.length)fil.innerHTML='<div class="empty"><b>Aucun revenu fixe enregistré.</b><br><span class="note">Ajoutez ici seulement les revenus qui reviennent chaque mois.</span></div>';
- s.fixedIncome.forEach(f=>{let received=!!(s.incomeReceived[m]||{})[f.id],d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt green"></div><button class="secondary pay"></button><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=f.label;d.querySelector('.meta').textContent='Prévu le '+f.day+' de chaque mois';d.querySelector('.amt').textContent=eur(f.amount);d.querySelector('.pay').textContent=received?'Reçu ✓':'À recevoir';d.querySelector('.pay').className='secondary pay '+(received?'statusDone':'statusTodo');d.querySelector('.pay').onclick=()=>{rememberLastChange('Statut revenu');s.incomeReceived[m]=s.incomeReceived[m]||{};s.incomeReceived[m][f.id]=!received;persist();render()};d.querySelector('.edit').onclick=()=>openEdit('income',f.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce revenu fixe ?')){s.fixedIncome=s.fixedIncome.filter(x=>x.id!==f.id);persist()}};fil.appendChild(d)});
+ s.fixedIncome.slice().sort((a,b)=>(a.day||99)-(b.day||99)).forEach(f=>{
+   let received=!!(s.incomeReceived[m]||{})[f.id],d=document.createElement('div');d.className='item fixedManage fixedIncomeVisibleRow';
+   d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt green"></div><div class="fixedBtns"><button class="secondary pay"></button><button class="edit">✏️ Modifier</button><button class="del">🗑️ Supprimer</button></div>';
+   d.querySelector('.title').textContent=f.label;
+   d.querySelector('.meta').textContent='Prévu le '+(f.day||'?')+' de chaque mois';
+   d.querySelector('.amt').textContent=eur(f.amount);
+   d.querySelector('.pay').textContent=received?'✓ Reçu · annuler':'Marquer reçu ✓';
+   d.querySelector('.pay').className='secondary pay '+(received?'statusDone':'statusTodo');
+   d.querySelector('.pay').onclick=()=>{
+     rememberLastChange('Statut revenu fixe');
+     s.incomeReceived[m]=s.incomeReceived[m]||{};
+     if(received) delete s.incomeReceived[m][f.id]; else s.incomeReceived[m][f.id]=true;
+     persist();render();showToast(received?'Revenu remis à recevoir':'Revenu marqué reçu ✓');
+   };
+   d.querySelector('.edit').onclick=()=>openEdit('income',f.id);
+   d.querySelector('.del').onclick=()=>{if(confirm('Supprimer définitivement « '+f.label+' » ?')){
+     rememberLastChange('Suppression revenu fixe');
+     s.fixedIncome=s.fixedIncome.filter(x=>x.id!==f.id);
+     Object.keys(s.incomeReceived||{}).forEach(mm=>{if(s.incomeReceived[mm])delete s.incomeReceived[mm][f.id]});
+     persist();render();showToast('Revenu fixe supprimé');
+   }};
+   fil.appendChild(d);
+ });
  let fl=$('fixedList');fl.innerHTML='';
  if(!s.fixed.length)fl.innerHTML='<div class="empty"><b>Aucun prélèvement fixe enregistré.</b><br><span class="note">Ajoutez ici les prélèvements qui reviennent chaque mois.</span></div>';
  s.fixed.slice().sort((a,b)=>(a.day||99)-(b.day||99)).forEach(f=>{
@@ -2739,7 +2761,7 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
 
 
 <script>
-/* SIMPLE-6.4.1 — prélèvements/revenus fixes mensuels robustes */
+/* SIMPLE-6.4.2 — prélèvements/revenus fixes mensuels robustes */
 (function(){
  function monthKey(){ var e=document.getElementById('month'); return e&&e.value ? e.value : new Date().toISOString().slice(0,7); }
  function ensure(){
