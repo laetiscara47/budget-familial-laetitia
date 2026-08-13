@@ -146,7 +146,7 @@ body.essentialMode .compactMonthDetails{display:block!important}
 }
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V270-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V280-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -817,6 +817,10 @@ function applySmartSuggestion(){
  $('amount').value=e.amount||'';
  $('category').value=e.category||'Autre';
  if(e.type==='expense'&&$('paymentMethod'))$('paymentMethod').value=e.payment||'card';
+ try{
+  localStorage.setItem('budget_last_category',$('category').value);
+  if(e.type==='expense')localStorage.setItem('budget_last_payment',$('paymentMethod').value);
+ }catch(err){}
  updateAddReady();updateEntryChoiceSummary();
  $('smartEntry').style.display='none';
  $('amount').focus();$('amount').select();
@@ -945,6 +949,16 @@ const KEY='monBudgetSimpleV3';
 let s=JSON.parse(localStorage.getItem(KEY)||'{"entries":[],"fixed":[],"fixedIncome":[],"budgets":{},"balances":{},"paid":{},"incomeReceived":{}}');
 s.routineDay=s.routineDay||0;s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.budgets=s.budgets||{};s.balances=s.balances||{};s.paid=s.paid||{};s.incomeReceived=s.incomeReceived||{};s.savingGoals=s.savingGoals||{};s.savingDone=s.savingDone||{};s.safetyMargins=s.safetyMargins||{};s.monthNotes=s.monthNotes||{};s.exceptions=s.exceptions||{};
 const $=x=>document.getElementById(x), eur=n=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(+n||0);
+function restoreLastEntryChoices(){
+ try{
+  let cat=localStorage.getItem('budget_last_category');
+  let pay=localStorage.getItem('budget_last_payment');
+  if(cat && $('category') && [...$('category').options].some(o=>o.value===cat))$('category').value=cat;
+  if(pay && $('paymentMethod') && [...$('paymentMethod').options].some(o=>o.value===pay))$('paymentMethod').value=pay;
+  updateEntryChoiceSummary();
+ }catch(e){}
+}
+
 let mode='expense'; const today=new Date(); $('month').value=today.toISOString().slice(0,7);
 try{
  let savedMonth=localStorage.getItem('budget_last_month');
@@ -967,6 +981,10 @@ function updateEntryChoiceSummary(){
  let pay=$('paymentMethod')?$('paymentMethod').value:'';
  let payTxt=pay==='bank'?'Compte':pay==='cash'?'Espèces':'Carte';
  $('entryChoiceSummary').textContent=mode==='expense'?'· '+cat+' · '+payTxt:mode==='income'?'· '+cat:'';
+ if($('addBtn')){
+  let amt=parseFloat($('amount').value)||0,lab=($('label').value||'').trim();
+  $('addBtn').title=(lab&&amt>0)?(lab+' · '+eur(amt)+(mode==='expense'?' · '+cat+' · '+payTxt:'')):'';
+ }
 }
 function updateAddReady(){updateEntryChoiceSummary();
  let btn=$('addBtn');if(!btn)return;
@@ -1588,7 +1606,7 @@ if($('label'))$('label').oninput=()=>{updateAddReady();updateSmartSuggestion()};
 if($('label'))$('label').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();$('amount').focus()}};
 if($('amount'))$('amount').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();$('date').focus()}};
 
-if($('amount'))$('amount').oninput=updateAddReady;
+if($('amount'))$('amount').oninput=()=>{updateAddReady();updateEntryChoiceSummary()};
 
 $('qaAdd').onclick=()=>{document.getElementById('form').scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>$('label').focus(),250)};
 $('qaBalance').onclick=()=>{openBySummary('Modifier solde et carte');setTimeout(()=>$('bank').focus(),300)};
@@ -1716,6 +1734,7 @@ render();
 
 try{if(!getSafetyCopy())makeSafetyCopy();updateSafeStatus();updateDataHealth();runUpdateCheck()}catch(e){}
 try{refreshRepeatLastEntry()}catch(e){}
+try{restoreLastEntryChoices()}catch(e){}
 </script>
 
 <div id="globalUndo" class="globalUndo" style="display:none">
