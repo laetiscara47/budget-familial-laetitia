@@ -282,6 +282,9 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
 .simple5DueAmt{font-weight:800;white-space:nowrap}
 .simple5DueItem button{width:100%;margin-top:9px;min-height:42px}
 .simple5Empty{text-align:center;color:var(--muted);padding:14px 4px}
+
+.simple5CompactHead{margin-bottom:0}
+.simple5EmptyCompact{padding:4px 2px 2px;text-align:left;font-size:14px}
 </style></head>
 <body>
 <div id="simple4Dashboard" class="simple4Dashboard">
@@ -305,7 +308,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
   </div>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-5.2-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-5.3-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -1570,7 +1573,11 @@ function simple5RenderDue(){
  <div class="simple5DueSummary"><div><span>💰 À recevoir</span><b class="green">${eur(incomes)}</b></div><div><span>🧾 À payer</span><b class="orange">${eur(charges)}</b></div></div>
  <div id="simple5DueList" class="simple5DueList"></div>`;
  let list=$('simple5DueList');
- if(!rows.length){list.innerHTML='<div class="simple5Empty">✓ Rien en attente pour ce mois.</div>';return;}
+ if(!rows.length){
+   p.innerHTML=`<div class="simple5Head simple5CompactHead"><b>📌 Échéances</b><button class="simple5Close" type="button" onclick="simple5Close()">×</button></div>
+   <div class="simple5Empty simple5EmptyCompact">✓ Aucune échéance ce mois-ci.</div>`;
+   return;
+ }
  rows.forEach(x=>{
    let d=document.createElement('div');d.className='simple5DueItem';
    d.innerHTML='<div class="simple5DueTop"><div><div class="simple5DueTitle"></div><div class="simple5DueMeta"></div></div><div class="simple5DueAmt"></div></div><button type="button"></button>';
