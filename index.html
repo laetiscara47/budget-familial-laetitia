@@ -150,9 +150,12 @@ body.essentialMode .compactMonthDetails{display:block!important}
 .recentEntryChips::-webkit-scrollbar{display:none}
 .recentEntryChips button{flex:0 0 auto;padding:7px 9px;font-size:11px;white-space:nowrap;max-width:170px;overflow:hidden;text-overflow:ellipsis}
 .compactCollapse{width:100%;margin:0 0 7px;padding:7px;font-size:11px}
+
+.closeAssistantGrid{display:grid;grid-template-columns:1fr;gap:7px}
+.closeAssistantGrid button{min-height:42px;text-align:left;padding:9px 10px}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V400-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V500-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -504,7 +507,15 @@ body.essentialMode .compactMonthDetails{display:block!important}
 
 <details class="menuGroup">
  <summary>🗓️ Gérer le mois</summary>
- <div class="menuBody"><button id="copyPrevFixed" class="secondary" type="button" style="width:100%;margin-bottom:8px">↪ Reprendre les prélèvements du mois précédent</button>
+ <div class="menuBody"><div class="section closeAssistant" style="margin:0 0 10px">
+ <h2 style="margin-bottom:6px">🏁 Fin de mois</h2>
+ <div id="closeAssistantText" class="note" style="margin-bottom:8px"></div>
+ <div class="closeAssistantGrid">
+  <button id="closeCheckDue" class="secondary" type="button">1 · Vérifier les échéances</button>
+  <button id="closeCheckBalance" class="secondary" type="button">2 · Vérifier le solde</button>
+  <button id="closePrepareNext" type="button">3 · Préparer le mois suivant</button>
+ </div>
+</div><button id="copyPrevFixed" class="secondary" type="button" style="width:100%;margin-bottom:8px">↪ Reprendre les prélèvements du mois précédent</button>
   <div class="section monthGuide" style="margin:0 0 10px">
    <h2 style="margin-bottom:6px">🧭 Mon mois en 4 étapes</h2>
    <div id="monthGuideStatus" class="note" style="margin-bottom:9px"></div>
@@ -619,6 +630,7 @@ Le statut « Reçu / Payé » reste indépendant pour chaque mois.
   <div class="section" style="margin:0 0 10px">
    <h2>🛡️ Sécurité des données</h2>
    <div id="safeStatus" class="note" style="margin-bottom:9px">Sauvegarde automatique active.</div>
+   <div id="lastBackupInfo" class="note" style="margin-bottom:8px"></div>
    <div class="actions">
     <button id="safeDownload" type="button">Télécharger une sauvegarde</button>
     <button id="safeRestore" class="secondary" type="button">Restaurer la copie automatique</button>
@@ -714,7 +726,7 @@ function openBySummary(text){
 function closeOtherMainMenus(current){
 $('globalUndoBtn').onclick=restoreLastChange;
 function downloadSafetyFile(prefix){
- makeSafetyCopy();updateSafeStatus();updateDataHealth();
+ makeSafetyCopy();updateSafeStatus();updateDataHealth();updateLastBackupInfo();
  let blob=new Blob([JSON.stringify({version:'V170-SAFE',exportedAt:new Date().toISOString(),data:s},null,2)],{type:'application/json'});
  let a=document.createElement('a');a.href=URL.createObjectURL(blob);
  a.download=(prefix||'mon-budget-sauvegarde-securite')+'-'+new Date().toISOString().slice(0,10)+'.json';
@@ -726,6 +738,9 @@ $('dailyDue').onclick=()=>openBySummary('À venir ce mois-ci');
 $('dailyBalance').onclick=()=>openBySummary('Modifier solde et carte');
 $('dailyMonthCheck').onclick=runMonthlyCheck;
 $('copyPrevFixed').onclick=copyPreviousFixedToCurrent;
+$('closeCheckDue').onclick=()=>openBySummary('À venir ce mois-ci');
+$('closeCheckBalance').onclick=()=>openBySummary('Modifier solde et carte');
+$('closePrepareNext').onclick=()=>{if(confirm('Préparer le mois suivant à partir des réglages actuels ?'))prepareNextMonthSafe()};
 if($('compactMonthDetails'))$('compactMonthDetails').addEventListener('toggle',()=>{
  try{localStorage.setItem(UI_DETAILS_KEY,$('compactMonthDetails').open?'1':'0')}catch(e){}
  updateCompactDetailsHint();
@@ -840,6 +855,18 @@ function applySmartSuggestion(){
 
 
 const SAFE_KEY='monBudgetSimpleV3_SAFE';
+
+function updateLastBackupInfo(){
+ let el=$('lastBackupInfo');if(!el)return;
+ try{
+  let raw=localStorage.getItem(SAFE_KEY);
+  if(!raw){el.textContent='Aucune copie de sécurité horodatée.';return}
+  let p=JSON.parse(raw),d=new Date(p.savedAt);
+  if(isNaN(d.getTime())){el.textContent='Copie de sécurité disponible.';return}
+  el.textContent='Dernière copie de sécurité : '+d.toLocaleDateString('fr-FR')+' à '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+ }catch(e){el.textContent='Copie de sécurité disponible.'}
+}
+
 function makeSafetyCopy(){
  try{
   if(typeof s==='undefined'||!s)return false;
@@ -1007,6 +1034,39 @@ function copyPreviousFixedToCurrent(){
    s.entries.push(clone);
  });
  persist();showToast(add.length+' prélèvement'+(add.length>1?'s':'')+' repris ✓');
+}
+
+
+function prepareNextMonthSafe(){
+ let next=nextMonthKey(m),changed=[];
+ // Budgets: copy only if destination has none.
+ if(Object.keys(s.budgets[next]||{}).length===0 && Object.keys(s.budgets[m]||{}).length){
+  s.budgets[next]=JSON.parse(JSON.stringify(s.budgets[m]));changed.push('budgets');
+ }
+ // Saving goal / margin: copy only when destination isn't already set.
+ if(!(next in s.savingGoals) && (s.savingGoals[m]||0)>0){
+  s.savingGoals[next]=s.savingGoals[m];changed.push('objectif épargne');
+ }
+ if(!(next in s.safetyMargins) && (s.safetyMargins[m]||0)>0){
+  s.safetyMargins[next]=s.safetyMargins[m];changed.push('marge');
+ }
+ // Monthly notes are intentionally NOT copied.
+ localStorage.setItem(KEY,JSON.stringify(s));
+ if(changed.length)showToast('Mois suivant préparé : '+changed.join(', ')+' ✓');
+ else showToast('Mois suivant déjà préparé ✓');
+ render();
+}
+function updateCloseAssistant(){
+ let el=$('closeAssistantText');if(!el)return;
+ let pending=(typeof dueItems!=='undefined'&&dueItems)?dueItems.length:0;
+ let hasBalance=!!(s.balances && Object.prototype.hasOwnProperty.call(s.balances,m));
+ if(pending>0){
+  el.textContent='Il reste '+pending+' échéance'+(pending>1?'s':'')+' à vérifier avant de clôturer le mois.';
+ }else if(!hasBalance){
+  el.textContent='Les échéances sont à jour. Vérifiez maintenant votre solde et votre carte.';
+ }else{
+  el.textContent='Le mois est prêt à être clôturé. Vous pouvez préparer le mois suivant.';
+ }
 }
 
 const KEY='monBudgetSimpleV3';
@@ -1390,6 +1450,7 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
  $('dailyActionHint').textContent=p?p+' échéance'+(p>1?'s':'')+' à suivre ce mois-ci.':'Aucune échéance en attente.';
 }
 updateMonthCheckStatus();
+updateCloseAssistant();
 if($('categorySnapshotText')){
  let cats=monthCategoryTotals(m),box=$('categorySnapshotBars');
  box.innerHTML='';
@@ -1797,7 +1858,7 @@ render();
   });
 })();
 
-try{if(!getSafetyCopy())makeSafetyCopy();updateSafeStatus();updateDataHealth();runUpdateCheck()}catch(e){}
+try{if(!getSafetyCopy())makeSafetyCopy();updateSafeStatus();updateDataHealth();updateLastBackupInfo();runUpdateCheck()}catch(e){}
 try{refreshRepeatLastEntry()}catch(e){}
 try{restoreLastEntryChoices()}catch(e){}
 try{renderRecentEntryChips()}catch(e){}
