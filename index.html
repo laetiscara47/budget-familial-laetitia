@@ -197,9 +197,15 @@ body.essentialMode .compactMonthDetails{display:block!important}
  .monthNavTools{grid-template-columns:1fr 1fr}
  .monthNavTools button:last-child{grid-column:1/-1}
 }
+
+/* V1000 — favoris de saisie + badge intégrité, sans nouveau bloc accueil */
+.favoriteEntryWrap{margin:0 0 7px}
+.integrityBadge{display:inline-block;padding:6px 8px;border-radius:999px;font-size:11px;font-weight:800;margin-bottom:8px}
+.integrityBadge.ok{background:#edf8f1}
+.integrityBadge.warn{background:#fff5e8}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V900-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V1000-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -334,6 +340,10 @@ body.essentialMode .compactMonthDetails{display:block!important}
  <div><b id="smartEntryTitle">✨ Suggestion</b><div id="smartEntryText" class="note"></div></div>
  <button id="smartEntryApply" class="secondary" type="button">Utiliser</button>
 </div>
+<div id="favoriteEntryWrap" class="favoriteEntryWrap" style="display:none">
+ <span class="note">Favoris</span>
+ <div id="favoriteEntryChips" class="recentEntryChips"></div>
+</div>
 <div id="recentEntryWrap" class="recentEntryWrap" style="display:none"><span class="note">Récents</span><div id="recentEntryChips" class="recentEntryChips"></div></div>
 <div class="entryTools">
  <span class="note">Saisie rapide <span id="entryChoiceSummary"></span></span>
@@ -342,6 +352,7 @@ body.essentialMode .compactMonthDetails{display:block!important}
   <button id="clearQuickEntry" class="secondary" type="button">✕ Effacer</button>
   <button id="entryToday" class="secondary" type="button">Aujourd’hui</button>
   <button id="entryThisMonth" class="secondary" type="button">Ce mois</button>
+  <button id="saveFavoriteEntry" class="secondary" type="button">☆ Favori</button>
   <button id="toggleEntryDetails" class="secondary" type="button">Plus d’options</button>
  </div>
 </div>
@@ -683,6 +694,7 @@ Le statut « Reçu / Payé » reste indépendant pour chaque mois.
    <h2>🛡️ Sécurité des données</h2>
    <div id="safeStatus" class="note" style="margin-bottom:9px">Sauvegarde automatique active.</div>
    <div id="lastBackupInfo" class="note" style="margin-bottom:8px"></div>
+   <div id="integrityBadge" class="integrityBadge">Contrôle des données…</div>
    <div class="actions">
     <button id="safeDownload" type="button">Télécharger une sauvegarde</button>
     <button id="safeRestore" class="secondary" type="button">Restaurer la copie automatique</button>
@@ -778,7 +790,7 @@ function openBySummary(text){
 function closeOtherMainMenus(current){
 $('globalUndoBtn').onclick=restoreLastChange;
 function downloadSafetyFile(prefix){
- makeSafetyCopy();updateSafeStatus();updateDataHealth();updateLastBackupInfo();
+ makeSafetyCopy();updateSafeStatus();updateDataHealth();updateLastBackupInfo();updateIntegrityBadge();
  let blob=new Blob([JSON.stringify({version:'V170-SAFE',exportedAt:new Date().toISOString(),data:s},null,2)],{type:'application/json'});
  let a=document.createElement('a');a.href=URL.createObjectURL(blob);
  a.download=(prefix||'mon-budget-sauvegarde-securite')+'-'+new Date().toISOString().slice(0,10)+'.json';
@@ -833,6 +845,7 @@ $('collapseMonthDetails').onclick=()=>{let d=$('compactMonthDetails');if(d){d.op
 $('clearQuickEntry').onclick=clearQuickEntry;
 $('entryToday').onclick=setEntryDateToday;
 $('entryThisMonth').onclick=setEntryDateThisMonth;
+$('saveFavoriteEntry').onclick=addCurrentEntryFavorite;
 document.querySelectorAll('.historyFilter').forEach(b=>b.onclick=()=>setHistoryTypeFilter(b.dataset.historyFilter));
 $('historySearch').oninput=applyHistorySearch;
 $('historyClearSearch').onclick=clearHistorySearch;
@@ -1235,6 +1248,47 @@ function updateNextMonthPreview(){
   : 'Le mois suivant n’est pas encore préparé.';
 }
 
+
+const FAVORITES_KEY='budget_quick_favorites_v1';
+function getEntryFavorites(){
+ try{return JSON.parse(localStorage.getItem(FAVORITES_KEY)||'[]')}catch(e){return[]}
+}
+function saveEntryFavorites(rows){
+ try{localStorage.setItem(FAVORITES_KEY,JSON.stringify(rows.slice(0,8)))}catch(e){}
+}
+function addCurrentEntryFavorite(){
+ let label=($('label')?.value||'').trim(),amount=parseFloat($('amount')?.value)||0;
+ if(!label||amount<=0){showToast('Saisissez d’abord un libellé et un montant');return}
+ let row={label,amount,category:$('category')?.value||'Autre',payment:mode==='expense'?($('paymentMethod')?.value||'card'):'',type:mode};
+ let rows=getEntryFavorites();
+ let k=(row.type+'|'+row.label+'|'+row.amount).toLowerCase();
+ rows=rows.filter(x=>(x.type+'|'+x.label+'|'+x.amount).toLowerCase()!==k);
+ rows.unshift(row);saveEntryFavorites(rows);renderFavoriteEntryChips();showToast('Ajouté aux favoris ✓');
+}
+function renderFavoriteEntryChips(){
+ let wrap=$('favoriteEntryWrap'),box=$('favoriteEntryChips');if(!wrap||!box)return;
+ let rows=getEntryFavorites().filter(e=>e.type===mode);box.innerHTML='';
+ if(mode==='fixed'||!rows.length){wrap.style.display='none';return}
+ wrap.style.display='block';
+ rows.forEach(e=>{
+  let b=document.createElement('button');b.type='button';b.className='secondary';
+  b.textContent='★ '+e.label+' · '+eur(e.amount);
+  b.onclick=()=>fillEntryFromExisting(e);
+  b.oncontextmenu=ev=>{ev.preventDefault();if(confirm('Retirer ce favori ?')){let all=getEntryFavorites().filter(x=>x!==e);saveEntryFavorites(all);renderFavoriteEntryChips()}};
+  box.appendChild(b);
+ });
+}
+
+
+function updateIntegrityBadge(){
+ let el=$('integrityBadge');if(!el)return;
+ try{
+  let ok=Array.isArray(s.entries)&&Array.isArray(s.fixed)&&Array.isArray(s.fixedIncome)&&s.budgets&&s.balances;
+  el.textContent=ok?'✓ Données cohérentes':'⚠️ Vérification recommandée';
+  el.className='integrityBadge '+(ok?'ok':'warn');
+ }catch(e){el.textContent='⚠️ Vérification recommandée';el.className='integrityBadge warn'}
+}
+
 const KEY='monBudgetSimpleV3';
 let s=JSON.parse(localStorage.getItem(KEY)||'{"entries":[],"fixed":[],"fixedIncome":[],"budgets":{},"balances":{},"paid":{},"incomeReceived":{}}');
 s.routineDay=s.routineDay||0;s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.budgets=s.budgets||{};s.balances=s.balances||{};s.paid=s.paid||{};s.incomeReceived=s.incomeReceived||{};s.savingGoals=s.savingGoals||{};s.savingDone=s.savingDone||{};s.safetyMargins=s.safetyMargins||{};s.monthNotes=s.monthNotes||{};s.exceptions=s.exceptions||{};
@@ -1291,7 +1345,7 @@ function updateAddButton(){
  else if(mode==='income')btn.textContent='Ajouter le revenu · '+monthName;
  else btn.textContent='Ajouter le prélèvement fixe';
 }
-function setMode(m){mode=m;['Expense','Income','Fixed'].forEach(x=>$('tab'+x).classList.remove('active'));$('tab'+m[0].toUpperCase()+m.slice(1)).classList.add('active');$('fixedNote').style.display=m==='fixed'?'block':'none';$('fixedDay').style.display=m==='fixed'?'block':'none';$('addBtn').textContent=m==='expense'?'Ajouter la dépense':m==='income'?'Ajouter le revenu':'Ajouter le prélèvement fixe';updateQuickHabits();if($('paymentMethod'))$('paymentMethod').style.display=m==='expense'?'block':'none';updateAddButton();updateSmartSuggestion();renderRecentEntryChips();refreshRepeatLastEntry();if(m==='fixed'){setEntryMode('full')}else{setEntryMode(localStorage.getItem('budget_entry_mode')||'simple')}}
+function setMode(m){mode=m;['Expense','Income','Fixed'].forEach(x=>$('tab'+x).classList.remove('active'));$('tab'+m[0].toUpperCase()+m.slice(1)).classList.add('active');$('fixedNote').style.display=m==='fixed'?'block':'none';$('fixedDay').style.display=m==='fixed'?'block':'none';$('addBtn').textContent=m==='expense'?'Ajouter la dépense':m==='income'?'Ajouter le revenu':'Ajouter le prélèvement fixe';updateQuickHabits();if($('paymentMethod'))$('paymentMethod').style.display=m==='expense'?'block':'none';updateAddButton();updateSmartSuggestion();renderRecentEntryChips();renderFavoriteEntryChips();refreshRepeatLastEntry();if(m==='fixed'){setEntryMode('full')}else{setEntryMode(localStorage.getItem('budget_entry_mode')||'simple')}}
 $('tabExpense').onclick=()=>setMode('expense');try{
  let savedCategory=localStorage.getItem('budget_last_category');
  if(savedCategory && $('category') && [...$('category').options].some(o=>o.value===savedCategory)) $('category').value=savedCategory;
@@ -2023,6 +2077,7 @@ try{if(!getSafetyCopy())makeSafetyCopy();updateSafeStatus();updateDataHealth();u
 try{refreshRepeatLastEntry()}catch(e){}
 try{restoreLastEntryChoices()}catch(e){}
 try{renderRecentEntryChips()}catch(e){}
+try{renderFavoriteEntryChips()}catch(e){}
 </script>
 
 <div id="globalUndo" class="globalUndo" style="display:none">
