@@ -308,7 +308,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
   </div>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-5.3-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-5.4-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -1602,8 +1602,15 @@ function simple5Num(v){return Number(String(v||'').replace(/\s/g,'').replace(','
 function simple5SubmitBalance(){
  let mm=($('month')&&$('month').value)||m;
  if(!s.balances)s.balances={};
- s.balances[mm]={bank:simple5Num($('s5bank').value),card:simple5Num($('s5card').value)};
- save(); render(); simple5Close(); setTimeout(simple4Refresh,60);
+ let bank=simple5Num($('s5bank').value), card=simple5Num($('s5card').value);
+ s.balances[mm]={bank:bank,card:card};
+ // Use the app's real persistence path. The previous version called save(),
+ // which is not the budget-state save function.
+ persist();
+ simple5Close();
+ // Refresh the simplified dashboard after render has rebuilt the original UI.
+ requestAnimationFrame(()=>requestAnimationFrame(()=>simple4Refresh()));
+ setTimeout(simple4Refresh,150);
 }
 function simple5SubmitExpense(){
  let label=($('s5label').value||'Dépense').trim(), amount=simple5Num($('s5amount').value), pay=$('s5pay').value;
