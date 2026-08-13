@@ -203,9 +203,17 @@ body.essentialMode .compactMonthDetails{display:block!important}
 .integrityBadge{display:inline-block;padding:6px 8px;border-radius:999px;font-size:11px;font-weight:800;margin-bottom:8px}
 .integrityBadge.ok{background:#edf8f1}
 .integrityBadge.warn{background:#fff5e8}
+
+/* V1000.1 — correction revenus fixes */
+.fixedIncomeManageList{display:grid;gap:7px;margin:0 0 10px}
+.fixedIncomeManageRow{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:9px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.fixedIncomeManageRow b{display:block;font-size:13px}
+.fixedIncomeManageRow span{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+.fixedIncomeManageRow button{padding:7px 9px;min-width:92px}
+.fixedIncomeManageRow button.received{background:#edf8f1}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V1000-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V1000.1-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -405,7 +413,8 @@ body.essentialMode .compactMonthDetails{display:block!important}
 <div class="grid">
  <input id="fiLabel" class="wide" placeholder="Ex. Salaire, allocation…">
  <input id="fiAmount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Montant €">
- <input id="fiDay" type="number" min="1" max="28" inputmode="numeric" placeholder="Jour (1 à 28)">
+ <div id="fixedIncomeManageList" class="fixedIncomeManageList"></div>
+<input id="fiDay" type="number" min="1" max="28" inputmode="numeric" placeholder="Jour (1 à 28)">
  <button id="addFixedIncome">Ajouter</button>
 </div>
 <div id="fixedIncomeList" class="list" style="margin-top:10px"></div>
@@ -790,7 +799,7 @@ function openBySummary(text){
 function closeOtherMainMenus(current){
 $('globalUndoBtn').onclick=restoreLastChange;
 function downloadSafetyFile(prefix){
- makeSafetyCopy();updateSafeStatus();updateDataHealth();updateLastBackupInfo();updateIntegrityBadge();
+ makeSafetyCopy();updateSafeStatus();updateDataHealth();updateLastBackupInfo();updateIntegrityBadge();renderFixedIncomeManageList();
  let blob=new Blob([JSON.stringify({version:'V170-SAFE',exportedAt:new Date().toISOString(),data:s},null,2)],{type:'application/json'});
  let a=document.createElement('a');a.href=URL.createObjectURL(blob);
  a.download=(prefix||'mon-budget-sauvegarde-securite')+'-'+new Date().toISOString().slice(0,10)+'.json';
@@ -1287,6 +1296,48 @@ function updateIntegrityBadge(){
   el.textContent=ok?'✓ Données cohérentes':'⚠️ Vérification recommandée';
   el.className='integrityBadge '+(ok?'ok':'warn');
  }catch(e){el.textContent='⚠️ Vérification recommandée';el.className='integrityBadge warn'}
+}
+
+
+function renderFixedIncomeManageList(){
+ let box=$('fixedIncomeManageList');if(!box)return;
+ box.innerHTML='';
+ let rows=Array.isArray(s.fixedIncome)?s.fixedIncome:[];
+ if(!rows.length){box.innerHTML='<div class="note">Aucun revenu fixe enregistré.</div>';return}
+ rows.forEach((r,i)=>{
+  let received=false;
+  try{
+   if(typeof fixedIncomeReceived==='function')received=!!fixedIncomeReceived(r,i,m);
+   else if(typeof isFixedIncomeReceived==='function')received=!!isFixedIncomeReceived(r,i,m);
+  }catch(e){}
+  // Also recognize the monthly received map used by existing versions.
+  try{
+   let maps=[s.fixedIncomeReceived,s.receivedFixedIncome,s.incomeReceived];
+   maps.forEach(mp=>{
+    if(mp&&mp[m]){
+     let mm=mp[m],k=(r.id!=null?r.id:i);
+     if(Array.isArray(mm)&&mm.includes(k))received=true;
+     else if(mm&&typeof mm==='object'&&mm[k])received=true;
+    }
+   });
+  }catch(e){}
+  let row=document.createElement('div');row.className='fixedIncomeManageRow';
+  let info=document.createElement('div');
+  let name=(r.label||r.name||'Revenu').toString().replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+  info.innerHTML='<b>'+name+'</b><span>'+eur(+r.amount||0)+' · jour '+(r.day||'—')+'</span>';
+  let btn=document.createElement('button');btn.type='button';btn.className=received?'received':'secondary';
+  btn.textContent=received?'✓ Reçu':'À recevoir';
+  btn.onclick=()=>{
+   if(typeof toggleFixedIncomeReceived==='function')toggleFixedIncomeReceived(i);
+   else if(typeof toggleIncomeReceived==='function')toggleIncomeReceived(i);
+   else{
+    s.incomeReceived=s.incomeReceived||{};s.incomeReceived[m]=s.incomeReceived[m]||{};
+    let k=(r.id!=null?r.id:i);s.incomeReceived[m][k]=!received;
+    localStorage.setItem(KEY,JSON.stringify(s));render();
+   }
+  };
+  row.append(info,btn);box.appendChild(row);
+ });
 }
 
 const KEY='monBudgetSimpleV3';
