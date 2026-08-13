@@ -113,9 +113,11 @@ body.essentialMode .dailyActions{display:block!important}
 .snapshotGrid span{display:block;font-size:11px;color:#666;margin-bottom:3px}
 .snapshotGrid b{font-size:16px}
 body.essentialMode .monthSnapshot{display:block!important}
+
+body.essentialMode .monthCompare{display:block!important}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V210-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V220-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -150,6 +152,11 @@ body.essentialMode .monthSnapshot{display:block!important}
   <div><span>Échéances à suivre</span><b id="snapDue">—</b></div>
   <div><span>Repère / jour</span><b id="snapPerDay">—</b></div>
  </div>
+</div>
+
+<div class="section monthCompare" style="margin-top:0;margin-bottom:10px">
+ <h2 style="margin-bottom:7px">↔️ Par rapport au mois précédent</h2>
+ <div id="compareMonthText" class="note"></div>
 </div>
 
 <div class="section dailyActions" style="margin-top:0;margin-bottom:10px">
@@ -815,6 +822,20 @@ function runUpdateCheck(){
  return ok;
 }
 
+
+function previousMonthKey(m){
+ let [y,mo]=m.split('-').map(Number);mo--;
+ if(mo<1){mo=12;y--}
+ return y+'-'+String(mo).padStart(2,'0');
+}
+function monthEntryTotals(m){
+ let rows=(s.entries||[]).filter(e=>(e.date||'').slice(0,7)===m);
+ return {
+  expense:rows.filter(e=>e.type==='expense').reduce((a,e)=>a+(+e.amount||0),0),
+  income:rows.filter(e=>e.type==='income').reduce((a,e)=>a+(+e.amount||0),0)
+ };
+}
+
 const KEY='monBudgetSimpleV3';
 let s=JSON.parse(localStorage.getItem(KEY)||'{"entries":[],"fixed":[],"fixedIncome":[],"budgets":{},"balances":{},"paid":{},"incomeReceived":{}}');
 s.routineDay=s.routineDay||0;s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.budgets=s.budgets||{};s.balances=s.balances||{};s.paid=s.paid||{};s.incomeReceived=s.incomeReceived||{};s.savingGoals=s.savingGoals||{};s.savingDone=s.savingDone||{};s.safetyMargins=s.safetyMargins||{};s.monthNotes=s.monthNotes||{};s.exceptions=s.exceptions||{};
@@ -1180,6 +1201,18 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
  if($('dailyActionHint')){
  let p=dueItems.length;
  $('dailyActionHint').textContent=p?p+' échéance'+(p>1?'s':'')+' à suivre ce mois-ci.':'Aucune échéance en attente.';
+}
+if($('compareMonthText')){
+ let prev=previousMonthKey(m),curT=monthEntryTotals(m),prevT=monthEntryTotals(prev);
+ if(prevT.expense===0 && prevT.income===0){
+  $('compareMonthText').textContent='Pas assez de données sur '+prev+' pour comparer.';
+ }else{
+  let diff=curT.expense-prevT.expense;
+  let expenseText=diff===0?'Dépenses identiques au mois précédent.':
+    diff<0?'Dépenses saisies en baisse de '+eur(Math.abs(diff))+'.':
+           'Dépenses saisies en hausse de '+eur(diff)+'.';
+  $('compareMonthText').textContent=expenseText+' · '+prev+' : '+eur(prevT.expense)+' · '+m+' : '+eur(curT.expense);
+ }
 }
 if($('snapAvailable')){
  $('snapAvailable').textContent=eur(availableNow);
