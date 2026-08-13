@@ -280,7 +280,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
   </div>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-4-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-4.1-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -1489,8 +1489,15 @@ function simple4Refresh(){
    }
    return null;
  };
- $('simple4Bank').textContent=labelValue('Banque')||'—';
- $('simple4Card').textContent=labelValue('Carte')||'—';
+ let mm=($('month')&&$('month').value)||m;
+ let bb=(s.balances&&s.balances[mm])||null;
+ if(bb){
+   $('simple4Bank').textContent=eur(+bb.bank||0);
+   $('simple4Card').textContent=eur(+bb.card||0);
+ }else{
+   $('simple4Bank').textContent='—';
+   $('simple4Card').textContent='—';
+ }
 }
 function simple4Setup(){
  const dash=$('simple4Dashboard'); if(!dash)return;
