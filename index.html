@@ -323,7 +323,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
   <button id="simple5Undo" class="secondary simple5Undo" type="button" hidden>↩️ Annuler la dernière action</button>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-6.1-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-6.2-PAYE-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -1656,9 +1656,20 @@ function simple5MarkDue(kind,id){
  let mm=($('month')&&$('month').value)||m;
  let wasMarked=kind==='income'?!!((s.incomeReceived[mm]||{})[id]):!!((s.paid[mm]||{})[id]);
  simple5LastAction={kind:'due',month:mm,dueKind:kind,id:id,wasMarked:wasMarked};
- if(kind==='income'){s.incomeReceived[mm]=s.incomeReceived[mm]||{};s.incomeReceived[mm][id]=true;}
- else{s.paid[mm]=s.paid[mm]||{};s.paid[mm][id]=true;}
- persist();simple5RenderDue();simple5UpdateUndo();setTimeout(simple4Refresh,60);
+ // IMPORTANT : valider une échéance ne touche jamais au solde bancaire ni à la carte.
+ // Le prélèvement était déjà déduit du disponible prévisionnel ; on mémorise seulement
+ // son statut pour le mois sélectionné afin d'éviter une double déduction.
+ if(kind==='income'){
+   s.incomeReceived[mm]=s.incomeReceived[mm]||{};
+   s.incomeReceived[mm][id]=true;
+ }else{
+   s.paid[mm]=s.paid[mm]||{};
+   s.paid[mm][id]=true;
+ }
+ persist();
+ simple5RenderDue();
+ simple5UpdateUndo();
+ setTimeout(()=>{try{simple4Refresh()}catch(e){}},60);
 }
 
 function simple5Num(v){return Number(String(v||'').replace(/\s/g,'').replace(',','.'))||0}
