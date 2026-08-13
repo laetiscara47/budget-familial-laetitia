@@ -96,7 +96,7 @@ body.entrySimple #undoLastBtn{grid-column:1/-1}
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V120</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V130</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -443,7 +443,9 @@ body.entrySimple #undoLastBtn{grid-column:1/-1}
   <div class="card"><span class="smalllabel">Prélèvements fixes prévus</span><b id="nextFixedTotal" class="orange">0,00 €</b></div>
  </div>
  <div id="nextMonthName" class="note" style="margin-top:10px"></div>
- <button id="goNextMonth" class="secondary" type="button" style="width:100%;margin-top:10px">Voir le mois prochain →</button>
+ <button id="prepareNextMonth" type="button" style="width:100%;margin-top:10px">✨ Préparer automatiquement le mois prochain</button>
+<button id="goNextMonth" class="secondary" type="button" style="width:100%;margin-top:7px">Voir le mois prochain →</button>
+<div id="prepareNextMsg" class="note" style="display:none;margin-top:8px"></div>
 </div></details>
 <details class="fold">
 <summary>➡️ Passage au mois suivant</summary>
@@ -522,6 +524,7 @@ Le statut « Reçu / Payé » reste indépendant pour chaque mois.
 <summary>💾 Sauvegarde</summary>
 <div class="foldBody">
 <div class="actions"><button id="export" class="secondary">Exporter</button><button id="import" class="secondary">Importer</button></div>
+<button id="restoreSafety" class="secondary" type="button" style="width:100%;margin-top:8px">↩️ Restaurer avant le dernier import</button>
 <input id="file" type="file" accept="application/json" hidden>
 
 </div></details>
@@ -559,6 +562,7 @@ function openBySummary(text){
 }
 function closeOtherMainMenus(current){
 $('globalUndoBtn').onclick=restoreLastChange;
+$('restoreSafety').onclick=()=>{if(restoreSafetyBackup())showToast('Sauvegarde restaurée ✓');else showToast('Aucune sauvegarde à restaurer')};
 $('toggleEntryDetails').onclick=()=>setEntryMode(document.body.classList.contains('entrySimple')?'full':'simple');
 setEntryMode(localStorage.getItem('budget_entry_mode')||'simple');
 $('viewEssential').addEventListener('click',e=>{e.preventDefault();setViewMode('essential')});
@@ -1132,6 +1136,11 @@ $('form').onsubmit=e=>{e.preventDefault();let btn=$('addBtn');if(btn.dataset.bus
  let resetToday=new Date().toISOString().slice(0,10),resetMonth=$('month').value;
  $('date').value=(resetMonth===resetToday.slice(0,7))?resetToday:resetMonth+'-01';
  persist();showToast(mode==='expense'?'Dépense enregistrée ✓':mode==='income'?'Revenu enregistré ✓':'Prélèvement enregistré ✓');$('label').focus();updateAddReady();setTimeout(()=>{btn.dataset.busy='0';btn.disabled=false},450)};
+function nextMonthKey(m){
+ let [y,mo]=m.split('-').map(Number);mo++;
+ if(mo>12){mo=1;y++}
+ return y+'-'+String(mo).padStart(2,'0');
+}
 function move(n){let[y,m]=$('month').value.split('-').map(Number);m+=n;if(m<1){m=12;y--}if(m>12){m=1;y++}$('month').value=y+'-'+String(m).padStart(2,'0');localStorage.setItem('budget_last_month',$('month').value);let today=new Date().toISOString().slice(0,10),selected=$('month').value;$('date').value=(selected===today.slice(0,7))?today:selected+'-01';render()}$('prev').onclick=()=>move(-1);$('next').onclick=()=>move(1);$('resetFilters').onclick=()=>{$('movementFilter').value='all';$('movementCategory').value='all';$('movementPayment').value='all';$('movementSearch').value='';$('movementSort').value='dateDesc';render()};
 document.querySelectorAll('details.menuGroup').forEach(d=>d.addEventListener('toggle',()=>{if(d.open)closeOtherMainMenus(d)}));
 if($('label'))$('label').oninput=updateAddReady;
@@ -1173,6 +1182,22 @@ if($('category'))$('category').onchange=()=>{localStorage.setItem('budget_last_c
 $('movementFilter').onchange=render;$('movementCategory').onchange=render;$('movementPayment').onchange=render;$('movementSearch').oninput=render;$('movementSort').onchange=render;
 $('addException').onclick=()=>{let m=$('month').value,label=$('exceptionLabel').value.trim(),amount=parseFloat($('exceptionAmount').value)||0;if(!label||amount<=0)return;s.exceptions[m]=s.exceptions[m]||[];s.exceptions[m].push({id:crypto.randomUUID(),label,amount});$('exceptionLabel').value='';$('exceptionAmount').value='';persist()};
 $('saveMonthNotes').onclick=()=>{let m=$('month').value;s.monthNotes[m]=$('monthNotes').value.trim();localStorage.setItem(KEY,JSON.stringify(s));$('monthNotesSaved').style.display='block'};
+$('prepareNextMonth').onclick=()=>{
+ let from=$('month').value,to=nextMonthKey(from),changed=[];
+ if(Object.keys(s.budgets[to]||{}).length===0 && Object.keys(s.budgets[from]||{}).length){
+   s.budgets[to]=JSON.parse(JSON.stringify(s.budgets[from]));changed.push('budgets');
+ }
+ if(!(to in s.savingGoals) && (s.savingGoals[from]||0)>0){
+   s.savingGoals[to]=s.savingGoals[from];changed.push('objectif épargne');
+ }
+ if(!(to in s.safetyMargins) && (s.safetyMargins[from]||0)>0){
+   s.safetyMargins[to]=s.safetyMargins[from];changed.push('marge de sécurité');
+ }
+ localStorage.setItem(KEY,JSON.stringify(s));
+ let msg=$('prepareNextMsg');msg.style.display='block';
+ msg.textContent=changed.length?'Préparé pour '+to+' : '+changed.join(', ')+' ✓':'Le mois prochain est déjà préparé.';
+ showToast(changed.length?'Mois prochain préparé ✓':'Déjà préparé ✓');
+};
 $('goNextMonth').onclick=()=>{move(1)};
 $('month').onchange=()=>{
  localStorage.setItem('budget_last_month',$('month').value);
@@ -1180,7 +1205,21 @@ $('month').onchange=()=>{
  $('date').value=(selected===today.slice(0,7))?today:selected+'-01';
  render()
 };
-$('export').onclick=()=>{let blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mon-budget-sauvegarde.json';a.click();showToast('Sauvegarde exportée ✓')};$('import').onclick=()=>$('file').click();$('file').onchange=async e=>{try{s=JSON.parse(await e.target.files[0].text());persist();alert('Sauvegarde importée')}catch{alert('Fichier non reconnu')}};
+$('export').onclick=()=>{let blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mon-budget-sauvegarde.json';a.click();showToast('Sauvegarde exportée ✓')};$('import').onclick=()=>$('file').click();function saveSafetyBackup(){
+ try{
+  localStorage.setItem('budget_safety_backup',JSON.stringify({date:new Date().toISOString(),data:s}));
+  return true;
+ }catch(e){return false}
+}
+function restoreSafetyBackup(){
+ try{
+  let raw=localStorage.getItem('budget_safety_backup');if(!raw)return false;
+  let pack=JSON.parse(raw);if(!pack||!pack.data)return false;
+  rememberBeforeChange('Sauvegarde de sécurité restaurée');
+  s=pack.data;localStorage.setItem(KEY,JSON.stringify(s));render();return true;
+ }catch(e){return false}
+}
+$('file').onchange=async e=>{try{s=JSON.parse(await e.target.files[0].text());persist();alert('Sauvegarde importée')}catch{alert('Fichier non reconnu')}};
 try{
  let todayISO=new Date().toISOString().slice(0,10);
  if($('month').value===todayISO.slice(0,7)) $('date').value=todayISO;
