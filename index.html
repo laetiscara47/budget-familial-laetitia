@@ -204,16 +204,16 @@ body.essentialMode .compactMonthDetails{display:block!important}
 .integrityBadge.ok{background:#edf8f1}
 .integrityBadge.warn{background:#fff5e8}
 
-/* V1000.1 — correction revenus fixes */
-.fixedIncomeManageList{display:grid;gap:7px;margin:0 0 10px}
-.fixedIncomeManageRow{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:9px;border:1px solid var(--line);border-radius:12px;background:#fff}
-.fixedIncomeManageRow b{display:block;font-size:13px}
-.fixedIncomeManageRow span{display:block;font-size:11px;color:var(--muted);margin-top:2px}
-.fixedIncomeManageRow button{padding:7px 9px;min-width:92px}
-.fixedIncomeManageRow button.received{background:#edf8f1}
+
+/* V1000.2 — liste native revenus fixes */
+#fixedIncomeList .item{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+#fixedIncomeList .item small{display:block;color:var(--muted);margin-top:3px}
+#fixedIncomeList .actions{display:flex;gap:5px;align-items:center}
+#fixedIncomeList .actions button{padding:7px 8px;font-size:11px}
+#fixedIncomeList .actions button.paid{background:#edf8f1}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V1000.1-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V1000.2-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -413,8 +413,7 @@ body.essentialMode .compactMonthDetails{display:block!important}
 <div class="grid">
  <input id="fiLabel" class="wide" placeholder="Ex. Salaire, allocation…">
  <input id="fiAmount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Montant €">
- <div id="fixedIncomeManageList" class="fixedIncomeManageList"></div>
-<input id="fiDay" type="number" min="1" max="28" inputmode="numeric" placeholder="Jour (1 à 28)">
+ <input id="fiDay" type="number" min="1" max="28" inputmode="numeric" placeholder="Jour (1 à 28)">
  <button id="addFixedIncome">Ajouter</button>
 </div>
 <div id="fixedIncomeList" class="list" style="margin-top:10px"></div>
@@ -799,7 +798,7 @@ function openBySummary(text){
 function closeOtherMainMenus(current){
 $('globalUndoBtn').onclick=restoreLastChange;
 function downloadSafetyFile(prefix){
- makeSafetyCopy();updateSafeStatus();updateDataHealth();updateLastBackupInfo();updateIntegrityBadge();renderFixedIncomeManageList();
+ makeSafetyCopy();updateSafeStatus();updateDataHealth();updateLastBackupInfo();updateIntegrityBadge();renderNativeFixedIncomeList();
  let blob=new Blob([JSON.stringify({version:'V170-SAFE',exportedAt:new Date().toISOString(),data:s},null,2)],{type:'application/json'});
  let a=document.createElement('a');a.href=URL.createObjectURL(blob);
  a.download=(prefix||'mon-budget-sauvegarde-securite')+'-'+new Date().toISOString().slice(0,10)+'.json';
@@ -1299,45 +1298,30 @@ function updateIntegrityBadge(){
 }
 
 
-function renderFixedIncomeManageList(){
- let box=$('fixedIncomeManageList');if(!box)return;
+
+
+function renderNativeFixedIncomeList(){
+ let box=$('fixedIncomeList');if(!box)return;
  box.innerHTML='';
- let rows=Array.isArray(s.fixedIncome)?s.fixedIncome:[];
- if(!rows.length){box.innerHTML='<div class="note">Aucun revenu fixe enregistré.</div>';return}
- rows.forEach((r,i)=>{
-  let received=false;
-  try{
-   if(typeof fixedIncomeReceived==='function')received=!!fixedIncomeReceived(r,i,m);
-   else if(typeof isFixedIncomeReceived==='function')received=!!isFixedIncomeReceived(r,i,m);
-  }catch(e){}
-  // Also recognize the monthly received map used by existing versions.
-  try{
-   let maps=[s.fixedIncomeReceived,s.receivedFixedIncome,s.incomeReceived];
-   maps.forEach(mp=>{
-    if(mp&&mp[m]){
-     let mm=mp[m],k=(r.id!=null?r.id:i);
-     if(Array.isArray(mm)&&mm.includes(k))received=true;
-     else if(mm&&typeof mm==='object'&&mm[k])received=true;
-    }
-   });
-  }catch(e){}
-  let row=document.createElement('div');row.className='fixedIncomeManageRow';
-  let info=document.createElement('div');
-  let name=(r.label||r.name||'Revenu').toString().replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
-  info.innerHTML='<b>'+name+'</b><span>'+eur(+r.amount||0)+' · jour '+(r.day||'—')+'</span>';
-  let btn=document.createElement('button');btn.type='button';btn.className=received?'received':'secondary';
-  btn.textContent=received?'✓ Reçu':'À recevoir';
-  btn.onclick=()=>{
-   if(typeof toggleFixedIncomeReceived==='function')toggleFixedIncomeReceived(i);
-   else if(typeof toggleIncomeReceived==='function')toggleIncomeReceived(i);
-   else{
-    s.incomeReceived=s.incomeReceived||{};s.incomeReceived[m]=s.incomeReceived[m]||{};
-    let k=(r.id!=null?r.id:i);s.incomeReceived[m][k]=!received;
-    localStorage.setItem(KEY,JSON.stringify(s));render();
-   }
+ (s.fixedIncome||[]).forEach((x,i)=>{
+  let received=!!(x.received&&x.received[m]);
+  let row=document.createElement('div');row.className='item';
+  let left=document.createElement('div');
+  left.innerHTML='<b>'+String(x.label||'Revenu').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]))+'</b><small>'+eur(+x.amount||0)+' · jour '+(x.day||'—')+'</small>';
+  let actions=document.createElement('div');actions.className='actions';
+  let status=document.createElement('button');status.type='button';status.className=received?'paid':'secondary';
+  status.textContent=received?'✓ Reçu':'À recevoir';
+  status.onclick=()=>{
+    rememberLastChange('Statut revenu');
+    x.received=x.received||{};
+    x.received[m]=!received;
+    persist();render();
   };
-  row.append(info,btn);box.appendChild(row);
+  let del=document.createElement('button');del.type='button';del.className='danger';del.textContent='Supprimer';
+  del.onclick=()=>{if(confirm('Supprimer ce revenu fixe ?')){rememberLastChange('Suppression revenu');s.fixedIncome.splice(i,1);persist();render()}};
+  actions.append(status,del);row.append(left,actions);box.appendChild(row);
  });
+ if(!(s.fixedIncome||[]).length)box.innerHTML='<div class="note">Aucun revenu fixe enregistré.</div>';
 }
 
 const KEY='monBudgetSimpleV3';
