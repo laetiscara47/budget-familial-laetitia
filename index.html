@@ -323,7 +323,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
   <button id="simple5Undo" class="secondary simple5Undo" type="button" hidden>↩️ Annuler la dernière action</button>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-6.3.3-ANTI-DOUBLONS-VRAI</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-6.4</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -2732,6 +2732,38 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);
  else install();
+})();
+</script>
+
+
+<script>
+/* SIMPLE-6.4 — prélèvements/revenus fixes mensuels robustes */
+(function(){
+ function monthKey(){ var e=document.getElementById('month'); return e&&e.value ? e.value : new Date().toISOString().slice(0,7); }
+ function ensure(){
+   if(!window.s||typeof s!=='object') return false;
+   if(!Array.isArray(s.fixed)) s.fixed=[];
+   if(!Array.isArray(s.fixedIncome)) s.fixedIncome=[];
+   if(!s.fixedPaid||typeof s.fixedPaid!=='object') s.fixedPaid={};
+   if(!s.fixedIncomeReceived||typeof s.fixedIncomeReceived!=='object') s.fixedIncomeReceived={};
+   return true;
+ }
+ function idOf(x,p){ if(!x.id) x.id=p+'_'+Date.now()+'_'+Math.random().toString(36).slice(2,8); return x.id; }
+ function paidMap(){ ensure(); var k=monthKey(); if(!s.fixedPaid[k])s.fixedPaid[k]={}; return s.fixedPaid[k]; }
+ function receivedMap(){ ensure(); var k=monthKey(); if(!s.fixedIncomeReceived[k])s.fixedIncomeReceived[k]={}; return s.fixedIncomeReceived[k]; }
+ function refresh(){ try{if(typeof persist==='function')persist()}catch(e){} try{if(typeof render==='function')render()}catch(e){} try{if(typeof simple4Render==='function')simple4Render()}catch(e){} }
+ window.simple64ToggleFixed=function(id){ if(!ensure())return; var m=paidMap(); m[id]=!m[id]; refresh(); };
+ window.simple64ToggleIncome=function(id){ if(!ensure())return; var m=receivedMap(); m[id]=!m[id]; refresh(); };
+ window.simple64DeleteFixed=function(id){ if(!ensure())return; if(!confirm('Supprimer ce prélèvement fixe pour les mois futurs ?'))return; s.fixed=s.fixed.filter(function(x){return idOf(x,'fix')!==id}); Object.keys(s.fixedPaid).forEach(function(k){if(s.fixedPaid[k])delete s.fixedPaid[k][id]}); refresh(); };
+ window.simple64DeleteIncome=function(id){ if(!ensure())return; if(!confirm('Supprimer ce revenu fixe pour les mois futurs ?'))return; s.fixedIncome=s.fixedIncome.filter(function(x){return idOf(x,'inc')!==id}); Object.keys(s.fixedIncomeReceived).forEach(function(k){if(s.fixedIncomeReceived[k])delete s.fixedIncomeReceived[k][id]}); refresh(); };
+ window.simple64EditFixed=function(id){ if(!ensure())return; var x=s.fixed.find(function(v){return idOf(v,'fix')===id}); if(!x)return; var l=prompt('Nom du prélèvement',x.label||''); if(l===null)return; var a=prompt('Montant €',String(x.amount||'')); if(a===null)return; var d=prompt('Jour (1 à 28)',String(x.day||'')); if(d===null)return; var n=Number(String(a).replace(',','.')),j=parseInt(d,10); if(!l.trim()||!isFinite(n)||n<=0||j<1||j>28){alert('Valeurs incorrectes.');return} x.label=l.trim();x.amount=n;x.day=j;refresh(); };
+ window.simple64EditIncome=function(id){ if(!ensure())return; var x=s.fixedIncome.find(function(v){return idOf(v,'inc')===id}); if(!x)return; var l=prompt('Nom du revenu',x.label||''); if(l===null)return; var a=prompt('Montant €',String(x.amount||'')); if(a===null)return; var d=prompt('Jour (1 à 28)',String(x.day||'')); if(d===null)return; var n=Number(String(a).replace(',','.')),j=parseInt(d,10); if(!l.trim()||!isFinite(n)||n<=0||j<1||j>28){alert('Valeurs incorrectes.');return} x.label=l.trim();x.amount=n;x.day=j;refresh(); };
+ function enhance(){
+   if(!ensure())return;
+   s.fixed.forEach(function(x){idOf(x,'fix')}); s.fixedIncome.forEach(function(x){idOf(x,'inc')});
+   try{if(typeof persist==='function')persist()}catch(e){}
+ }
+ document.addEventListener('DOMContentLoaded',function(){enhance(); setTimeout(enhance,300)});
 })();
 </script>
 
