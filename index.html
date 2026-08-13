@@ -259,6 +259,16 @@ body.simple4TrueEssential .simple4Dashboard{display:block;margin:10px 18px 22px}
 .simple4Stats span{display:block;color:var(--muted);font-size:12px}
 .simple4Stats b{display:block;font-size:20px;margin-top:5px}
 body.simple4TrueEssential #simple4OriginalArea{display:none!important}
+
+/* SIMPLE-5 — actions intégrées sans quitter l'accueil simple */
+.simple5Panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px;margin:10px 0}
+.simple5Panel[hidden]{display:none!important}
+.simple5Head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.simple5Head b{font-size:17px}.simple5Close{border:0;background:transparent;font-size:22px;padding:4px 8px}
+.simple5Panel input,.simple5Panel select{width:100%;box-sizing:border-box;margin:5px 0;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;font-size:16px}
+.simple5Row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.simple5Panel .primary{width:100%;margin-top:8px}
+.simple5Hint{font-size:12px;color:var(--muted);margin-top:7px}
 </style></head>
 <body>
 <div id="simple4Dashboard" class="simple4Dashboard">
@@ -274,13 +284,15 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
     <button id="simple4Balance" type="button" class="secondary simple4Wide">🏦 Mettre à jour le solde</button>
   </div>
 
+  <div id="simple5Panel" class="simple5Panel" hidden></div>
+
   <div class="simple4Stats">
     <div><span>🏦 Banque</span><b id="simple4Bank">—</b></div>
     <div><span>💳 Carte</span><b id="simple4Card">—</b></div>
   </div>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-4.2-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-5-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -1499,6 +1511,62 @@ function simple4Refresh(){
    $('simple4Card').textContent='—';
  }
 }
+
+function simple5Close(){let p=$('simple5Panel');if(p){p.hidden=true;p.innerHTML='';}}
+function simple5Open(kind){
+ let p=$('simple5Panel'); if(!p)return;
+ p.hidden=false;
+ if(kind==='expense'){
+   p.innerHTML=`<div class="simple5Head"><b>＋ Ajouter une dépense</b><button class="simple5Close" type="button" onclick="simple5Close()">×</button></div>
+   <input id="s5label" placeholder="Ex. Courses, essence…">
+   <div class="simple5Row"><input id="s5amount" inputmode="decimal" placeholder="Montant €">
+   <select id="s5pay"><option value="card">💳 Carte</option><option value="bank">🏦 Banque</option></select></div>
+   <button class="primary" type="button" onclick="simple5SubmitExpense()">Enregistrer la dépense</button>`;
+ }else if(kind==='due'){
+   p.innerHTML=`<div class="simple5Head"><b>📌 Échéances</b><button class="simple5Close" type="button" onclick="simple5Close()">×</button></div>
+   <div class="simple5Hint">Ouverture de vos échéances du mois…</div>`;
+   setTimeout(()=>{let b=simple4FindButton('Échéances');if(b){b.click();}},50);
+ }else if(kind==='balance'){
+   p.innerHTML=`<div class="simple5Head"><b>🏦 Mettre à jour le solde</b><button class="simple5Close" type="button" onclick="simple5Close()">×</button></div>
+   <div class="simple5Row"><input id="s5bank" inputmode="decimal" placeholder="Banque €"><input id="s5card" inputmode="decimal" placeholder="Carte €"></div>
+   <button class="primary" type="button" onclick="simple5SubmitBalance()">Enregistrer</button>`;
+   let mm=($('month')&&$('month').value)||m, bb=(s.balances&&s.balances[mm])||{};
+   if($('s5bank'))$('s5bank').value=(+bb.bank||0).toFixed(2).replace('.',',');
+   if($('s5card'))$('s5card').value=(+bb.card||0).toFixed(2).replace('.',',');
+ }
+ try{p.scrollIntoView({behavior:'smooth',block:'nearest'})}catch(e){}
+}
+function simple5Num(v){return Number(String(v||'').replace(/\s/g,'').replace(',','.'))||0}
+function simple5SubmitBalance(){
+ let mm=($('month')&&$('month').value)||m;
+ if(!s.balances)s.balances={};
+ s.balances[mm]={bank:simple5Num($('s5bank').value),card:simple5Num($('s5card').value)};
+ save(); render(); simple5Close(); setTimeout(simple4Refresh,60);
+}
+function simple5SubmitExpense(){
+ let label=($('s5label').value||'Dépense').trim(), amount=simple5Num($('s5amount').value), pay=$('s5pay').value;
+ if(amount<=0){alert('Indiquez un montant.');return;}
+ // Reuse the proven original expense workflow invisibly: populate its fields if identifiable, then submit.
+ // If field discovery fails, reveal Complete rather than risking corrupt data.
+ let inputs=[...document.querySelectorAll('#simple4OriginalArea input')];
+ let amt=inputs.find(i=>/montant/i.test(i.placeholder||''));
+ let lab=inputs.find(i=>/(libell|description|nom|ex\.)/i.test(i.placeholder||'') && i!==amt);
+ if(amt){
+   if(lab)lab.value=label;
+   amt.value=String(amount).replace('.',',');
+   let selects=[...document.querySelectorAll('#simple4OriginalArea select')];
+   let ps=selects.find(x=>[...x.options].some(o=>/carte|banque/i.test(o.textContent||'')));
+   if(ps){
+     let opt=[...ps.options].find(o=>pay==='card'?/carte/i.test(o.textContent||''):/banque/i.test(o.textContent||''));
+     if(opt)ps.value=opt.value;
+   }
+   let buttons=[...document.querySelectorAll('#simple4OriginalArea button')];
+   let add=buttons.find(b=>/ajouter la dépense|enregistrer.*dépense/i.test(b.textContent||''));
+   if(add){add.click();simple5Close();setTimeout(simple4Refresh,100);return;}
+ }
+ alert("La saisie simple n’a pas pu être reliée automatiquement. Utilisez Complet pour cette dépense.");
+}
+
 function simple4Setup(){
  const dash=$('simple4Dashboard'); if(!dash)return;
 
@@ -1516,27 +1584,9 @@ function simple4Setup(){
    dash.parentElement.appendChild(wrap);
  }
  // Directly delegate the 3 essential actions to the existing proven buttons.
- $('simple4Add').onclick=()=>{
-   document.body.classList.remove('simple4TrueEssential');
-   setTimeout(()=>{
-     let b=simple4FindButton('Ajouter');
-     if(b){b.click(); setTimeout(()=>{try{window.scrollTo({top:b.getBoundingClientRect().top+window.scrollY-120,behavior:'smooth'})}catch(e){}},50);}
-   },0);
- };
- $('simple4Due').onclick=()=>{
-   document.body.classList.remove('simple4TrueEssential');
-   setTimeout(()=>{
-     let b=simple4FindButton('Échéances');
-     if(b)b.click();
-   },0);
- };
- $('simple4Balance').onclick=()=>{
-   document.body.classList.remove('simple4TrueEssential');
-   setTimeout(()=>{
-     let b=simple4FindButton('Solde');
-     if(b)b.click();
-   },0);
- };
+ $('simple4Add').onclick=()=>simple5Open('expense');
+ $('simple4Due').onclick=()=>simple5Open('due');
+ $('simple4Balance').onclick=()=>simple5Open('balance');
 
  if(essentialBtn)essentialBtn.addEventListener('click',()=>setTimeout(()=>{document.body.classList.add('simple4TrueEssential');simple4Refresh()},0));
  const completeBtn=simple4FindButton('Complet');
