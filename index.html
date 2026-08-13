@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V57</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V58</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -161,6 +161,15 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </div></details>
   <details class="fold">
+<summary>🎯 Suis-je dans le bon rythme ?</summary>
+<div class="foldBody">
+ <div class="cards">
+  <div class="card"><span class="smalllabel">Rythme réel / jour</span><b id="paceActual">0,00 €</b></div>
+  <div class="card"><span class="smalllabel">Repère autorisé / jour</span><b id="paceAllowed">0,00 €</b></div>
+ </div>
+ <div class="card wide" style="margin-top:10px"><b id="paceVerdictTitle"></b><div id="paceVerdictText" class="note" style="margin-top:4px"></div></div>
+</div></details>
+<details class="fold">
 <summary>📉 Rythme des dépenses</summary>
 <div class="foldBody">
  <div class="cards">
@@ -632,6 +641,13 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
  let daysInMonth=new Date(yy,mm+1,0).getDate();
  let elapsedDays=selectedNow?Math.max(1,nowPace.getDate()):daysInMonth;
  let avgSpent=paceExpenses/elapsedDays, projectedSpent=avgSpent*daysInMonth;
+ if($('paceActual')){
+   $('paceActual').textContent=eur(avgSpent);$('paceAllowed').textContent=eur(Math.max(0,pd));
+   let paceDiff=avgSpent-Math.max(0,pd);
+   if(pd<0){$('paceVerdictTitle').textContent='🔴 Budget déjà dépassé';$('paceVerdictText').textContent='Le disponible réellement dépensable est négatif.';}
+   else if(paceDiff<=0){$('paceVerdictTitle').textContent='🟢 Bon rythme';$('paceVerdictText').textContent='Vous dépensez environ '+eur(Math.abs(paceDiff))+' de moins par jour que votre repère actuel.';}
+   else{$('paceVerdictTitle').textContent='🟠 Rythme à ralentir';$('paceVerdictText').textContent='Vous dépensez environ '+eur(paceDiff)+' de plus par jour que votre repère actuel.';}
+ }
  $('avgSpentDay').textContent=eur(avgSpent);
  $('spentSoFar').textContent=eur(paceExpenses);
  $('spendingProjection').textContent=eur(projectedSpent);
