@@ -222,9 +222,30 @@ body.simpleEssential #urgentCard,
 body.simpleEssential #monthDetailsCard{display:none!important}
 body.simpleEssential .simpleModeBar{margin-top:8px}
 body.simpleEssential #quickActions .note{display:none!important}
+
+/* SIMPLE-3 — accueil essentiel réellement minimal */
+body.simpleEssential #urgentCard{display:none!important}
+body.simpleEssential #quickActions .note{display:none!important}
+body.simpleEssential #quickActions .quickGrid>*{display:none!important}
+body.simpleEssential #quickActions .quickGrid>*:nth-child(1),
+body.simpleEssential #quickActions .quickGrid>*:nth-child(2),
+body.simpleEssential #quickActions .quickGrid>*:nth-child(3){display:flex!important}
+body.simpleEssential #quickActions .quickGrid>*:nth-child(1){order:1}
+body.simpleEssential #quickActions .quickGrid>*:nth-child(2){order:2}
+body.simpleEssential #quickActions .quickGrid>*:nth-child(3){order:3}
+body.simpleEssential #quickActions .quickGrid{grid-template-columns:1fr!important}
+body.simpleEssential #quickActions .quickGrid>*:nth-child(1){font-size:0}
+body.simpleEssential #quickActions .quickGrid>*:nth-child(1)::after{content:"+ Dépense";font-size:15px}
+body.simpleEssential #quickActions .quickGrid>*:nth-child(2){font-size:0}
+body.simpleEssential #quickActions .quickGrid>*:nth-child(2)::after{content:"📌 Échéances";font-size:15px}
+body.simpleEssential #quickActions .quickGrid>*:nth-child(3){font-size:0}
+body.simpleEssential #quickActions .quickGrid>*:nth-child(3)::after{content:"🏦 Mettre à jour le solde";font-size:15px}
+body.simpleEssential .statGrid>*:nth-child(n+3){display:none!important}
+body.simpleEssential .statGrid{grid-template-columns:1fr 1fr!important}
+body.simpleEssential #monthDetailsCard{display:none!important}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-2-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-3-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -1372,6 +1393,26 @@ function toggleSimpleAdvanced(){
 }
 
 
+
+function markSimple3Parts(){
+ const els=[...document.querySelectorAll('body *')];
+ const qaTitle=els.find(e=>(e.textContent||'').trim().includes('Actions rapides')&&e.children.length<6);
+ if(qaTitle){
+   let p=qaTitle;
+   while(p&&p!==document.body&&!p.querySelector('button'))p=p.parentElement;
+   if(p&&p!==document.body)p.id='quickActions';
+ }
+ const bank=els.find(e=>(e.textContent||'').trim()==='Banque');
+ if(bank){
+   let p=bank.parentElement;
+   while(p&&p!==document.body){
+     const txt=p.textContent||'';
+     if(txt.includes('Banque')&&txt.includes('Carte')&&txt.includes('Revenus')&&txt.includes('Dépenses')){p.classList.add('statGrid');break}
+     p=p.parentElement;
+   }
+ }
+}
+
 function markSimpleHomeParts(){
  const all=[...document.querySelectorAll('body *')];
  const byText=(txt)=>all.find(el=>el.children.length===0&&(el.textContent||'').trim()===txt);
@@ -1386,6 +1427,7 @@ function markSimpleHomeParts(){
 }
 function applyUltraSimpleHome(){
  markSimpleHomeParts();
+ markSimple3Parts();
  document.body.classList.toggle('simpleEssential',!simpleAdvancedOpen);
  applySimpleMode();
 }
