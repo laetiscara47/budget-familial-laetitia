@@ -109,7 +109,7 @@ body.entrySimple #undoLastBtn{grid-column:1/-1}
 body.essentialMode .dailyActions{display:block!important}
 
 .snapshotGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.snapshotGrid>div{border:1px solid var(--line);border-radius:11px;padding:9px;background:#fafbff}
+.snapshotGrid>div{border:1px solid var(--line);border-radius:11px;padding:8px;background:#fafbff}
 .snapshotGrid span{display:block;font-size:11px;color:#666;margin-bottom:3px}
 .snapshotGrid b{font-size:16px}
 body.essentialMode .monthSnapshot{display:block!important}
@@ -138,7 +138,7 @@ body.essentialMode .monthSnapshot{display:block!important}
 body.essentialMode .compactMonthDetails{display:block!important}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V250-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V260-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -175,8 +175,8 @@ body.essentialMode .compactMonthDetails{display:block!important}
  </div>
 </div>
 
-<details class="fold compactMonthDetails">
- <summary>📊 Détails du mois <span class="compactHint">comparaison · catégories · projection</span></summary>
+<details id="compactMonthDetails" class="fold compactMonthDetails">
+ <summary>📊 Détails du mois <span id="compactHint" class="compactHint">comparaison · catégories · projection</span></summary>
  <div class="foldBody compactMonthBody">
 <div class="section monthCompare" style="margin-top:0;margin-bottom:10px">
  <h2 style="margin-bottom:7px">↔️ Par rapport au mois précédent</h2>
@@ -705,6 +705,11 @@ $('dailyAdd').onclick=()=>{document.getElementById('form').scrollIntoView({behav
 $('dailyDue').onclick=()=>openBySummary('À venir ce mois-ci');
 $('dailyBalance').onclick=()=>openBySummary('Modifier solde et carte');
 $('dailyBackup').onclick=()=>openBySummary('Historique & sauvegarde');
+if($('compactMonthDetails'))$('compactMonthDetails').addEventListener('toggle',()=>{
+ try{localStorage.setItem(UI_DETAILS_KEY,$('compactMonthDetails').open?'1':'0')}catch(e){}
+ updateCompactDetailsHint();
+});
+restoreCompactDetailsState();
 $('runUpdateCheck').onclick=()=>{runUpdateCheck();showToast('Contrôle terminé ✓')};
 $('beforeUpdateBackup').onclick=()=>{downloadSafetyFile('AVANT-MISE-A-JOUR-mon-budget');showToast('Sauvegarde avant mise à jour créée ✓')};
 $('safeRestore').onclick=()=>{
@@ -887,6 +892,18 @@ function monthCategoryTotals(m){
   totals[c]=(totals[c]||0)+(+e.amount||0);
  });
  return Object.entries(totals).sort((a,b)=>b[1]-a[1]);
+}
+
+
+const UI_DETAILS_KEY='budget_ui_month_details_open';
+function restoreCompactDetailsState(){
+ let d=$('compactMonthDetails');if(!d)return;
+ try{d.open=localStorage.getItem(UI_DETAILS_KEY)==='1'}catch(e){}
+ updateCompactDetailsHint();
+}
+function updateCompactDetailsHint(){
+ let d=$('compactMonthDetails'),h=$('compactHint');if(!d||!h)return;
+ h.textContent=d.open?'toucher pour refermer':'comparaison · catégories · projection';
 }
 
 const KEY='monBudgetSimpleV3';
