@@ -162,7 +162,7 @@ body.essentialMode .compactMonthDetails{display:block!important}
 .dailyActions{padding:11px!important;margin-bottom:8px!important}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V500.1-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V500.2-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -1077,25 +1077,6 @@ function updateCloseAssistant(){
 }
 
 
-function refreshHomeSnapshotAfterRender(){
- try{
-  // The existing render has already calculated these values.
-  // Re-run render-safe snapshot population on the next frame if dashes remain.
-  let ids=['snapAvailable','snapSpendable','snapDue','snapPerDay'];
-  if(!ids.some(id=>$(id)&&$(id).textContent.trim()==='—'))return;
-  requestAnimationFrame(()=>{
-   try{
-    // Trigger the normal render once more after all V500 helpers have initialized.
-    // Guard prevents loops because populated snapshot exits immediately above.
-    if(!window.__snapshotRetry){
-      window.__snapshotRetry=true;
-      render();
-      setTimeout(()=>{window.__snapshotRetry=false},50);
-    }
-   }catch(e){}
-  });
- }catch(e){}
-}
 
 const KEY='monBudgetSimpleV3';
 let s=JSON.parse(localStorage.getItem(KEY)||'{"entries":[],"fixed":[],"fixedIncome":[],"budgets":{},"balances":{},"paid":{},"incomeReceived":{}}');
@@ -1479,7 +1460,6 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
 }
 updateMonthCheckStatus();
 updateCloseAssistant();
-refreshHomeSnapshotAfterRender();
 if($('categorySnapshotText')){
  let cats=monthCategoryTotals(m),box=$('categorySnapshotBars');
  box.innerHTML='';
@@ -1512,13 +1492,14 @@ if($('compareMonthText')){
 }
 if($('monthProjectionText')){
  $('projectionDays').textContent=String(Math.max(0,daysLeft));
- $('projectionDaily').textContent=eur(pd);
- $('projectionDaily').className=pd<0?'red':'green';
+ let _projectionPd=spendable/Math.max(1,daysLeft||1);
+ $('projectionDaily').textContent=eur(_projectionPd);
+ $('projectionDaily').className=_projectionPd<0?'red':'green';
  if(daysLeft<=0){
   $('monthProjectionText').textContent='Le mois sélectionné est terminé.';
  }else if(spendable<0){
   $('monthProjectionText').textContent='Les montants prévus dépassent actuellement ce qui reste réellement disponible.';
- }else if(pd<10){
+ }else if(_projectionPd<10){
   $('monthProjectionText').textContent='Marge quotidienne serrée : gardez un œil sur les dépenses variables.';
  }else{
   $('monthProjectionText').textContent='Repère simple pour répartir ce qui reste réellement dépensable jusqu’à la fin du mois.';
@@ -1531,8 +1512,10 @@ if($('snapAvailable')){
  $('snapSpendable').className=spendable<0?'red':'green';
  $('snapDue').textContent=String(dueItems.length);
  $('snapDue').className=dueItems.length?'orange':'green';
- $('snapPerDay').textContent=eur(pd);
- $('snapPerDay').className=pd<0?'red':'green';
+ let _snapDays=Math.max(1,daysLeft||1);
+ let _snapPd=spendable/_snapDays;
+ $('snapPerDay').textContent=eur(_snapPd);
+ $('snapPerDay').className=_snapPd<0?'red':'green';
 }
  if($('monthPace')){
    if(daysLeft>0 && spendable>=0) $('monthPace').textContent='💡 Repère réellement dépensable : '+eur(pd)+' par jour jusqu’à la fin du mois';
