@@ -188,9 +188,18 @@ body.essentialMode .compactMonthDetails{display:block!important}
 .historyFilters::-webkit-scrollbar{display:none}
 .historyFilters button{flex:0 0 auto;padding:6px 8px;font-size:10px}
 .historyFilters button.active{font-weight:800;outline:2px solid currentColor}
+
+/* V900 — navigation mensuelle compacte */
+.monthNavTools{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin:0 0 9px}
+.monthNavTools button{padding:7px 5px;font-size:10px}
+.nextMonthPreview{margin:-2px 0 8px;padding:7px 8px;border:1px solid var(--line);border-radius:9px;background:#fafbff}
+@media(max-width:430px){
+ .monthNavTools{grid-template-columns:1fr 1fr}
+ .monthNavTools button:last-child{grid-column:1/-1}
+}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V800-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V900-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -536,9 +545,14 @@ body.essentialMode .compactMonthDetails{display:block!important}
 
 <details class="menuGroup">
  <summary>🗓️ Gérer le mois</summary>
- <div class="menuBody"><div class="section closeAssistant" style="margin:0 0 10px">
+ <div class="menuBody"><div class="monthNavTools">
+ <button id="goPrevMonth" class="secondary" type="button">← Mois précédent</button>
+ <button id="goCurrentMonth" class="secondary" type="button">Ce mois-ci</button>
+ <button id="goNextMonth" class="secondary" type="button">Mois suivant →</button>
+</div><div class="section closeAssistant" style="margin:0 0 10px">
  <h2 style="margin-bottom:6px">🏁 Fin de mois</h2>
  <div id="closeAssistantText" class="note" style="margin-bottom:8px"></div>
+ <div id="nextMonthPreview" class="note nextMonthPreview"></div>
  <div class="closeAssistantGrid">
   <button id="closeCheckDue" class="secondary" type="button">1 · Vérifier les échéances</button>
   <button id="closeCheckBalance" class="secondary" type="button">2 · Vérifier le solde</button>
@@ -778,6 +792,9 @@ $('dailyMonthCheck').onclick=runMonthlyCheck;
 $('copyPrevFixed').onclick=copyPreviousFixedToCurrent;
 $('closeCheckDue').onclick=()=>openBySummary('À venir ce mois-ci');
 $('closeCheckBalance').onclick=()=>openBySummary('Modifier solde et carte');
+$('goPrevMonth').onclick=()=>setSelectedMonthSafe(shiftMonthKey(m,-1));
+$('goCurrentMonth').onclick=()=>setSelectedMonthSafe(currentMonthKey());
+$('goNextMonth').onclick=()=>setSelectedMonthSafe(shiftMonthKey(m,1));
 $('closePrepareNext').onclick=()=>{if(confirm('Préparer le mois suivant à partir des réglages actuels ?'))prepareNextMonthSafe()};
 if($('compactMonthDetails'))$('compactMonthDetails').addEventListener('toggle',()=>{
  try{localStorage.setItem(UI_DETAILS_KEY,$('compactMonthDetails').open?'1':'0')}catch(e){}
@@ -1076,7 +1093,7 @@ function copyPreviousFixedToCurrent(){
    clone.date=m+'-'+String(parseInt((e.date||'').slice(8,10),10)||1).padStart(2,'0');
    s.entries.push(clone);
  });
- persist();showToast(add.length+' prélèvement'+(add.length>1?'s':'')+' repris ✓');
+ persist();showToast(add.length+' prélèvement'+(add.length>1?'s':'')+' repris ✓');updateNextMonthPreview();
 }
 
 
@@ -1182,6 +1199,40 @@ function setEntryDateThisMonth(){
  let maxDay=new Date(yy,mm,0).getDate();
  $('date').value=m+'-'+String(Math.min(day,maxDay)).padStart(2,'0');
  updateEntryChoiceSummary();
+}
+
+
+function shiftMonthKey(base,delta){
+ let [y,mo]=base.split('-').map(Number);
+ mo+=delta;
+ while(mo<1){mo+=12;y--}
+ while(mo>12){mo-=12;y++}
+ return y+'-'+String(mo).padStart(2,'0');
+}
+function setSelectedMonthSafe(target){
+ if(!/^\d{4}-\d{2}$/.test(target))return;
+ m=target;
+ if($('month'))$('month').value=m;
+ render();
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+function currentMonthKey(){
+ let d=new Date();
+ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+}
+function updateNextMonthPreview(){
+ let el=$('nextMonthPreview');if(!el)return;
+ let next=shiftMonthKey(m,1);
+ let b=Object.keys((s.budgets&&s.budgets[next])||{}).length;
+ let goal=(s.savingGoals&&s.savingGoals[next])||0;
+ let margin=(s.safetyMargins&&s.safetyMargins[next])||0;
+ let ready=[];
+ if(b)ready.push('budgets');
+ if(goal>0)ready.push('épargne');
+ if(margin>0)ready.push('marge');
+ el.textContent=ready.length
+  ? 'Mois suivant déjà préparé : '+ready.join(' · ')+'.'
+  : 'Le mois suivant n’est pas encore préparé.';
 }
 
 const KEY='monBudgetSimpleV3';
@@ -1566,6 +1617,7 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
 }
 updateMonthCheckStatus();
 updateCloseAssistant();
+updateNextMonthPreview();
 compactDuplicateStatus();
 setTimeout(applyHistorySearch,0);
 if($('categorySnapshotText')){
