@@ -71,10 +71,20 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 .monthSteps span{float:right;font-weight:900}
 @media(max-width:520px){.monthSteps{grid-template-columns:1fr 1fr}.monthSteps button{font-size:12px;padding:9px}}
 
+
+.viewMode{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:0 0 10px}
+.viewMode button{padding:8px 10px;font-size:12px}
+body.essentialMode .optionalHome{display:none!important}
+body.essentialMode .quickStats{margin-bottom:8px}
+
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V90</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V100</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
+<div class="viewMode">
+ <button id="viewEssential" type="button">Essentiel</button>
+ <button id="viewFull" type="button" class="secondary">Complet</button>
+</div>
 
 <div class="hero">
  <div class="label">💶 Disponible prévu fin de mois</div>
@@ -82,6 +92,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
  <div id="restText" class="smalllabel">Après la carte, les prélèvements et les dépenses exceptionnelles prévues.</div>
 <div id="monthPace" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:14px;font-weight:700"></div>
 </div>
+<div id="homeGuidance" class="note" style="margin:-2px 2px 10px;text-align:center;font-weight:700"></div>
 
 <div id="todaySection" class="section" style="margin-top:0;margin-bottom:10px">
 <h2>📌 Aujourd’hui</h2>
@@ -112,7 +123,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
  <button id="qaToday" class="secondary" type="button">📅<br>Aujourd’hui</button>
 </div>
 
-<div class="section" style="margin-top:0;margin-bottom:10px">
+<div class="section optionalHome" style="margin-top:0;margin-bottom:10px">
  <h2 style="margin-bottom:8px">☀️ Aujourd’hui</h2>
  <div class="cards">
   <div class="card"><span class="smalllabel">Dépensé aujourd’hui</span><b id="homeTodaySpent" class="red">0,00 €</b></div>
@@ -131,7 +142,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 </div>
 </div>
 
-<details class="fold homeRecent">
+<details class="fold homeRecent optionalHome">
  <summary>🕘 Dernières opérations</summary>
  <div class="foldBody"><div id="recentEntries" class="list"></div></div>
 </details>
@@ -526,7 +537,19 @@ function openBySummary(text){
  return target;
 }
 function closeOtherMainMenus(current){
+$('viewEssential').onclick=()=>setViewMode('essential');
+$('viewFull').onclick=()=>setViewMode('full');
+setViewMode(localStorage.getItem('budget_view_mode')||'essential');
  document.querySelectorAll('details.menuGroup').forEach(d=>{if(d!==current)d.open=false});
+}
+
+
+function setViewMode(v){
+ let essential=v!=='full';
+ document.body.classList.toggle('essentialMode',essential);
+ $('viewEssential').className=essential?'':'secondary';
+ $('viewFull').className=essential?'secondary':'';
+ localStorage.setItem('budget_view_mode',essential?'essential':'full');
 }
 
 const KEY='monBudgetSimpleV3';
@@ -756,6 +779,13 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
    $('monthGuideStatus').textContent=doneCount===4
      ?'Tout est bien renseigné pour ce mois ✓'
      :doneCount+' étape'+(doneCount>1?'s':'')+' sur 4 prête'+(doneCount>1?'s':'')+'. Touchez une étape pour aller directement au bon endroit.';
+ }
+ if($('homeGuidance')){
+   let hasBal=Object.prototype.hasOwnProperty.call(s.balances,m);
+   let pending=dueItems.length;
+   if(!hasBal)$('homeGuidance').textContent='💡 Commencez par renseigner votre solde et votre carte.';
+   else if(pending>0)$('homeGuidance').textContent='📌 '+pending+' échéance'+(pending>1?'s':'')+' reste'+(pending>1?'nt':'')+' à suivre ce mois-ci.';
+   else $('homeGuidance').textContent='✓ Rien d’urgent à traiter pour ce mois.';
  }
  let availableNow=(+b.bank||0)-(+b.card||0);
  $('situationAvailable').textContent=eur(availableNow);$('situationAvailable').className=availableNow<0?'red':'green';
