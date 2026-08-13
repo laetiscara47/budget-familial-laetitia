@@ -148,11 +148,11 @@ body.essentialMode .compactMonthDetails{display:block!important}
 .recentEntryWrap{margin:0 0 8px}
 .recentEntryChips{display:flex;gap:6px;overflow-x:auto;padding:5px 0 2px;scrollbar-width:none}
 .recentEntryChips::-webkit-scrollbar{display:none}
-.recentEntryChips button{flex:0 0 auto;padding:7px 9px;font-size:11px;white-space:nowrap}
+.recentEntryChips button{flex:0 0 auto;padding:7px 9px;font-size:11px;white-space:nowrap;max-width:170px;overflow:hidden;text-overflow:ellipsis}
 .compactCollapse{width:100%;margin:0 0 7px;padding:7px;font-size:11px}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V300-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V400-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -218,6 +218,7 @@ body.essentialMode .compactMonthDetails{display:block!important}
 <div class="section dailyActions" style="margin-top:0;margin-bottom:10px">
  <h2 style="margin-bottom:4px">⚡ Actions rapides</h2>
  <div id="dailyActionHint" class="note" style="margin-bottom:7px"></div>
+ <div id="monthCheckStatus" class="note" style="margin:0 0 7px"></div>
  <div class="dailyActionGrid">
   <button id="dailyAdd" type="button">➕ Ajouter</button>
   <button id="dailyDue" class="secondary" type="button">📌 Échéances</button>
@@ -503,7 +504,7 @@ body.essentialMode .compactMonthDetails{display:block!important}
 
 <details class="menuGroup">
  <summary>🗓️ Gérer le mois</summary>
- <div class="menuBody">
+ <div class="menuBody"><button id="copyPrevFixed" class="secondary" type="button" style="width:100%;margin-bottom:8px">↪ Reprendre les prélèvements du mois précédent</button>
   <div class="section monthGuide" style="margin:0 0 10px">
    <h2 style="margin-bottom:6px">🧭 Mon mois en 4 étapes</h2>
    <div id="monthGuideStatus" class="note" style="margin-bottom:9px"></div>
@@ -724,6 +725,7 @@ $('dailyAdd').onclick=()=>{document.getElementById('form').scrollIntoView({behav
 $('dailyDue').onclick=()=>openBySummary('À venir ce mois-ci');
 $('dailyBalance').onclick=()=>openBySummary('Modifier solde et carte');
 $('dailyMonthCheck').onclick=runMonthlyCheck;
+$('copyPrevFixed').onclick=copyPreviousFixedToCurrent;
 if($('compactMonthDetails'))$('compactMonthDetails').addEventListener('toggle',()=>{
  try{localStorage.setItem(UI_DETAILS_KEY,$('compactMonthDetails').open?'1':'0')}catch(e){}
  updateCompactDetailsHint();
@@ -966,7 +968,7 @@ function clearQuickEntry(){
 }
 
 
-function recentEntriesForMode(limit=4){
+function recentEntriesForMode(limit=6){
  let seen=new Set(),rows=(s.entries||[]).filter(e=>e.type===mode).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')),out=[];
  for(let e of rows){let k=((e.label||'')+'|'+(e.category||'')+'|'+(e.payment||'')).toLowerCase();if(!e.label||seen.has(k))continue;seen.add(k);out.push(e);if(out.length>=limit)break}
  return out;
@@ -982,6 +984,30 @@ function renderRecentEntryChips(){
  rows.forEach(e=>{let x=document.createElement('button');x.type='button';x.className='secondary';x.textContent=(e.label||'Opération')+' · '+eur(e.amount||0);x.onclick=()=>fillEntryFromExisting(e);b.appendChild(x)});
 }
 function runMonthlyCheck(){openBySummary('Gérer le mois');setTimeout(()=>document.querySelector('.monthGuide')?.scrollIntoView({behavior:'smooth',block:'start'}),180)}
+
+
+function updateMonthCheckStatus(){
+ let el=$('monthCheckStatus');if(!el)return;
+ let p=(typeof dueItems!=='undefined'&&dueItems)?dueItems.length:0;
+ el.textContent=p?(p+' échéance'+(p>1?'s':'')+' à vérifier'):'✓ Rien d’urgent pour le mois';
+}
+function copyPreviousFixedToCurrent(){
+ let prev=previousMonthKey(m);
+ let prevRows=(s.entries||[]).filter(e=>e.type==='fixed'&&(e.date||'').slice(0,7)===prev);
+ if(!prevRows.length){showToast('Aucun prélèvement à reprendre');return}
+ let current=(s.entries||[]).filter(e=>e.type==='fixed'&&(e.date||'').slice(0,7)===m);
+ let existing=new Set(current.map(e=>((e.label||'')+'|'+(+e.amount||0)).toLowerCase()));
+ let add=prevRows.filter(e=>!existing.has(((e.label||'')+'|'+(+e.amount||0)).toLowerCase()));
+ if(!add.length){showToast('Prélèvements déjà présents ✓');return}
+ if(!confirm('Reprendre '+add.length+' prélèvement'+(add.length>1?'s':'')+' du mois précédent ?'))return;
+ add.forEach((e,i)=>{
+   let clone=JSON.parse(JSON.stringify(e));
+   clone.id=Date.now()+i;
+   clone.date=m+'-'+String(parseInt((e.date||'').slice(8,10),10)||1).padStart(2,'0');
+   s.entries.push(clone);
+ });
+ persist();showToast(add.length+' prélèvement'+(add.length>1?'s':'')+' repris ✓');
+}
 
 const KEY='monBudgetSimpleV3';
 let s=JSON.parse(localStorage.getItem(KEY)||'{"entries":[],"fixed":[],"fixedIncome":[],"budgets":{},"balances":{},"paid":{},"incomeReceived":{}}');
@@ -1363,6 +1389,7 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
  let p=dueItems.length;
  $('dailyActionHint').textContent=p?p+' échéance'+(p>1?'s':'')+' à suivre ce mois-ci.':'Aucune échéance en attente.';
 }
+updateMonthCheckStatus();
 if($('categorySnapshotText')){
  let cats=monthCategoryTotals(m),box=$('categorySnapshotBars');
  box.innerHTML='';
