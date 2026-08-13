@@ -109,7 +109,7 @@ body.entrySimple #undoLastBtn{grid-column:1/-1}
 body.essentialMode .dailyActions{display:block!important}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V180-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V200-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -540,6 +540,11 @@ Le statut « Reçu / Payé » reste indépendant pour chaque mois.
    </div>
    <button id="beforeUpdateBackup" class="secondary" type="button" style="width:100%;margin-top:8px">🛡️ Sauvegarder avant une mise à jour</button>
    <div id="dataHealth" class="note" style="margin-top:8px"></div>
+   <div class="section" style="margin:10px 0 0;padding:10px">
+    <b>🔎 Contrôle avant mise à jour</b>
+    <div id="updateCheck" class="note" style="margin-top:5px"></div>
+    <button id="runUpdateCheck" class="secondary" type="button" style="width:100%;margin-top:8px">Vérifier maintenant</button>
+   </div>
   </div>
   <details class="fold">
 <summary>📋 Mouvements du mois</summary>
@@ -635,6 +640,7 @@ $('dailyAdd').onclick=()=>{document.getElementById('form').scrollIntoView({behav
 $('dailyDue').onclick=()=>openBySummary('À venir ce mois-ci');
 $('dailyBalance').onclick=()=>openBySummary('Modifier solde et carte');
 $('dailyBackup').onclick=()=>openBySummary('Historique & sauvegarde');
+$('runUpdateCheck').onclick=()=>{runUpdateCheck();showToast('Contrôle terminé ✓')};
 $('beforeUpdateBackup').onclick=()=>{downloadSafetyFile('AVANT-MISE-A-JOUR-mon-budget');showToast('Sauvegarde avant mise à jour créée ✓')};
 $('safeRestore').onclick=()=>{
  let p=getSafetyCopy();
@@ -769,6 +775,28 @@ function updateDataHealth(){
  if(!Array.isArray(s.fixedIncome))issues.push('revenus fixes');
  if(issues.length)el.textContent='⚠️ Vérification nécessaire : '+issues.join(', ')+'.';
  else el.textContent='✓ Données lisibles · '+nEntries+' opération'+(nEntries!==1?'s':'')+' · '+nFixed+' prélèvement'+(nFixed!==1?'s':'')+' · '+nIncome+' revenu'+(nIncome!==1?'s':'')+' fixe'+(nIncome!==1?'s':'');
+}
+
+
+function runUpdateCheck(){
+ let el=$('updateCheck');if(!el)return;
+ let checks=[];
+ try{
+  checks.push(Array.isArray(s.entries));
+  checks.push(Array.isArray(s.fixed));
+  checks.push(Array.isArray(s.fixedIncome));
+  checks.push(!!s.balances && typeof s.balances==='object');
+  checks.push(!!s.budgets && typeof s.budgets==='object');
+  let raw=localStorage.getItem(KEY);
+  checks.push(!!raw && !!JSON.parse(raw));
+  let safe=getSafetyCopy();
+  checks.push(!!safe && !!safe.data);
+ }catch(e){checks.push(false)}
+ let ok=checks.every(Boolean);
+ el.textContent=ok
+   ?'✓ Données, stockage local et copie de sécurité lisibles.'
+   :'⚠️ Un contrôle a échoué. Ne remplacez pas cette version avant d’avoir fait une sauvegarde.';
+ return ok;
 }
 
 const KEY='monBudgetSimpleV3';
@@ -1490,7 +1518,7 @@ render();
   });
 })();
 
-try{if(!getSafetyCopy())makeSafetyCopy();updateSafeStatus();updateDataHealth()}catch(e){}
+try{if(!getSafetyCopy())makeSafetyCopy();updateSafeStatus();updateDataHealth();runUpdateCheck()}catch(e){}
 </script>
 
 <div id="globalUndo" class="globalUndo" style="display:none">
