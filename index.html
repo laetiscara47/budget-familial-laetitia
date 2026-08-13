@@ -323,7 +323,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
   <button id="simple5Undo" class="secondary simple5Undo" type="button" hidden>↩️ Annuler la dernière action</button>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-6.3-ECHEANCES-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-6.3.1-ECHEANCES-FIX</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -1408,6 +1408,12 @@ function renderFavoriteEntryChips(){
 }
 
 
+function rememberLastChange(label){
+ try{
+  localStorage.setItem('budget_last_change',JSON.stringify({label:label||'Modification',at:Date.now()}));
+ }catch(e){}
+}
+
 function updateIntegrityBadge(){
  let el=$('integrityBadge');if(!el)return;
  try{
@@ -1423,6 +1429,7 @@ function updateIntegrityBadge(){
 
 
 function refreshFixedIncomeVisibleList(){
+ const m=$('month') ? $('month').value : new Date().toISOString().slice(0,7);
  const fil=$('fixedIncomeList');
  if(!fil)return;
  fil.innerHTML='';
