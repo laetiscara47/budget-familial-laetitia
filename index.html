@@ -215,9 +215,16 @@ body.essentialMode .compactMonthDetails{display:block!important}
 .simpleModeBar b{display:block;font-size:14px}
 .simpleModeBar span{display:block;font-size:11px;color:var(--muted);margin-top:2px}
 .simpleModeBar button{padding:7px 13px;min-width:74px}
+
+/* SIMPLE-2 — accueil quotidien ultra simple */
+body.simpleEssential #quickStatus,
+body.simpleEssential #urgentCard,
+body.simpleEssential #monthDetailsCard{display:none!important}
+body.simpleEssential .simpleModeBar{margin-top:8px}
+body.simpleEssential #quickActions .note{display:none!important}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-1-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-2-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -1361,6 +1368,25 @@ function applySimpleMode(){
 }
 function toggleSimpleAdvanced(){
  simpleAdvancedOpen=!simpleAdvancedOpen;
+ applyUltraSimpleHome();
+}
+
+
+function markSimpleHomeParts(){
+ const all=[...document.querySelectorAll('body *')];
+ const byText=(txt)=>all.find(el=>el.children.length===0&&(el.textContent||'').trim()===txt);
+ let urgent=all.find(el=>(el.textContent||'').includes('Rien d’urgent') && (el.classList.contains('card')||el.classList.contains('statusCard')));
+ if(urgent)urgent.id='urgentCard';
+ let status=all.find(el=>(el.textContent||'').trim()==='✓ Rien d’urgent à traiter pour ce mois.');
+ if(status)status.id='quickStatus';
+ let details=all.find(el=>(el.textContent||'').includes('Détails du mois')&&(el.tagName==='DETAILS'||el.classList.contains('card')||el.classList.contains('fold')));
+ if(details)details.id='monthDetailsCard';
+ let qa=all.find(el=>(el.textContent||'').includes('Actions rapides')&&(el.tagName==='DIV'||el.tagName==='SECTION'||el.tagName==='DETAILS'));
+ if(qa)qa.id='quickActions';
+}
+function applyUltraSimpleHome(){
+ markSimpleHomeParts();
+ document.body.classList.toggle('simpleEssential',!simpleAdvancedOpen);
  applySimpleMode();
 }
 
@@ -1946,6 +1972,8 @@ d.querySelector('.edit').onclick=()=>openEdit('entry',e.id);d.querySelector('.de
 }};el.appendChild(d)});
 
  try{refreshFixedIncomeVisibleList()}catch(e){console.error('fixed income render',e)}
+
+ setTimeout(()=>{try{applyUltraSimpleHome()}catch(e){}},0);
 }
 function updateQuickHabits(){
  let dl=$('recentLabels'), row=$('habitRow');
@@ -2163,7 +2191,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 document.addEventListener('DOMContentLoaded',()=>{
  const b=$('toggleAdvancedSimple');
  if(b)b.onclick=toggleSimpleAdvanced;
- setTimeout(applySimpleMode,80);
+ setTimeout(applyUltraSimpleHome,80);
 });
 </script>
 
