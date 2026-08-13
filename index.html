@@ -269,6 +269,19 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
 .simple5Row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .simple5Panel .primary{width:100%;margin-top:8px}
 .simple5Hint{font-size:12px;color:var(--muted);margin-top:7px}
+
+.simple5DueSummary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:4px 0 10px}
+.simple5DueSummary>div{background:#f7f8fb;border:1px solid var(--line);border-radius:14px;padding:10px}
+.simple5DueSummary span{display:block;color:var(--muted);font-size:12px}
+.simple5DueSummary b{display:block;font-size:19px;margin-top:4px}
+.simple5DueList{display:grid;gap:8px}
+.simple5DueItem{border:1px solid var(--line);border-radius:14px;padding:11px}
+.simple5DueTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.simple5DueTitle{font-weight:750}
+.simple5DueMeta{font-size:12px;color:var(--muted);margin-top:3px}
+.simple5DueAmt{font-weight:800;white-space:nowrap}
+.simple5DueItem button{width:100%;margin-top:9px;min-height:42px}
+.simple5Empty{text-align:center;color:var(--muted);padding:14px 4px}
 </style></head>
 <body>
 <div id="simple4Dashboard" class="simple4Dashboard">
@@ -292,7 +305,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
   </div>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-5.1-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-5.2-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -1525,9 +1538,7 @@ function simple5Open(kind){
    <select id="s5pay"><option value="card">💳 Carte</option><option value="bank">🏦 Banque</option></select></div>
    <button class="primary" type="button" onclick="simple5SubmitExpense()">Enregistrer la dépense</button>`;
  }else if(kind==='due'){
-   p.innerHTML=`<div class="simple5Head"><b>📌 Échéances</b><button class="simple5Close" type="button" onclick="simple5Close()">×</button></div>
-   <div class="simple5Hint">Ouverture de vos échéances du mois…</div>`;
-   setTimeout(()=>{let b=simple4FindButton('Échéances');if(b){b.click();}},50);
+   simple5RenderDue();
  }else if(kind==='balance'){
    p.innerHTML=`<div class="simple5Head"><b>🏦 Mettre à jour le solde</b><button class="simple5Close" type="button" onclick="simple5Close()">×</button></div>
    <div class="simple5Row"><input id="s5bank" inputmode="decimal" placeholder="Banque €"><input id="s5card" inputmode="decimal" placeholder="Carte €"></div>
@@ -1538,6 +1549,48 @@ function simple5Open(kind){
  }
  try{p.scrollIntoView({behavior:'smooth',block:'nearest'})}catch(e){}
 }
+
+function simple5DueRows(){
+ let mm=($('month')&&$('month').value)||m;
+ let rows=[];
+ (s.fixedIncome||[]).forEach(x=>{
+   if(!((s.incomeReceived[mm]||{})[x.id])) rows.push({kind:'income',id:x.id,label:x.label||'Revenu',amount:+x.amount||0,day:+x.day||0});
+ });
+ (s.fixed||[]).forEach(x=>{
+   if(!((s.paid[mm]||{})[x.id])) rows.push({kind:'expense',id:x.id,label:x.label||'Prélèvement',amount:+x.amount||0,day:+x.day||0});
+ });
+ return rows.sort((a,b)=>(a.day||99)-(b.day||99));
+}
+function simple5RenderDue(){
+ let p=$('simple5Panel');if(!p)return;
+ let mm=($('month')&&$('month').value)||m, rows=simple5DueRows();
+ let incomes=rows.filter(x=>x.kind==='income').reduce((a,x)=>a+x.amount,0);
+ let charges=rows.filter(x=>x.kind==='expense').reduce((a,x)=>a+x.amount,0);
+ p.innerHTML=`<div class="simple5Head"><b>📌 Échéances du mois</b><button class="simple5Close" type="button" onclick="simple5Close()">×</button></div>
+ <div class="simple5DueSummary"><div><span>💰 À recevoir</span><b class="green">${eur(incomes)}</b></div><div><span>🧾 À payer</span><b class="orange">${eur(charges)}</b></div></div>
+ <div id="simple5DueList" class="simple5DueList"></div>`;
+ let list=$('simple5DueList');
+ if(!rows.length){list.innerHTML='<div class="simple5Empty">✓ Rien en attente pour ce mois.</div>';return;}
+ rows.forEach(x=>{
+   let d=document.createElement('div');d.className='simple5DueItem';
+   d.innerHTML='<div class="simple5DueTop"><div><div class="simple5DueTitle"></div><div class="simple5DueMeta"></div></div><div class="simple5DueAmt"></div></div><button type="button"></button>';
+   d.querySelector('.simple5DueTitle').textContent=(x.kind==='income'?'💰 ':'🧾 ')+x.label;
+   d.querySelector('.simple5DueMeta').textContent=x.day?'Prévu le '+x.day:'Ce mois-ci';
+   d.querySelector('.simple5DueAmt').textContent=eur(x.amount);
+   let btn=d.querySelector('button');
+   btn.className=x.kind==='income'?'primary':'secondary';
+   btn.textContent=x.kind==='income'?'✓ Marquer reçu':'✓ Marquer payé';
+   btn.onclick=()=>simple5MarkDue(x.kind,x.id);
+   list.appendChild(d);
+ });
+}
+function simple5MarkDue(kind,id){
+ let mm=($('month')&&$('month').value)||m;
+ if(kind==='income'){s.incomeReceived[mm]=s.incomeReceived[mm]||{};s.incomeReceived[mm][id]=true;}
+ else{s.paid[mm]=s.paid[mm]||{};s.paid[mm][id]=true;}
+ save();render();simple5RenderDue();setTimeout(simple4Refresh,60);
+}
+
 function simple5Num(v){return Number(String(v||'').replace(/\s/g,'').replace(',','.'))||0}
 function simple5SubmitBalance(){
  let mm=($('month')&&$('month').value)||m;
