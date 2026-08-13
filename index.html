@@ -323,7 +323,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
   <button id="simple5Undo" class="secondary simple5Undo" type="button" hidden>↩️ Annuler la dernière action</button>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-6.2-PAYE-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-6.3-ECHEANCES-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -1878,10 +1878,15 @@ function saveEdit(){
     s.balances[obj.month]={bank:+newBal.bank||0,card:(+newBal.card||0)+newAmount};
   }
  } else {
+  const rawDay=parseInt($('editDay').value,10);
+  if(!Number.isInteger(rawDay)||rawDay<1||rawDay>28){alert('Indiquez un jour entre 1 et 28.');$('editDay').focus();return}
+  rememberLastChange(editing.kind==='fixed'?'Modification prélèvement fixe':'Modification revenu fixe');
   obj.label=label;obj.amount=amount;obj.category=$('editCategory').value;
-  obj.day=Math.max(1,Math.min(28,parseInt($('editDay').value)||1));
+  obj.day=rawDay;
  }
+ const editedKind=editing.kind;
  closeEdit();persist();
+ if(editedKind==='fixed')showToast('Prélèvement modifié ✓');
 }
 
 async function copyMonthlyReport(){
@@ -2228,11 +2233,22 @@ if($('monthProjectionText')){
    d.querySelector('.title').textContent=f.label;
    d.querySelector('.meta').textContent='Le '+(f.day||'?')+' de chaque mois';
    d.querySelector('.amt').textContent=eur(f.amount);
-   d.querySelector('.pay').textContent=paid?'✓ Payé ce mois-ci':'À payer ce mois-ci';
+   d.querySelector('.pay').textContent=paid?'✓ Payé · annuler':'Marquer payé ✓';
    d.querySelector('.pay').className='secondary pay '+(paid?'statusDone':'statusTodo');
-   d.querySelector('.pay').onclick=()=>{s.paid[m]=s.paid[m]||{};s.paid[m][f.id]=!paid;persist();render()};
+   d.querySelector('.pay').onclick=()=>{
+     rememberLastChange('Statut prélèvement fixe');
+     s.paid[m]=s.paid[m]||{};
+     if(paid) delete s.paid[m][f.id]; else s.paid[m][f.id]=true;
+     persist();
+     showToast(paid?'Prélèvement remis à payer':'Prélèvement marqué payé ✓');
+   };
    d.querySelector('.edit').onclick=()=>openEdit('fixed',f.id);
-   d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce prélèvement fixe ?')){rememberLastChange('Suppression prélèvement fixe');s.fixed=s.fixed.filter(x=>x.id!==f.id);persist();render()}};
+   d.querySelector('.del').onclick=()=>{if(confirm('Supprimer définitivement « '+f.label+' » ?')){
+     rememberLastChange('Suppression prélèvement fixe');
+     s.fixed=s.fixed.filter(x=>x.id!==f.id);
+     Object.keys(s.paid||{}).forEach(mm=>{if(s.paid[mm])delete s.paid[mm][f.id]});
+     persist();showToast('Prélèvement supprimé ✓');
+   }};
    fl.appendChild(d)
  }); let paceExpenses=rows.filter(e=>e.type==='expense').reduce((a,e)=>a+(+e.amount||0),0);
  let nowPace=new Date(), selectedNow=(nowPace.getFullYear()===yy&&nowPace.getMonth()===mm);
