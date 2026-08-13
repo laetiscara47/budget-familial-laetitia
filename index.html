@@ -160,9 +160,22 @@ body.essentialMode .compactMonthDetails{display:block!important}
 
 .compactMonthDetails{margin-bottom:8px!important}
 .dailyActions{padding:11px!important;margin-bottom:8px!important}
+
+/* V600 — accueil plus compact sur iPhone */
+.hero{margin-bottom:8px!important}
+.attentionCard{margin-top:0!important;margin-bottom:8px!important}
+.compactMonthDetails{margin-top:0!important;margin-bottom:8px!important}
+.dailyActions{margin-top:0!important;margin-bottom:8px!important}
+.dailyActions h2{margin-bottom:5px!important}
+.dailyActionGrid{gap:6px!important}
+.dailyActionGrid button{min-height:40px!important;padding:7px!important}
+@media(max-width:430px){
+ .compactHint{max-width:175px;line-height:1.1}
+ .compactMonthDetails summary{padding-top:9px!important;padding-bottom:9px!important}
+}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V500.3-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V600-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -1070,6 +1083,15 @@ function updateCloseAssistant(){
 
 
 
+
+function compactDuplicateStatus(){
+ let el=$('rest');
+ if(!el)return;
+ let txt=(el.textContent||'').trim().toLowerCase();
+ if(txt.includes('rien d’urgent')||txt.includes("rien d'urgence"))el.style.display='none';
+ else el.style.display='';
+}
+
 const KEY='monBudgetSimpleV3';
 let s=JSON.parse(localStorage.getItem(KEY)||'{"entries":[],"fixed":[],"fixedIncome":[],"budgets":{},"balances":{},"paid":{},"incomeReceived":{}}');
 s.routineDay=s.routineDay||0;s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.budgets=s.budgets||{};s.balances=s.balances||{};s.paid=s.paid||{};s.incomeReceived=s.incomeReceived||{};s.savingGoals=s.savingGoals||{};s.savingDone=s.savingDone||{};s.safetyMargins=s.safetyMargins||{};s.monthNotes=s.monthNotes||{};s.exceptions=s.exceptions||{};
@@ -1443,7 +1465,7 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
      attentionTarget='Gérer le mois';btn.textContent='Faire le point';btn.style.display='block';
    }else{
      title.textContent='✓ Rien d’urgent';badge.textContent='OK';
-     txt.textContent='Aucune action prioritaire détectée pour le mois sélectionné.';
+     txt.textContent='Tout est à jour pour le mois sélectionné.';
    }
  }
  if($('dailyActionHint')){
@@ -1452,6 +1474,7 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
 }
 updateMonthCheckStatus();
 updateCloseAssistant();
+compactDuplicateStatus();
 if($('categorySnapshotText')){
  let cats=monthCategoryTotals(m),box=$('categorySnapshotBars');
  box.innerHTML='';
