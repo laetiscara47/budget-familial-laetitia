@@ -137,7 +137,7 @@ body.essentialMode .monthSnapshot{display:block!important}
 .compactMonthBody>.section:last-child{margin-bottom:0!important}
 body.essentialMode .compactMonthDetails{display:block!important}
 
-.entryToolButtons{display:flex;gap:6px;align-items:center}
+.entryToolButtons{display:flex;gap:5px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
 .entryToolButtons button{padding:7px 9px;font-size:11px}
 @media(max-width:420px){
  .entryTools{align-items:flex-start}
@@ -146,7 +146,7 @@ body.essentialMode .compactMonthDetails{display:block!important}
 }
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V280-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V290-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -292,6 +292,7 @@ body.essentialMode .compactMonthDetails{display:block!important}
  <span class="note">Saisie rapide <span id="entryChoiceSummary"></span></span>
  <div class="entryToolButtons">
   <button id="repeatLastEntry" class="secondary" type="button" style="display:none">↻ Reprendre</button>
+  <button id="clearQuickEntry" class="secondary" type="button">✕ Effacer</button>
   <button id="toggleEntryDetails" class="secondary" type="button">Plus d’options</button>
  </div>
 </div>
@@ -749,6 +750,7 @@ $('attentionAction').onclick=()=>{if(attentionTarget)openBySummary(attentionTarg
 $('routineGo').onclick=()=>{openBySummary('Gérer le mois');setTimeout(()=>document.querySelector('.monthGuide')?.scrollIntoView({behavior:'smooth',block:'start'}),200)};
 $('restoreSafety').onclick=()=>{if(restoreSafetyBackup())showToast('Sauvegarde restaurée ✓');else showToast('Aucune sauvegarde à restaurer')};
 $('repeatLastEntry').onclick=repeatLastEntry;
+$('clearQuickEntry').onclick=clearQuickEntry;
 $('toggleEntryDetails').onclick=()=>setEntryMode(document.body.classList.contains('entrySimple')?'full':'simple');
 setEntryMode(localStorage.getItem('budget_entry_mode')||'simple');
 $('viewEssential').addEventListener('click',e=>{e.preventDefault();setViewMode('essential')});
@@ -943,6 +945,16 @@ function repeatLastEntry(){
  if(mode==='expense'&&$('paymentMethod'))$('paymentMethod').value=e.payment||'card';
  updateAddReady();updateEntryChoiceSummary();
  $('amount').focus();$('amount').select();
+}
+
+
+function clearQuickEntry(){
+ if($('label'))$('label').value='';
+ if($('amount'))$('amount').value='';
+ if($('smartEntry'))$('smartEntry').style.display='none';
+ smartSuggestion=null;
+ updateAddReady();updateEntryChoiceSummary();refreshRepeatLastEntry();
+ if($('label'))$('label').focus();
 }
 
 const KEY='monBudgetSimpleV3';
