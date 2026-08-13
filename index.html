@@ -323,7 +323,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
   <button id="simple5Undo" class="secondary simple5Undo" type="button" hidden>↩️ Annuler la dernière action</button>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-6.4</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-6.4.1.1</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -555,6 +555,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
  <button id="addSimpleFixed" type="button">Ajouter</button>
 </div>
 <div id="fixedList" class="list" style="margin-top:10px"></div>
+<div class="note" style="margin-top:10px">✓ Vous pouvez modifier, supprimer ou marquer chaque prélèvement comme payé. Le statut « Payé » concerne uniquement le mois affiché.</div>
 
 
 </div></details>
@@ -2249,6 +2250,7 @@ if($('monthProjectionText')){
      s.paid[m]=s.paid[m]||{};
      if(paid) delete s.paid[m][f.id]; else s.paid[m][f.id]=true;
      persist();
+     render();
      showToast(paid?'Prélèvement remis à payer':'Prélèvement marqué payé ✓');
    };
    d.querySelector('.edit').onclick=()=>openEdit('fixed',f.id);
@@ -2737,7 +2739,7 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
 
 
 <script>
-/* SIMPLE-6.4 — prélèvements/revenus fixes mensuels robustes */
+/* SIMPLE-6.4.1 — prélèvements/revenus fixes mensuels robustes */
 (function(){
  function monthKey(){ var e=document.getElementById('month'); return e&&e.value ? e.value : new Date().toISOString().slice(0,7); }
  function ensure(){
