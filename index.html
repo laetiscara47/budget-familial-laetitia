@@ -323,7 +323,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
   <button id="simple5Undo" class="secondary simple5Undo" type="button" hidden>↩️ Annuler la dernière action</button>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-5.8-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-5.9-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -528,7 +528,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
  <input id="fiLabel" class="wide" placeholder="Ex. Salaire, allocation…">
  <input id="fiAmount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Montant €">
  <input id="fiDay" type="number" min="1" max="28" inputmode="numeric" placeholder="Jour (1 à 28)">
- <button id="addFixedIncome">Ajouter</button>
+ <button id="addFixedIncome" type="button">Ajouter</button>
 </div>
 <div id="fixedIncomeList" class="list" style="margin-top:10px"></div>
 
@@ -552,7 +552,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
  <input id="sfLabel" class="wide" placeholder="Ex. EDF, assurance, crédit…">
  <input id="sfAmount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Montant €">
  <input id="sfDay" type="number" min="1" max="28" inputmode="numeric" placeholder="Jour (1 à 28)">
- <button id="addSimpleFixed">Ajouter</button>
+ <button id="addSimpleFixed" type="button">Ajouter</button>
 </div>
 <div id="fixedList" class="list" style="margin-top:10px"></div>
 
@@ -2409,13 +2409,21 @@ $('copyPreviousBudgets').onclick=copyPreviousBudgets;
 $('saveBudget').onclick=()=>{let m=$('month').value,cat=$('budgetCat').value,amount=parseFloat($('budgetAmount').value)||0;if(amount<=0)return;s.budgets[m]=s.budgets[m]||{};s.budgets[m][cat]=amount;$('budgetAmount').value='';persist();showToast('Budget '+cat+' enregistré ✓')};
 $('addFixedIncome').onclick=()=>{let label=$('fiLabel').value.trim(),amount=parseFloat($('fiAmount').value)||0,day=Math.max(1,Math.min(28,parseInt($('fiDay').value)||1));if(!label||amount<=0)return;s.fixedIncome.push({id:crypto.randomUUID(),label,amount,day});$('fiLabel').value='';$('fiAmount').value='';$('fiDay').value='';persist()};
 $('addSimpleFixed').onclick=()=>{
- let label=$('sfLabel').value.trim(),amount=parseFloat($('sfAmount').value)||0,
-     day=Math.max(1,Math.min(28,parseInt($('sfDay').value)||1));
- if(!label||amount<=0)return;
+ const label=($('sfLabel').value||'').trim();
+ const rawAmount=String($('sfAmount').value||'').replace(',','.');
+ const amount=Number(rawAmount);
+ const rawDay=parseInt($('sfDay').value,10);
+ if(!label){alert('Indiquez le nom du prélèvement.');$('sfLabel').focus();return}
+ if(!Number.isFinite(amount)||amount<=0){alert('Indiquez un montant supérieur à 0 €.');$('sfAmount').focus();return}
+ if(!Number.isInteger(rawDay)||rawDay<1||rawDay>28){alert('Indiquez un jour entre 1 et 28.');$('sfDay').focus();return}
+ if(!Array.isArray(s.fixed))s.fixed=[];
  rememberLastChange('Ajout prélèvement fixe');
- s.fixed.push({id:crypto.randomUUID(),label,amount,day,category:'Fixe'});
+ const id=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():('fixe_'+Date.now()+'_'+Math.random().toString(36).slice(2));
+ s.fixed.push({id,label,amount,day:rawDay,category:'Fixe'});
  $('sfLabel').value='';$('sfAmount').value='';$('sfDay').value='';
- persist();render();
+ persist();
+ showToast('Prélèvement '+label+' enregistré ✓');
+ render();
 };
 $('saveSavingGoal').onclick=()=>{let m=$('month').value,v=Math.max(0,parseFloat($('savingGoal').value)||0),d=Math.max(0,parseFloat($('savingDone').value)||0),sm=Math.max(0,parseFloat($('safetyMargin').value)||0);s.savingGoals[m]=v;s.savingDone[m]=d;s.safetyMargins[m]=sm;persist()};
 $('saveBalance').onclick=()=>{s.balances[$('month').value]={bank:parseFloat($('bank').value)||0,card:parseFloat($('card').value)||0};persist();showToast('Solde et carte mis à jour ✓')};
