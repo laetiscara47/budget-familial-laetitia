@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V59</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V60</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -161,6 +161,12 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </div></details>
   <details class="fold">
+<summary>🥇 Top 3 des dépenses</summary>
+<div class="foldBody">
+ <div id="topThreeCategories" class="list"></div>
+ <div class="note" style="margin-top:10px">Vos trois catégories les plus importantes du mois, classées automatiquement.</div>
+</div></details>
+<details class="fold">
 <summary>🏆 Plus gros poste de dépense</summary>
 <div class="foldBody">
  <div class="cards">
@@ -680,6 +686,18 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
  let catTotals={};
  rows.filter(e=>e.type==='expense').forEach(e=>{let c=e.category||'Autre';catTotals[c]=(catTotals[c]||0)+(+e.amount||0)});
  let catRows=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]),totalCat=catRows.reduce((a,x)=>a+x[1],0);
+ let top3=$('topThreeCategories');top3.innerHTML='';
+ let medals=['🥇','🥈','🥉'];
+ catRows.slice(0,3).forEach(([cat,val],i)=>{
+   let pct=totalCat>0?val/totalCat*100:0,d=document.createElement('div');d.className='item';
+   d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div><div class="progress"><div class="bar"></div></div></div><div class="amt red"></div>';
+   d.querySelector('.title').textContent=medals[i]+' '+cat;
+   d.querySelector('.meta').textContent=Math.round(pct)+' % des dépenses';
+   d.querySelector('.bar').style.width=pct+'%';
+   d.querySelector('.amt').textContent=eur(val);
+   top3.appendChild(d);
+ });
+ if(!catRows.length)top3.innerHTML='<div class="empty">Aucune dépense enregistrée ce mois-ci.</div>';
  if(catRows.length){
   let topCat=catRows[0],topPct=totalCat>0?topCat[1]/totalCat*100:0;
   $('topCategoryName').textContent=topCat[0];$('topCategoryAmount').textContent=eur(topCat[1]);
