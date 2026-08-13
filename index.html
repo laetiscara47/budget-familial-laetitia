@@ -308,7 +308,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
   </div>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-5.4-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-5.5-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -1604,13 +1604,43 @@ function simple5SubmitBalance(){
  if(!s.balances)s.balances={};
  let bank=simple5Num($('s5bank').value), card=simple5Num($('s5card').value);
  s.balances[mm]={bank:bank,card:card};
- // Use the app's real persistence path. The previous version called save(),
- // which is not the budget-state save function.
- persist();
+
+ // Save directly in the same localStorage key used by the whole application.
+ try{
+   localStorage.setItem(KEY,JSON.stringify(s));
+ }catch(e){
+   alert("Impossible d’enregistrer le solde.");
+   return;
+ }
+
+ // Update every balance field immediately, without depending on a second render pass.
+ if($('bank'))$('bank').value=bank||'';
+ if($('card'))$('card').value=card||'';
+ if($('bankView'))$('bankView').textContent=eur(bank);
+ if($('cardView'))$('cardView').textContent=eur(card);
+ if($('simple4Bank'))$('simple4Bank').textContent=eur(bank);
+ if($('simple4Card'))$('simple4Card').textContent=eur(card);
+
+ // Recalculate the Essential "Disponible prévu fin de mois" directly.
+ let unpaid=(s.fixed||[]).filter(f=>!((s.paid[mm]||{})[f.id])).reduce((a,f)=>a+(+f.amount||0),0);
+ let expected=(s.fixedIncome||[]).filter(f=>!((s.incomeReceived[mm]||{})[f.id])).reduce((a,f)=>a+(+f.amount||0),0);
+ let exceptional=(s.exceptions&&s.exceptions[mm]||[]).reduce((a,x)=>a+(+x.amount||0),0);
+ let available=(+bank||0)-(+card||0);
+ let rest=available-unpaid+expected-exceptional;
+ if($('situationAvailable')){
+   $('situationAvailable').textContent=eur(available);
+   $('situationAvailable').className=available<0?'red':'green';
+ }
+ if($('rest')){
+   $('rest').textContent=eur(rest);
+   $('rest').className='big '+(rest<0?'red':'green');
+ }
+ if($('simple4AvailableValue'))$('simple4AvailableValue').textContent=eur(rest);
+
  simple5Close();
- // Refresh the simplified dashboard after render has rebuilt the original UI.
- requestAnimationFrame(()=>requestAnimationFrame(()=>simple4Refresh()));
- setTimeout(simple4Refresh,150);
+ // Full normal render afterwards, now that storage and state are already correct.
+ try{render()}catch(e){}
+ setTimeout(simple4Refresh,50);
 }
 function simple5SubmitExpense(){
  let label=($('s5label').value||'Dépense').trim(), amount=simple5Num($('s5amount').value), pay=$('s5pay').value;
