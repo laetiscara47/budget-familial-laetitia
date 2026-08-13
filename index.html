@@ -136,9 +136,17 @@ body.essentialMode .monthSnapshot{display:block!important}
 .compactMonthBody>.section:first-child{margin-top:0!important}
 .compactMonthBody>.section:last-child{margin-bottom:0!important}
 body.essentialMode .compactMonthDetails{display:block!important}
+
+.entryToolButtons{display:flex;gap:6px;align-items:center}
+.entryToolButtons button{padding:7px 9px;font-size:11px}
+@media(max-width:420px){
+ .entryTools{align-items:flex-start}
+ .entryToolButtons{flex-direction:column;align-items:stretch}
+ .entryToolButtons button{padding:6px 8px}
+}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V260-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V270-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -282,7 +290,10 @@ body.essentialMode .compactMonthDetails{display:block!important}
 </div>
 <div class="entryTools">
  <span class="note">Saisie rapide <span id="entryChoiceSummary"></span></span>
- <button id="toggleEntryDetails" class="secondary" type="button">Plus d’options</button>
+ <div class="entryToolButtons">
+  <button id="repeatLastEntry" class="secondary" type="button" style="display:none">↻ Reprendre</button>
+  <button id="toggleEntryDetails" class="secondary" type="button">Plus d’options</button>
+ </div>
 </div>
 <form id="form" class="grid">
  <input id="label" class="wide" list="recentLabels" autocomplete="off" placeholder="Nom : courses, salaire, assurance…" required>
@@ -737,6 +748,7 @@ $('clearRoutineDay').onclick=()=>{
 $('attentionAction').onclick=()=>{if(attentionTarget)openBySummary(attentionTarget)};
 $('routineGo').onclick=()=>{openBySummary('Gérer le mois');setTimeout(()=>document.querySelector('.monthGuide')?.scrollIntoView({behavior:'smooth',block:'start'}),200)};
 $('restoreSafety').onclick=()=>{if(restoreSafetyBackup())showToast('Sauvegarde restaurée ✓');else showToast('Aucune sauvegarde à restaurer')};
+$('repeatLastEntry').onclick=repeatLastEntry;
 $('toggleEntryDetails').onclick=()=>setEntryMode(document.body.classList.contains('entrySimple')?'full':'simple');
 setEntryMode(localStorage.getItem('budget_entry_mode')||'simple');
 $('viewEssential').addEventListener('click',e=>{e.preventDefault();setViewMode('essential')});
@@ -906,6 +918,29 @@ function updateCompactDetailsHint(){
  h.textContent=d.open?'toucher pour refermer':'comparaison · catégories · projection';
 }
 
+
+function getLastEntryForMode(){
+ let rows=(s.entries||[]).filter(e=>e.type===mode);
+ if(!rows.length)return null;
+ return rows.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
+}
+function refreshRepeatLastEntry(){
+ let b=$('repeatLastEntry');if(!b)return;
+ let e=getLastEntryForMode();
+ if(!e||mode==='fixed'){b.style.display='none';return}
+ b.style.display='';
+ b.textContent='↻ '+((e.label||'Reprendre').length>15?(e.label||'').slice(0,14)+'…':(e.label||'Reprendre'));
+}
+function repeatLastEntry(){
+ let e=getLastEntryForMode();if(!e)return;
+ $('label').value=e.label||'';
+ $('amount').value=e.amount||'';
+ $('category').value=e.category||'Autre';
+ if(mode==='expense'&&$('paymentMethod'))$('paymentMethod').value=e.payment||'card';
+ updateAddReady();updateEntryChoiceSummary();
+ $('amount').focus();$('amount').select();
+}
+
 const KEY='monBudgetSimpleV3';
 let s=JSON.parse(localStorage.getItem(KEY)||'{"entries":[],"fixed":[],"fixedIncome":[],"budgets":{},"balances":{},"paid":{},"incomeReceived":{}}');
 s.routineDay=s.routineDay||0;s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.budgets=s.budgets||{};s.balances=s.balances||{};s.paid=s.paid||{};s.incomeReceived=s.incomeReceived||{};s.savingGoals=s.savingGoals||{};s.savingDone=s.savingDone||{};s.safetyMargins=s.safetyMargins||{};s.monthNotes=s.monthNotes||{};s.exceptions=s.exceptions||{};
@@ -948,7 +983,7 @@ function updateAddButton(){
  else if(mode==='income')btn.textContent='Ajouter le revenu · '+monthName;
  else btn.textContent='Ajouter le prélèvement fixe';
 }
-function setMode(m){mode=m;['Expense','Income','Fixed'].forEach(x=>$('tab'+x).classList.remove('active'));$('tab'+m[0].toUpperCase()+m.slice(1)).classList.add('active');$('fixedNote').style.display=m==='fixed'?'block':'none';$('fixedDay').style.display=m==='fixed'?'block':'none';$('addBtn').textContent=m==='expense'?'Ajouter la dépense':m==='income'?'Ajouter le revenu':'Ajouter le prélèvement fixe';updateQuickHabits();if($('paymentMethod'))$('paymentMethod').style.display=m==='expense'?'block':'none';updateAddButton();updateSmartSuggestion();if(m==='fixed'){setEntryMode('full')}else{setEntryMode(localStorage.getItem('budget_entry_mode')||'simple')}}
+function setMode(m){mode=m;['Expense','Income','Fixed'].forEach(x=>$('tab'+x).classList.remove('active'));$('tab'+m[0].toUpperCase()+m.slice(1)).classList.add('active');$('fixedNote').style.display=m==='fixed'?'block':'none';$('fixedDay').style.display=m==='fixed'?'block':'none';$('addBtn').textContent=m==='expense'?'Ajouter la dépense':m==='income'?'Ajouter le revenu':'Ajouter le prélèvement fixe';updateQuickHabits();if($('paymentMethod'))$('paymentMethod').style.display=m==='expense'?'block':'none';updateAddButton();updateSmartSuggestion();refreshRepeatLastEntry();if(m==='fixed'){setEntryMode('full')}else{setEntryMode(localStorage.getItem('budget_entry_mode')||'simple')}}
 $('tabExpense').onclick=()=>setMode('expense');try{
  let savedCategory=localStorage.getItem('budget_last_category');
  if(savedCategory && $('category') && [...$('category').options].some(o=>o.value===savedCategory)) $('category').value=savedCategory;
@@ -1680,6 +1715,7 @@ render();
 })();
 
 try{if(!getSafetyCopy())makeSafetyCopy();updateSafeStatus();updateDataHealth();runUpdateCheck()}catch(e){}
+try{refreshRepeatLastEntry()}catch(e){}
 </script>
 
 <div id="globalUndo" class="globalUndo" style="display:none">
