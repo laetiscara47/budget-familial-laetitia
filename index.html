@@ -65,9 +65,15 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 .homeDone{padding:7px 9px;font-size:12px;white-space:nowrap}
 @media(max-width:520px){.homeDone{padding:7px 8px;font-size:11px}}
+
+.monthSteps{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.monthSteps button{text-align:left;padding:10px 11px;font-size:13px}
+.monthSteps span{float:right;font-weight:900}
+@media(max-width:520px){.monthSteps{grid-template-columns:1fr 1fr}.monthSteps button{font-size:12px;padding:9px}}
+
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V85</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V90</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -342,6 +348,16 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 <details class="menuGroup">
  <summary>🗓️ Gérer le mois</summary>
  <div class="menuBody">
+  <div class="section monthGuide" style="margin:0 0 10px">
+   <h2 style="margin-bottom:6px">🧭 Mon mois en 4 étapes</h2>
+   <div id="monthGuideStatus" class="note" style="margin-bottom:9px"></div>
+   <div class="monthSteps">
+    <button id="stepBalance" class="secondary" type="button">1 · Solde & carte <span id="stepBalanceState"></span></button>
+    <button id="stepDue" class="secondary" type="button">2 · Échéances <span id="stepDueState"></span></button>
+    <button id="stepBudget" class="secondary" type="button">3 · Budgets <span id="stepBudgetState"></span></button>
+    <button id="stepClose" class="secondary" type="button">4 · Clôture <span id="stepCloseState"></span></button>
+   </div>
+  </div>
   <details class="fold">
 <summary>✏️ Modifier solde et carte</summary>
 <div class="foldBody">
@@ -728,6 +744,19 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
    todo.appendChild(d);
   });
  }
+ if($('monthGuideStatus')){
+   let hasBalance=Object.prototype.hasOwnProperty.call(s.balances,m);
+   let pendingCount=dueItems.length;
+   let hasBudgets=Object.keys(s.budgets[m]||{}).length>0;
+   $('stepBalanceState').textContent=hasBalance?'✓':'•';
+   $('stepDueState').textContent=pendingCount===0?'✓':pendingCount;
+   $('stepBudgetState').textContent=hasBudgets?'✓':'•';
+   $('stepCloseState').textContent=(pendingCount===0&&hasBalance)?'✓':'•';
+   let doneCount=(hasBalance?1:0)+(pendingCount===0?1:0)+(hasBudgets?1:0)+((pendingCount===0&&hasBalance)?1:0);
+   $('monthGuideStatus').textContent=doneCount===4
+     ?'Tout est bien renseigné pour ce mois ✓'
+     :doneCount+' étape'+(doneCount>1?'s':'')+' sur 4 prête'+(doneCount>1?'s':'')+'. Touchez une étape pour aller directement au bon endroit.';
+ }
  let availableNow=(+b.bank||0)-(+b.card||0);
  $('situationAvailable').textContent=eur(availableNow);$('situationAvailable').className=availableNow<0?'red':'green';
  let exceptionalPlanned=(s.exceptions[m]||[]).reduce((a,x)=>a+(+x.amount||0),0);
@@ -981,7 +1010,7 @@ document.querySelectorAll('.quickcat').forEach(btn=>btn.onclick=()=>{
 $('copyReport').onclick=copyMonthlyReport;
 document.addEventListener('DOMContentLoaded',()=>{$('saveEdit').onclick=saveEdit;$('cancelEdit').onclick=closeEdit});
 $('copyPreviousBudgets').onclick=copyPreviousBudgets;
-$('saveBudget').onclick=()=>{let m=$('month').value,cat=$('budgetCat').value,amount=parseFloat($('budgetAmount').value)||0;if(amount<=0)return;s.budgets[m]=s.budgets[m]||{};s.budgets[m][cat]=amount;$('budgetAmount').value='';persist()};
+$('saveBudget').onclick=()=>{let m=$('month').value,cat=$('budgetCat').value,amount=parseFloat($('budgetAmount').value)||0;if(amount<=0)return;s.budgets[m]=s.budgets[m]||{};s.budgets[m][cat]=amount;$('budgetAmount').value='';persist();showToast('Budget '+cat+' enregistré ✓')};
 $('addFixedIncome').onclick=()=>{let label=$('fiLabel').value.trim(),amount=parseFloat($('fiAmount').value)||0,day=Math.max(1,Math.min(28,parseInt($('fiDay').value)||1));if(!label||amount<=0)return;s.fixedIncome.push({id:crypto.randomUUID(),label,amount,day});$('fiLabel').value='';$('fiAmount').value='';$('fiDay').value='';persist()};
 $('saveSavingGoal').onclick=()=>{let m=$('month').value,v=Math.max(0,parseFloat($('savingGoal').value)||0),d=Math.max(0,parseFloat($('savingDone').value)||0),sm=Math.max(0,parseFloat($('safetyMargin').value)||0);s.savingGoals[m]=v;s.savingDone[m]=d;s.safetyMargins[m]=sm;persist()};
 $('saveBalance').onclick=()=>{s.balances[$('month').value]={bank:parseFloat($('bank').value)||0,card:parseFloat($('card').value)||0};persist();showToast('Solde et carte mis à jour ✓')};
@@ -1024,6 +1053,10 @@ $('qaBalance').onclick=()=>{openBySummary('Modifier solde et carte');setTimeout(
 $('qaHistory').onclick=()=>openBySummary('Mouvements du mois');
 $('qaBackup').onclick=()=>{$('export').click()};
 $('qaTodo').onclick=()=>openBySummary('À venir ce mois-ci');
+$('stepBalance').onclick=()=>openBySummary('Modifier solde et carte');
+$('stepDue').onclick=()=>openBySummary('Suivi des échéances');
+$('stepBudget').onclick=()=>openBySummary('Budgets du mois');
+$('stepClose').onclick=()=>openBySummary('Clôture du mois');
 $('undoDueAction').onclick=()=>{
  if(!lastDueAction)return;
  let a=lastDueAction;
