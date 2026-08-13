@@ -153,9 +153,16 @@ body.essentialMode .compactMonthDetails{display:block!important}
 
 .closeAssistantGrid{display:grid;grid-template-columns:1fr;gap:7px}
 .closeAssistantGrid button{min-height:42px;text-align:left;padding:9px 10px}
+
+/* V500.1 — accueil plus compact */
+.monthSnapshot{padding:11px!important;margin-bottom:8px!important}
+.snapshotGrid{gap:6px!important}
+.snapshotGrid>div{padding:7px!important}
+.compactMonthDetails{margin-bottom:8px!important}
+.dailyActions{padding:11px!important;margin-bottom:8px!important}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V500-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V500.1-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -1069,6 +1076,27 @@ function updateCloseAssistant(){
  }
 }
 
+
+function refreshHomeSnapshotAfterRender(){
+ try{
+  // The existing render has already calculated these values.
+  // Re-run render-safe snapshot population on the next frame if dashes remain.
+  let ids=['snapAvailable','snapSpendable','snapDue','snapPerDay'];
+  if(!ids.some(id=>$(id)&&$(id).textContent.trim()==='—'))return;
+  requestAnimationFrame(()=>{
+   try{
+    // Trigger the normal render once more after all V500 helpers have initialized.
+    // Guard prevents loops because populated snapshot exits immediately above.
+    if(!window.__snapshotRetry){
+      window.__snapshotRetry=true;
+      render();
+      setTimeout(()=>{window.__snapshotRetry=false},50);
+    }
+   }catch(e){}
+  });
+ }catch(e){}
+}
+
 const KEY='monBudgetSimpleV3';
 let s=JSON.parse(localStorage.getItem(KEY)||'{"entries":[],"fixed":[],"fixedIncome":[],"budgets":{},"balances":{},"paid":{},"incomeReceived":{}}');
 s.routineDay=s.routineDay||0;s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.budgets=s.budgets||{};s.balances=s.balances||{};s.paid=s.paid||{};s.incomeReceived=s.incomeReceived||{};s.savingGoals=s.savingGoals||{};s.savingDone=s.savingDone||{};s.safetyMargins=s.safetyMargins||{};s.monthNotes=s.monthNotes||{};s.exceptions=s.exceptions||{};
@@ -1451,6 +1479,7 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
 }
 updateMonthCheckStatus();
 updateCloseAssistant();
+refreshHomeSnapshotAfterRender();
 if($('categorySnapshotText')){
  let cats=monthCategoryTotals(m),box=$('categorySnapshotBars');
  box.innerHTML='';
