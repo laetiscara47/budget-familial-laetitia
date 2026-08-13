@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V70</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V71</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -832,6 +832,13 @@ $('saveBalance').onclick=()=>{s.balances[$('month').value]={bank:parseFloat($('b
 $('form').onsubmit=e=>{e.preventDefault();let btn=$('addBtn');if(btn.dataset.busy==='1')return;
  let enteredLabel=$('label').value.trim();
  if(!enteredLabel){alert('Indiquez un nom pour l’opération.');$('label').focus();return}
+ if(mode!=='fixed'){
+   let enteredDate=$('date').value,selectedMonth=$('month').value;
+   if(!enteredDate||enteredDate.slice(0,7)!==selectedMonth){
+     alert('La date de l’opération doit être dans le mois sélectionné ('+selectedMonth+').');
+     $('date').focus();return
+   }
+ }
  let enteredAmount=parseFloat($('amount').value)||0;
  if(enteredAmount<=0){alert('Indiquez un montant supérieur à 0 €.');$('amount').focus();return}
  btn.dataset.busy='1';btn.disabled=true;
