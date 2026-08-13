@@ -323,7 +323,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
   <button id="simple5Undo" class="secondary simple5Undo" type="button" hidden>↩️ Annuler la dernière action</button>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-5.9-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-6.0-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -2614,4 +2614,52 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
  <button id="globalUndoBtn" type="button">Annuler</button>
 </div>
 <div id="toast" class="toast"></div>
+
+<script>
+/* SIMPLE-6.0-SAFE — correctif autonome du bouton "Prélèvements fixes" */
+(function(){
+  function installFixedAddRepair(){
+    var btn=document.getElementById('addSimpleFixed');
+    if(!btn) return;
+    btn.type='button';
+    btn.onclick=function(ev){
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      var labelEl=document.getElementById('sfLabel');
+      var amountEl=document.getElementById('sfAmount');
+      var dayEl=document.getElementById('sfDay');
+      var label=(labelEl.value||'').trim();
+      var amount=Number(String(amountEl.value||'').replace(',','.'));
+      var day=parseInt(dayEl.value,10);
+
+      if(!label){ alert('Indiquez le nom du prélèvement.'); labelEl.focus(); return false; }
+      if(!Number.isFinite(amount)||amount<=0){ alert('Indiquez un montant supérieur à 0 €.'); amountEl.focus(); return false; }
+      if(!Number.isInteger(day)||day<1||day>28){ alert('Indiquez un jour entre 1 et 28.'); dayEl.focus(); return false; }
+
+      try{
+        if(!Array.isArray(s.fixed)) s.fixed=[];
+        var id=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():('fixe_'+Date.now());
+        s.fixed.push({id:id,label:label,amount:amount,day:day,category:'Fixe'});
+        localStorage.setItem(KEY,JSON.stringify(s));
+
+        labelEl.value=''; amountEl.value=''; dayEl.value='';
+        if(typeof render==='function') render();
+        if(typeof showToast==='function') showToast('Prélèvement '+label+' enregistré ✓');
+        return false;
+      }catch(err){
+        console.error('Ajout prélèvement fixe impossible',err);
+        alert("Impossible d’enregistrer le prélèvement. Le correctif a rencontré une erreur.");
+        return false;
+      }
+    };
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',installFixedAddRepair);
+  }else{
+    installFixedAddRepair();
+  }
+})();
+</script>
+
 </body></html>
