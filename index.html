@@ -73,7 +73,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 
 .viewMode{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:0 0 10px}
-.viewMode button{padding:8px 10px;font-size:12px}
+.viewMode button{padding:11px 10px;font-size:13px;min-height:44px;touch-action:manipulation}
 body.essentialMode .optionalHome{display:none!important}
 body.essentialMode .quickStats{margin-bottom:8px}
 
@@ -91,11 +91,11 @@ body.entrySimple #undoLastBtn{grid-column:1/-1}
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V110</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V111</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
- <button id="viewEssential" type="button">Essentiel</button>
- <button id="viewFull" type="button" class="secondary">Complet</button>
+ <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
+ <button id="viewFull" type="button" class="secondary" aria-pressed="false">Complet</button>
 </div>
 
 <div class="hero">
@@ -555,8 +555,8 @@ function openBySummary(text){
 function closeOtherMainMenus(current){
 $('toggleEntryDetails').onclick=()=>setEntryMode(document.body.classList.contains('entrySimple')?'full':'simple');
 setEntryMode(localStorage.getItem('budget_entry_mode')||'simple');
-$('viewEssential').onclick=()=>setViewMode('essential');
-$('viewFull').onclick=()=>setViewMode('full');
+$('viewEssential').addEventListener('click',e=>{e.preventDefault();setViewMode('essential')});
+$('viewFull').addEventListener('click',e=>{e.preventDefault();setViewMode('full')});
 setViewMode(localStorage.getItem('budget_view_mode')||'essential');
  document.querySelectorAll('details.menuGroup').forEach(d=>{if(d!==current)d.open=false});
 }
@@ -565,9 +565,10 @@ setViewMode(localStorage.getItem('budget_view_mode')||'essential');
 function setViewMode(v){
  let essential=v!=='full';
  document.body.classList.toggle('essentialMode',essential);
- $('viewEssential').className=essential?'':'secondary';
- $('viewFull').className=essential?'secondary':'';
- localStorage.setItem('budget_view_mode',essential?'essential':'full');
+ let be=$('viewEssential'),bf=$('viewFull');
+ if(be){be.className=essential?'':'secondary';be.setAttribute('aria-pressed',essential?'true':'false')}
+ if(bf){bf.className=essential?'secondary':'';bf.setAttribute('aria-pressed',essential?'false':'true')}
+ try{localStorage.setItem('budget_view_mode',essential?'essential':'full')}catch(e){}
 }
 
 
