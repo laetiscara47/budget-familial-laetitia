@@ -285,6 +285,9 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
 
 .simple5CompactHead{margin-bottom:0}
 .simple5EmptyCompact{padding:4px 2px 2px;text-align:left;font-size:14px}
+
+.simple5Undo{width:100%;margin-top:9px;min-height:42px}
+.simple5Undo[hidden]{display:none!important}
 </style></head>
 <body>
 <div id="simple4Dashboard" class="simple4Dashboard">
@@ -306,9 +309,10 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
     <div><span>🏦 Banque</span><b id="simple4Bank">—</b></div>
     <div><span>💳 Carte</span><b id="simple4Card">—</b></div>
   </div>
+  <button id="simple5Undo" class="secondary simple5Undo" type="button" hidden>↩️ Annuler la dernière action</button>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-5.4-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-5.6-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -1530,6 +1534,46 @@ function simple4Refresh(){
  }
 }
 
+
+let simple5LastAction=null;
+function simple5UpdateUndo(){
+ let b=$('simple5Undo');if(!b)return;
+ b.hidden=!simple5LastAction;
+ if(!simple5LastAction)return;
+ if(simple5LastAction.kind==='expense')b.textContent='↩️ Annuler la dernière dépense';
+ else if(simple5LastAction.kind==='due')b.textContent='↩️ Annuler la dernière échéance cochée';
+ else if(simple5LastAction.kind==='balance')b.textContent='↩️ Annuler la dernière mise à jour du solde';
+}
+function simple5UndoLast(){
+ let a=simple5LastAction;if(!a)return;
+ if(!confirm('Annuler la dernière action ?'))return;
+ if(a.kind==='expense'){
+   s.entries=(s.entries||[]).filter(e=>e.id!==a.entryId);
+   if(!s.balances)s.balances={};
+   s.balances[a.month]={bank:a.beforeBank,card:a.beforeCard};
+ }else if(a.kind==='due'){
+   if(a.dueKind==='income'){
+     if(s.incomeReceived[a.month]) {
+       if(a.wasMarked)s.incomeReceived[a.month][a.id]=true;
+       else delete s.incomeReceived[a.month][a.id];
+     }
+   }else{
+     if(s.paid[a.month]) {
+       if(a.wasMarked)s.paid[a.month][a.id]=true;
+       else delete s.paid[a.month][a.id];
+     }
+   }
+ }else if(a.kind==='balance'){
+   if(!s.balances)s.balances={};
+   if(a.hadBalance)s.balances[a.month]={bank:a.beforeBank,card:a.beforeCard};
+   else delete s.balances[a.month];
+ }
+ simple5LastAction=null;
+ localStorage.setItem(KEY,JSON.stringify(s));
+ try{render()}catch(e){}
+ simple5Close();setTimeout(()=>{simple4Refresh();simple5UpdateUndo()},60);
+}
+
 function simple5Close(){let p=$('simple5Panel');if(p){p.hidden=true;p.innerHTML='';}}
 function simple5Open(kind){
  let p=$('simple5Panel'); if(!p)return;
@@ -1593,9 +1637,11 @@ function simple5RenderDue(){
 }
 function simple5MarkDue(kind,id){
  let mm=($('month')&&$('month').value)||m;
+ let wasMarked=kind==='income'?!!((s.incomeReceived[mm]||{})[id]):!!((s.paid[mm]||{})[id]);
+ simple5LastAction={kind:'due',month:mm,dueKind:kind,id:id,wasMarked:wasMarked};
  if(kind==='income'){s.incomeReceived[mm]=s.incomeReceived[mm]||{};s.incomeReceived[mm][id]=true;}
  else{s.paid[mm]=s.paid[mm]||{};s.paid[mm][id]=true;}
- save();render();simple5RenderDue();setTimeout(simple4Refresh,60);
+ persist();simple5RenderDue();simple5UpdateUndo();setTimeout(simple4Refresh,60);
 }
 
 function simple5Num(v){return Number(String(v||'').replace(/\s/g,'').replace(',','.'))||0}
@@ -1603,14 +1649,48 @@ function simple5SubmitBalance(){
  let mm=($('month')&&$('month').value)||m;
  if(!s.balances)s.balances={};
  let bank=simple5Num($('s5bank').value), card=simple5Num($('s5card').value);
+ let hadBalance=Object.prototype.hasOwnProperty.call(s.balances,mm);
+ let oldBalance=s.balances[mm]||{bank:0,card:0};
+ simple5LastAction={kind:'balance',month:mm,hadBalance:hadBalance,beforeBank:+oldBalance.bank||0,beforeCard:+oldBalance.card||0};
  s.balances[mm]={bank:bank,card:card};
- // Use the app's real persistence path. The previous version called save(),
- // which is not the budget-state save function.
- persist();
+
+ // Save directly in the same localStorage key used by the whole application.
+ try{
+   localStorage.setItem(KEY,JSON.stringify(s));
+ }catch(e){
+   alert("Impossible d’enregistrer le solde.");
+   return;
+ }
+
+ // Update every balance field immediately, without depending on a second render pass.
+ if($('bank'))$('bank').value=bank||'';
+ if($('card'))$('card').value=card||'';
+ if($('bankView'))$('bankView').textContent=eur(bank);
+ if($('cardView'))$('cardView').textContent=eur(card);
+ if($('simple4Bank'))$('simple4Bank').textContent=eur(bank);
+ if($('simple4Card'))$('simple4Card').textContent=eur(card);
+
+ // Recalculate the Essential "Disponible prévu fin de mois" directly.
+ let unpaid=(s.fixed||[]).filter(f=>!((s.paid[mm]||{})[f.id])).reduce((a,f)=>a+(+f.amount||0),0);
+ let expected=(s.fixedIncome||[]).filter(f=>!((s.incomeReceived[mm]||{})[f.id])).reduce((a,f)=>a+(+f.amount||0),0);
+ let exceptional=(s.exceptions&&s.exceptions[mm]||[]).reduce((a,x)=>a+(+x.amount||0),0);
+ let available=(+bank||0)-(+card||0);
+ let rest=available-unpaid+expected-exceptional;
+ if($('situationAvailable')){
+   $('situationAvailable').textContent=eur(available);
+   $('situationAvailable').className=available<0?'red':'green';
+ }
+ if($('rest')){
+   $('rest').textContent=eur(rest);
+   $('rest').className='big '+(rest<0?'red':'green');
+ }
+ if($('simple4AvailableValue'))$('simple4AvailableValue').textContent=eur(rest);
+
  simple5Close();
- // Refresh the simplified dashboard after render has rebuilt the original UI.
- requestAnimationFrame(()=>requestAnimationFrame(()=>simple4Refresh()));
- setTimeout(simple4Refresh,150);
+ simple5UpdateUndo();
+ // Full normal render afterwards, now that storage and state are already correct.
+ try{render()}catch(e){}
+ setTimeout(simple4Refresh,50);
 }
 function simple5SubmitExpense(){
  let label=($('s5label').value||'Dépense').trim(), amount=simple5Num($('s5amount').value), pay=$('s5pay').value;
@@ -1631,7 +1711,14 @@ function simple5SubmitExpense(){
    }
    let buttons=[...document.querySelectorAll('#simple4OriginalArea button')];
    let add=buttons.find(b=>/ajouter la dépense|enregistrer.*dépense/i.test(b.textContent||''));
-   if(add){add.click();simple5Close();setTimeout(simple4Refresh,100);return;}
+   if(add){
+     let mm=($('month')&&$('month').value)||m, beforeIds=new Set((s.entries||[]).map(e=>e.id));
+     let bb=(s.balances&&s.balances[mm])||{bank:0,card:0}, beforeBank=+bb.bank||0,beforeCard=+bb.card||0;
+     add.click();
+     let created=(s.entries||[]).find(e=>e.month===mm&&!beforeIds.has(e.id));
+     if(created) simple5LastAction={kind:'expense',month:mm,entryId:created.id,beforeBank:beforeBank,beforeCard:beforeCard};
+     simple5Close();simple5UpdateUndo();setTimeout(simple4Refresh,100);return;
+   }
  }
  alert("La saisie simple n’a pas pu être reliée automatiquement. Utilisez Complet pour cette dépense.");
 }
@@ -1656,6 +1743,8 @@ function simple4Setup(){
  $('simple4Add').onclick=()=>simple5Open('expense');
  $('simple4Due').onclick=()=>simple5Open('due');
  $('simple4Balance').onclick=()=>simple5Open('balance');
+ $('simple5Undo').onclick=simple5UndoLast;
+ simple5UpdateUndo();
 
  if(essentialBtn)essentialBtn.addEventListener('click',()=>setTimeout(()=>{document.body.classList.add('simple4TrueEssential');simple4Refresh()},0));
  const completeBtn=simple4FindButton('Complet');
