@@ -205,15 +205,9 @@ body.essentialMode .compactMonthDetails{display:block!important}
 .integrityBadge.warn{background:#fff5e8}
 
 
-/* V1000.2 — liste native revenus fixes */
-#fixedIncomeList .item{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
-#fixedIncomeList .item small{display:block;color:var(--muted);margin-top:3px}
-#fixedIncomeList .actions{display:flex;gap:5px;align-items:center}
-#fixedIncomeList .actions button{padding:7px 8px;font-size:11px}
-#fixedIncomeList .actions button.paid{background:#edf8f1}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V1000.2-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V1000.3-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -798,7 +792,7 @@ function openBySummary(text){
 function closeOtherMainMenus(current){
 $('globalUndoBtn').onclick=restoreLastChange;
 function downloadSafetyFile(prefix){
- makeSafetyCopy();updateSafeStatus();updateDataHealth();updateLastBackupInfo();updateIntegrityBadge();renderNativeFixedIncomeList();
+ makeSafetyCopy();updateSafeStatus();updateDataHealth();updateLastBackupInfo();updateIntegrityBadge();
  let blob=new Blob([JSON.stringify({version:'V170-SAFE',exportedAt:new Date().toISOString(),data:s},null,2)],{type:'application/json'});
  let a=document.createElement('a');a.href=URL.createObjectURL(blob);
  a.download=(prefix||'mon-budget-sauvegarde-securite')+'-'+new Date().toISOString().slice(0,10)+'.json';
@@ -1300,29 +1294,6 @@ function updateIntegrityBadge(){
 
 
 
-function renderNativeFixedIncomeList(){
- let box=$('fixedIncomeList');if(!box)return;
- box.innerHTML='';
- (s.fixedIncome||[]).forEach((x,i)=>{
-  let received=!!(x.received&&x.received[m]);
-  let row=document.createElement('div');row.className='item';
-  let left=document.createElement('div');
-  left.innerHTML='<b>'+String(x.label||'Revenu').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]))+'</b><small>'+eur(+x.amount||0)+' · jour '+(x.day||'—')+'</small>';
-  let actions=document.createElement('div');actions.className='actions';
-  let status=document.createElement('button');status.type='button';status.className=received?'paid':'secondary';
-  status.textContent=received?'✓ Reçu':'À recevoir';
-  status.onclick=()=>{
-    rememberLastChange('Statut revenu');
-    x.received=x.received||{};
-    x.received[m]=!received;
-    persist();render();
-  };
-  let del=document.createElement('button');del.type='button';del.className='danger';del.textContent='Supprimer';
-  del.onclick=()=>{if(confirm('Supprimer ce revenu fixe ?')){rememberLastChange('Suppression revenu');s.fixedIncome.splice(i,1);persist();render()}};
-  actions.append(status,del);row.append(left,actions);box.appendChild(row);
- });
- if(!(s.fixedIncome||[]).length)box.innerHTML='<div class="note">Aucun revenu fixe enregistré.</div>';
-}
 
 const KEY='monBudgetSimpleV3';
 let s=JSON.parse(localStorage.getItem(KEY)||'{"entries":[],"fixed":[],"fixedIncome":[],"budgets":{},"balances":{},"paid":{},"incomeReceived":{}}');
@@ -1760,8 +1731,8 @@ if($('monthProjectionText')){
    else if(spendable<0) $('monthPace').textContent='⚠️ Marge dépassée de '+eur(Math.abs(spendable));
    else $('monthPace').textContent='';
  }
- let fil=$('fixedIncomeList');fil.innerHTML='';if(!s.fixedIncome.length)fil.innerHTML='<div class="empty">Aucun revenu fixe enregistré.</div>';
- s.fixedIncome.forEach(f=>{let received=!!(s.incomeReceived[m]||{})[f.id],d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt green"></div><button class="secondary pay"></button><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=f.label;d.querySelector('.meta').textContent='Prévu le '+f.day+' de chaque mois';d.querySelector('.amt').textContent=eur(f.amount);d.querySelector('.pay').textContent=received?'Reçu ✓':'À recevoir';d.querySelector('.pay').className='secondary pay '+(received?'statusDone':'statusTodo');d.querySelector('.pay').onclick=()=>{s.incomeReceived[m]=s.incomeReceived[m]||{};s.incomeReceived[m][f.id]=!received;persist()};d.querySelector('.edit').onclick=()=>openEdit('income',f.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce revenu fixe ?')){s.fixedIncome=s.fixedIncome.filter(x=>x.id!==f.id);persist()}};fil.appendChild(d)});
+ let fil=$('fixedIncomeList');fil.innerHTML='';if(!s.fixedIncome.length)fil.innerHTML='<div class="empty"><b>Aucun revenu fixe chargé.</b><br><span class="note">Si vous en aviez déjà saisi, ils ne sont pas présents dans les données actuellement ouvertes. Ne les ressaisissez pas : utilisez d’abord Historique & sauvegarde pour restaurer la dernière sauvegarde contenant vos revenus.</span></div>';
+ s.fixedIncome.forEach(f=>{let received=!!(s.incomeReceived[m]||{})[f.id],d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt green"></div><button class="secondary pay"></button><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=f.label;d.querySelector('.meta').textContent='Prévu le '+f.day+' de chaque mois';d.querySelector('.amt').textContent=eur(f.amount);d.querySelector('.pay').textContent=received?'Reçu ✓':'À recevoir';d.querySelector('.pay').className='secondary pay '+(received?'statusDone':'statusTodo');d.querySelector('.pay').onclick=()=>{rememberLastChange('Statut revenu');s.incomeReceived[m]=s.incomeReceived[m]||{};s.incomeReceived[m][f.id]=!received;persist();render()};d.querySelector('.edit').onclick=()=>openEdit('income',f.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce revenu fixe ?')){s.fixedIncome=s.fixedIncome.filter(x=>x.id!==f.id);persist()}};fil.appendChild(d)});
  let fl=$('fixedList');fl.innerHTML='';if(!s.fixed.length)fl.innerHTML='<div class="empty">Aucun prélèvement fixe enregistré.</div>';
  s.fixed.forEach(f=>{let paid=!!(s.paid[m]||{})[f.id],d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="secondary pay"></button><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=f.label;d.querySelector('.meta').textContent='Le '+(f.day||'?')+' de chaque mois · '+f.category;d.querySelector('.amt').textContent=eur(f.amount);d.querySelector('.pay').textContent=paid?'Payé ✓':'À payer';d.querySelector('.pay').className='secondary pay '+(paid?'statusDone':'statusTodo');d.querySelector('.pay').onclick=()=>{s.paid[m]=s.paid[m]||{};s.paid[m][f.id]=!paid;persist()};d.querySelector('.edit').onclick=()=>openEdit('fixed',f.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce prélèvement fixe ?')){s.fixed=s.fixed.filter(x=>x.id!==f.id);persist()}};fl.appendChild(d)});
  let paceExpenses=rows.filter(e=>e.type==='expense').reduce((a,e)=>a+(+e.amount||0),0);
