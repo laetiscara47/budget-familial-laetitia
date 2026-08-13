@@ -59,9 +59,13 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
  .quickActions{grid-template-columns:repeat(5,1fr)}
 }
 
+
+.habitBtn{white-space:nowrap;padding:9px 11px!important}
+.reuseHome{background:#eef0f6;color:#444;padding:7px 9px;font-size:13px}
+
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V81</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V82</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -117,6 +121,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 <div class="section">
 <h2>Ajouter rapidement</h2>
 <div class="tabs"><button id="tabExpense" class="active">Dépense</button><button id="tabIncome">Revenu</button><button id="tabFixed">Fixe</button></div>
+<div id="habitHint" class="note" style="display:none;margin:0 0 6px">Saisies récentes — touchez pour préremplir</div>
 <div id="habitRow" style="display:none;gap:7px;overflow-x:auto;margin-bottom:10px;padding-bottom:2px"></div>
 <div id="quickExpense" style="display:flex;gap:7px;overflow-x:auto;margin-bottom:10px;padding-bottom:2px">
 <button type="button" class="secondary quickcat" data-cat="Courses" data-label="Courses">Courses</button>
@@ -854,7 +859,20 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
  let recent=$('recentEntries');recent.innerHTML='';
  let recentRows=[...rows].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,3);
  if(!recentRows.length) recent.innerHTML='<div class="empty">Aucune opération ce mois-ci.</div>';
- recentRows.forEach(e=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div>';d.querySelector('.title').textContent=e.label;let payLabel=e.type==='expense'?(e.payment==='bank'?'🏦 Compte':e.payment==='cash'?'💶 Espèces':'💳 Carte'):'💰 Revenu';d.querySelector('.meta').textContent=new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR')+' · '+e.category+' · '+payLabel;let a=d.querySelector('.amt');a.textContent=(e.type==='income'?'+ ':'- ')+eur(e.amount);a.className='amt '+(e.type==='income'?'green':'red');recent.appendChild(d)});
+ recentRows.forEach(e=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="reuseHome" type="button">↻</button>';d.querySelector('.title').textContent=e.label;let payLabel=e.type==='expense'?(e.payment==='bank'?'🏦 Compte':e.payment==='cash'?'💶 Espèces':'💳 Carte'):'💰 Revenu';d.querySelector('.meta').textContent=new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR')+' · '+e.category+' · '+payLabel;let a=d.querySelector('.amt');a.textContent=(e.type==='income'?'+ ':'- ')+eur(e.amount);a.className='amt '+(e.type==='income'?'green':'red');
+ d.querySelector('.reuseHome').onclick=()=>{
+   setMode(e.type);
+   $('label').value=e.label||'';
+   $('amount').value=e.amount||'';
+   $('category').value=e.category||'Autre';
+   if(e.type==='expense'&&$('paymentMethod'))$('paymentMethod').value=e.payment||'card';
+   let todayISO=new Date().toISOString().slice(0,10),selected=$('month').value;
+   $('date').value=selected===todayISO.slice(0,7)?todayISO:selected+'-01';
+   updateAddReady();
+   document.getElementById('form').scrollIntoView({behavior:'smooth',block:'center'});
+   setTimeout(()=>{$('amount').focus();$('amount').select()},300);
+ };
+ recent.appendChild(d)});
  let el=$('entryList');el.innerHTML='';
  let searchTerm=($('movementSearch').value||'').trim().toLocaleLowerCase('fr');
  let visibleRows=rows.filter(e=>($('movementFilter').value==='all'||e.type===$('movementFilter').value)&&($('movementCategory').value==='all'||e.category===$('movementCategory').value)&&($('movementPayment').value==='all'||(e.type==='expense'&&(e.payment||'card')===$('movementPayment').value))&&(!searchTerm||(e.label||'').toLocaleLowerCase('fr').includes(searchTerm)));
@@ -898,9 +916,22 @@ function updateQuickHabits(){
  pool.forEach(e=>{let k=e.label.trim().toLowerCase();if(k&&!seen.has(k)){seen.add(k);labels.push(e)}});
  dl.innerHTML='';labels.slice(0,12).forEach(e=>{let o=document.createElement('option');o.value=e.label;dl.appendChild(o)});
  row.innerHTML='';
- if(mode==='fixed'){row.style.display='none';return}
- labels.slice(0,4).forEach(e=>{let b=document.createElement('button');b.type='button';b.className='secondary';b.textContent='🕘 '+e.label;b.onclick=()=>{$('label').value=e.label;$('category').value=e.category||'Autre';$('amount').focus()};row.appendChild(b)});
- row.style.display=labels.length?'flex':'none';
+ if(mode==='fixed'){row.style.display='none';if($('habitHint'))$('habitHint').style.display='none';return}
+ labels.slice(0,4).forEach(e=>{
+ let b=document.createElement('button');b.type='button';b.className='secondary habitBtn';
+ b.textContent='🕘 '+e.label;
+ b.onclick=()=>{
+   setMode(e.type||mode);
+   $('label').value=e.label||'';
+   $('amount').value=e.amount||'';
+   $('category').value=e.category||'Autre';
+   if(e.type==='expense'&&$('paymentMethod'))$('paymentMethod').value=e.payment||'card';
+   updateAddReady();
+   $('amount').focus();$('amount').select();
+ };
+ row.appendChild(b)
+});
+ row.style.display=labels.length?'flex':'none';if($('habitHint'))$('habitHint').style.display=labels.length?'block':'none';
 }
 document.querySelectorAll('.quickcat').forEach(btn=>btn.onclick=()=>{
  setMode('expense');
