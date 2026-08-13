@@ -173,9 +173,18 @@ body.essentialMode .compactMonthDetails{display:block!important}
  .compactHint{max-width:175px;line-height:1.1}
  .compactMonthDetails summary{padding-top:9px!important;padding-bottom:9px!important}
 }
+
+/* V700 — outils pratiques sans rallonger l'accueil */
+.historyQuickTools{display:grid;grid-template-columns:1fr auto;gap:6px;margin:0 0 6px}
+.historyQuickTools input{min-width:0}
+.historyQuickTools button{padding:7px 10px}
+@media(max-width:430px){
+ .entryToolButtons{gap:4px}
+ .entryToolButtons button{font-size:10px;padding:6px 7px}
+}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V600-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V700-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -316,6 +325,7 @@ body.essentialMode .compactMonthDetails{display:block!important}
  <div class="entryToolButtons">
   <button id="repeatLastEntry" class="secondary" type="button" style="display:none">↻ Reprendre</button>
   <button id="clearQuickEntry" class="secondary" type="button">✕ Effacer</button>
+  <button id="entryToday" class="secondary" type="button">Aujourd’hui</button>
   <button id="toggleEntryDetails" class="secondary" type="button">Plus d’options</button>
  </div>
 </div>
@@ -638,7 +648,11 @@ Le statut « Reçu / Payé » reste indépendant pour chaque mois.
 
 <details class="menuGroup">
  <summary>📚 Historique & sauvegarde</summary>
- <div class="menuBody">
+ <div class="menuBody"><div class="historyQuickTools">
+ <input id="historySearch" type="search" placeholder="Rechercher une opération…" autocomplete="off">
+ <button id="historyClearSearch" class="secondary" type="button">Effacer</button>
+</div>
+<div id="historySearchInfo" class="note" style="margin:0 0 7px"></div>
   <div class="section" style="margin:0 0 10px">
    <h2>🛡️ Sécurité des données</h2>
    <div id="safeStatus" class="note" style="margin-bottom:9px">Sauvegarde automatique active.</div>
@@ -788,6 +802,9 @@ $('restoreSafety').onclick=()=>{if(restoreSafetyBackup())showToast('Sauvegarde r
 $('repeatLastEntry').onclick=repeatLastEntry;
 $('collapseMonthDetails').onclick=()=>{let d=$('compactMonthDetails');if(d){d.open=false;d.scrollIntoView({behavior:'smooth',block:'center'})}};
 $('clearQuickEntry').onclick=clearQuickEntry;
+$('entryToday').onclick=setEntryDateToday;
+$('historySearch').oninput=applyHistorySearch;
+$('historyClearSearch').onclick=clearHistorySearch;
 $('toggleEntryDetails').onclick=()=>setEntryMode(document.body.classList.contains('entrySimple')?'full':'simple');
 setEntryMode(localStorage.getItem('budget_entry_mode')||'simple');
 $('viewEssential').addEventListener('click',e=>{e.preventDefault();setViewMode('essential')});
@@ -1090,6 +1107,37 @@ function compactDuplicateStatus(){
  let txt=(el.textContent||'').trim().toLowerCase();
  if(txt.includes('rien d’urgent')||txt.includes("rien d'urgence"))el.style.display='none';
  else el.style.display='';
+}
+
+
+function setEntryDateToday(){
+ if(!$('date'))return;
+ let d=new Date(),y=d.getFullYear(),mo=String(d.getMonth()+1).padStart(2,'0'),da=String(d.getDate()).padStart(2,'0');
+ $('date').value=y+'-'+mo+'-'+da;
+ updateEntryChoiceSummary();
+}
+function applyHistorySearch(){
+ let q=(($('historySearch')&&$('historySearch').value)||'').trim().toLowerCase();
+ let info=$('historySearchInfo');
+ let candidates=[...document.querySelectorAll('#historyList .row, #historyList .entry, .historyList .row, .historyList .entry')];
+ if(!candidates.length){
+   // Fallback: filter direct children of the known history container if markup differs.
+   let box=$('historyList')||document.querySelector('.historyList');
+   if(box)candidates=[...box.children];
+ }
+ let shown=0,total=0;
+ candidates.forEach(el=>{
+   if(el.closest && el.closest('.historyQuickTools'))return;
+   total++;
+   let ok=!q||(el.textContent||'').toLowerCase().includes(q);
+   el.style.display=ok?'':'none';
+   if(ok)shown++;
+ });
+ if(info)info.textContent=q?(shown+' résultat'+(shown>1?'s':'')+' sur '+total):'';
+}
+function clearHistorySearch(){
+ if($('historySearch'))$('historySearch').value='';
+ applyHistorySearch();
 }
 
 const KEY='monBudgetSimpleV3';
@@ -1475,6 +1523,7 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
 updateMonthCheckStatus();
 updateCloseAssistant();
 compactDuplicateStatus();
+setTimeout(applyHistorySearch,0);
 if($('categorySnapshotText')){
  let cats=monthCategoryTotals(m),box=$('categorySnapshotBars');
  box.innerHTML='';
