@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V64</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V65</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -827,7 +827,7 @@ $('saveBudget').onclick=()=>{let m=$('month').value,cat=$('budgetCat').value,amo
 $('addFixedIncome').onclick=()=>{let label=$('fiLabel').value.trim(),amount=parseFloat($('fiAmount').value)||0,day=Math.max(1,Math.min(28,parseInt($('fiDay').value)||1));if(!label||amount<=0)return;s.fixedIncome.push({id:crypto.randomUUID(),label,amount,day});$('fiLabel').value='';$('fiAmount').value='';$('fiDay').value='';persist()};
 $('saveSavingGoal').onclick=()=>{let m=$('month').value,v=Math.max(0,parseFloat($('savingGoal').value)||0),d=Math.max(0,parseFloat($('savingDone').value)||0),sm=Math.max(0,parseFloat($('safetyMargin').value)||0);s.savingGoals[m]=v;s.savingDone[m]=d;s.safetyMargins[m]=sm;persist()};
 $('saveBalance').onclick=()=>{s.balances[$('month').value]={bank:parseFloat($('bank').value)||0,card:parseFloat($('card').value)||0};persist()};
-$('form').onsubmit=e=>{e.preventDefault();let obj={id:crypto.randomUUID(),label:$('label').value.trim(),amount:parseFloat($('amount').value)||0,category:$('category').value};if(mode==='fixed'){obj.day=Math.max(1,Math.min(28,parseInt($('fixedDay').value)||1));s.fixed.push(obj);$('fixedDay').value=''}else{
+$('form').onsubmit=e=>{e.preventDefault();let btn=$('addBtn');if(btn.dataset.busy==='1')return;btn.dataset.busy='1';btn.disabled=true;let obj={id:crypto.randomUUID(),label:$('label').value.trim(),amount:parseFloat($('amount').value)||0,category:$('category').value};if(mode==='fixed'){obj.day=Math.max(1,Math.min(28,parseInt($('fixedDay').value)||1));s.fixed.push(obj);$('fixedDay').value=''}else{
  let payment=mode==='expense'?($('paymentMethod').value||'card'):'bank';
  let entry={...obj,type:mode,date:$('date').value,month:$('month').value,payment};
  s.entries.push(entry);
@@ -836,7 +836,7 @@ $('form').onsubmit=e=>{e.preventDefault();let obj={id:crypto.randomUUID(),label:
    let bb=s.balances[mm]||{bank:0,card:0};
    s.balances[mm]={bank:+bb.bank||0,card:(+bb.card||0)+obj.amount};
  }
-}$('label').value='';$('amount').value='';persist();$('label').focus()};
+}$('label').value='';$('amount').value='';persist();$('label').focus();setTimeout(()=>{btn.dataset.busy='0';btn.disabled=false},450)};
 function move(n){let[y,m]=$('month').value.split('-').map(Number);m+=n;if(m<1){m=12;y--}if(m>12){m=1;y++}$('month').value=y+'-'+String(m).padStart(2,'0');localStorage.setItem('budget_last_month',$('month').value);render()}$('prev').onclick=()=>move(-1);$('next').onclick=()=>move(1);$('resetFilters').onclick=()=>{$('movementFilter').value='all';$('movementCategory').value='all';$('movementPayment').value='all';$('movementSearch').value='';$('movementSort').value='dateDesc';render()};
 if($('paymentMethod'))$('paymentMethod').onchange=()=>localStorage.setItem('budget_last_payment',$('paymentMethod').value);
 $('movementFilter').onchange=render;$('movementCategory').onchange=render;$('movementPayment').onchange=render;$('movementSearch').oninput=render;$('movementSort').onchange=render;
