@@ -13,7 +13,7 @@
 <style>
 :root{--bg:#f5f6fa;--card:#fff;--text:#20232a;--muted:#727886;--line:#e5e7ed;--green:#16875d;--red:#d44b4b;--blue:#5667d8;--orange:#c4771e}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
-.app{max-width:720px;margin:auto;padding:18px 14px 90px}h1{font-size:28px;margin:5px 0 2px}.subtitle{font-size:14px;color:var(--muted);margin-bottom:14px}
+.app{padding-bottom:82px;max-width:720px;margin:auto;padding:18px 14px 90px}h1{font-size:28px;margin:5px 0 2px}.subtitle{font-size:14px;color:var(--muted);margin-bottom:14px}
 .month{display:flex;gap:8px;margin-bottom:12px}.month input{flex:1}.month button{width:46px}
 input,select,button{font:inherit}input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff}
 button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#fff;font-weight:700}.secondary{background:#eef0f6;color:#333;border:1px solid var(--line)}
@@ -89,9 +89,14 @@ body.entrySimple #undoLastBtn{grid-column:1/-1}
  body.entrySimple #form{grid-template-columns:1fr 1fr}
 }
 
+
+.globalUndo{position:fixed;left:10px;right:10px;bottom:12px;z-index:120;background:#20232a;color:#fff;border-radius:14px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 8px 28px rgba(0,0,0,.22)}
+.globalUndo span{font-size:13px;font-weight:700}
+.globalUndo button{padding:8px 12px;background:#fff;color:#20232a;white-space:nowrap}
+
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V111</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V120</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -553,6 +558,7 @@ function openBySummary(text){
  return target;
 }
 function closeOtherMainMenus(current){
+$('globalUndoBtn').onclick=restoreLastChange;
 $('toggleEntryDetails').onclick=()=>setEntryMode(document.body.classList.contains('entrySimple')?'full':'simple');
 setEntryMode(localStorage.getItem('budget_entry_mode')||'simple');
 $('viewEssential').addEventListener('click',e=>{e.preventDefault();setViewMode('essential')});
@@ -577,6 +583,27 @@ function setEntryMode(v){
  document.body.classList.toggle('entrySimple',simple);
  if($('toggleEntryDetails'))$('toggleEntryDetails').textContent=simple?'Plus d’options':'Moins d’options';
  localStorage.setItem('budget_entry_mode',simple?'simple':'full');
+}
+
+
+let undoSnapshot=null,undoSnapshotTimer=null;
+function rememberBeforeChange(message){
+ try{undoSnapshot=JSON.stringify(s)}catch(e){undoSnapshot=null}
+ if(!undoSnapshot)return;
+ $('globalUndoText').textContent=message||'Modification effectuée';
+ $('globalUndo').style.display='flex';
+ clearTimeout(undoSnapshotTimer);
+ undoSnapshotTimer=setTimeout(()=>{undoSnapshot=null;$('globalUndo').style.display='none'},7000);
+}
+function restoreLastChange(){
+ if(!undoSnapshot)return;
+ try{
+   s=JSON.parse(undoSnapshot);
+   localStorage.setItem(KEY,JSON.stringify(s));
+   undoSnapshot=null;clearTimeout(undoSnapshotTimer);
+   $('globalUndo').style.display='none';
+   render();showToast('Modification annulée ✓');
+ }catch(e){showToast('Impossible d’annuler cette modification')}
 }
 
 const KEY='monBudgetSimpleV3';
@@ -1208,5 +1235,9 @@ render();
 })();
 </script>
 
+<div id="globalUndo" class="globalUndo" style="display:none">
+ <span id="globalUndoText">Modification effectuée</span>
+ <button id="globalUndoBtn" type="button">Annuler</button>
+</div>
 <div id="toast" class="toast"></div>
 </body></html>
