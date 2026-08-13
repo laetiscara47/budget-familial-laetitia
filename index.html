@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V61</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V62</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -441,7 +441,12 @@ const KEY='monBudgetSimpleV3';
 let s=JSON.parse(localStorage.getItem(KEY)||'{"entries":[],"fixed":[],"fixedIncome":[],"budgets":{},"balances":{},"paid":{},"incomeReceived":{}}');
 s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.budgets=s.budgets||{};s.balances=s.balances||{};s.paid=s.paid||{};s.incomeReceived=s.incomeReceived||{};s.savingGoals=s.savingGoals||{};s.savingDone=s.savingDone||{};s.safetyMargins=s.safetyMargins||{};s.monthNotes=s.monthNotes||{};s.exceptions=s.exceptions||{};
 const $=x=>document.getElementById(x), eur=n=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(+n||0);
-let mode='expense'; const today=new Date(); $('month').value=today.toISOString().slice(0,7);$('date').value=today.toISOString().slice(0,10);
+let mode='expense'; const today=new Date(); $('month').value=today.toISOString().slice(0,7);
+try{
+ let savedMonth=localStorage.getItem('budget_last_month');
+ if(savedMonth && /^\d{4}-\d{2}$/.test(savedMonth)) $('month').value=savedMonth;
+}catch(e){}
+$('date').value=today.toISOString().slice(0,10);
 function persist(){localStorage.setItem(KEY,JSON.stringify(s));render()}
 function setMode(m){mode=m;['Expense','Income','Fixed'].forEach(x=>$('tab'+x).classList.remove('active'));$('tab'+m[0].toUpperCase()+m.slice(1)).classList.add('active');$('fixedNote').style.display=m==='fixed'?'block':'none';$('fixedDay').style.display=m==='fixed'?'block':'none';$('addBtn').textContent=m==='expense'?'Ajouter la dépense':m==='income'?'Ajouter le revenu':'Ajouter le prélèvement fixe';updateQuickHabits();if($('paymentMethod'))$('paymentMethod').style.display=m==='expense'?'block':'none'}
 $('tabExpense').onclick=()=>setMode('expense');$('tabIncome').onclick=()=>setMode('income');$('tabFixed').onclick=()=>setMode('fixed');
@@ -828,12 +833,12 @@ $('form').onsubmit=e=>{e.preventDefault();let obj={id:crypto.randomUUID(),label:
    s.balances[mm]={bank:+bb.bank||0,card:(+bb.card||0)+obj.amount};
  }
 }$('label').value='';$('amount').value='';persist()};
-function move(n){let[y,m]=$('month').value.split('-').map(Number);m+=n;if(m<1){m=12;y--}if(m>12){m=1;y++}$('month').value=y+'-'+String(m).padStart(2,'0');render()}$('prev').onclick=()=>move(-1);$('next').onclick=()=>move(1);$('resetFilters').onclick=()=>{$('movementFilter').value='all';$('movementCategory').value='all';$('movementPayment').value='all';$('movementSearch').value='';$('movementSort').value='dateDesc';render()};
+function move(n){let[y,m]=$('month').value.split('-').map(Number);m+=n;if(m<1){m=12;y--}if(m>12){m=1;y++}$('month').value=y+'-'+String(m).padStart(2,'0');localStorage.setItem('budget_last_month',$('month').value);render()}$('prev').onclick=()=>move(-1);$('next').onclick=()=>move(1);$('resetFilters').onclick=()=>{$('movementFilter').value='all';$('movementCategory').value='all';$('movementPayment').value='all';$('movementSearch').value='';$('movementSort').value='dateDesc';render()};
 $('movementFilter').onchange=render;$('movementCategory').onchange=render;$('movementPayment').onchange=render;$('movementSearch').oninput=render;$('movementSort').onchange=render;
 $('addException').onclick=()=>{let m=$('month').value,label=$('exceptionLabel').value.trim(),amount=parseFloat($('exceptionAmount').value)||0;if(!label||amount<=0)return;s.exceptions[m]=s.exceptions[m]||[];s.exceptions[m].push({id:crypto.randomUUID(),label,amount});$('exceptionLabel').value='';$('exceptionAmount').value='';persist()};
 $('saveMonthNotes').onclick=()=>{let m=$('month').value;s.monthNotes[m]=$('monthNotes').value.trim();localStorage.setItem(KEY,JSON.stringify(s));$('monthNotesSaved').style.display='block'};
 $('goNextMonth').onclick=()=>{move(1)};
-$('month').onchange=render;
+$('month').onchange=()=>{localStorage.setItem('budget_last_month',$('month').value);render()};
 $('export').onclick=()=>{let blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mon-budget-sauvegarde.json';a.click()};$('import').onclick=()=>$('file').click();$('file').onchange=async e=>{try{s=JSON.parse(await e.target.files[0].text());persist();alert('Sauvegarde importée')}catch{alert('Fichier non reconnu')}};
 render();
 </script>
