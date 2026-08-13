@@ -96,7 +96,7 @@ body.entrySimple #undoLastBtn{grid-column:1/-1}
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V130</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V140</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -110,6 +110,12 @@ body.entrySimple #undoLastBtn{grid-column:1/-1}
 <div id="monthPace" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:14px;font-weight:700"></div>
 </div>
 <div id="homeGuidance" class="note" style="margin:-2px 2px 10px;text-align:center;font-weight:700"></div>
+<div id="routineReminder" class="section" style="display:none;margin-top:0;margin-bottom:10px">
+ <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+  <div><b>🔔 Point budget</b><div id="routineReminderText" class="note" style="margin-top:3px"></div></div>
+  <button id="routineGo" class="secondary" type="button">Faire le point</button>
+ </div>
+</div>
 
 <div id="todaySection" class="section" style="margin-top:0;margin-bottom:10px">
 <h2>📌 Aujourd’hui</h2>
@@ -436,6 +442,17 @@ body.entrySimple #undoLastBtn{grid-column:1/-1}
  <div id="monthNotesSaved" class="note" style="display:none">Note enregistrée ✓</div>
 </div></details>
 <details class="fold">
+<summary>🔔 Routine budget</summary>
+<div class="foldBody">
+ <div class="note" style="margin-bottom:10px">Choisissez le jour où vous aimez faire votre point budget chaque mois. Mon Budget vous le rappellera simplement sur l’accueil.</div>
+ <div class="grid">
+  <input id="routineDay" type="number" min="1" max="28" inputmode="numeric" placeholder="Jour du mois (1 à 28)">
+  <button id="saveRoutineDay" type="button">Enregistrer</button>
+ </div>
+ <button id="clearRoutineDay" class="secondary" type="button" style="width:100%;margin-top:8px">Désactiver la routine</button>
+ <div id="routineStatus" class="note" style="margin-top:8px"></div>
+</div></details>
+<details class="fold">
 <summary>🗓️ Préparer le mois prochain</summary>
 <div class="foldBody">
  <div class="cards">
@@ -562,6 +579,15 @@ function openBySummary(text){
 }
 function closeOtherMainMenus(current){
 $('globalUndoBtn').onclick=restoreLastChange;
+$('saveRoutineDay').onclick=()=>{
+ let d=parseInt($('routineDay').value,10);
+ if(!d||d<1||d>28){showToast('Choisissez un jour entre 1 et 28');return}
+ s.routineDay=d;localStorage.setItem(KEY,JSON.stringify(s));render();showToast('Routine enregistrée ✓');
+};
+$('clearRoutineDay').onclick=()=>{
+ s.routineDay=0;$('routineDay').value='';localStorage.setItem(KEY,JSON.stringify(s));render();showToast('Routine désactivée');
+};
+$('routineGo').onclick=()=>{openBySummary('Gérer le mois');setTimeout(()=>document.querySelector('.monthGuide')?.scrollIntoView({behavior:'smooth',block:'start'}),200)};
 $('restoreSafety').onclick=()=>{if(restoreSafetyBackup())showToast('Sauvegarde restaurée ✓');else showToast('Aucune sauvegarde à restaurer')};
 $('toggleEntryDetails').onclick=()=>setEntryMode(document.body.classList.contains('entrySimple')?'full':'simple');
 setEntryMode(localStorage.getItem('budget_entry_mode')||'simple');
@@ -612,7 +638,7 @@ function restoreLastChange(){
 
 const KEY='monBudgetSimpleV3';
 let s=JSON.parse(localStorage.getItem(KEY)||'{"entries":[],"fixed":[],"fixedIncome":[],"budgets":{},"balances":{},"paid":{},"incomeReceived":{}}');
-s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.budgets=s.budgets||{};s.balances=s.balances||{};s.paid=s.paid||{};s.incomeReceived=s.incomeReceived||{};s.savingGoals=s.savingGoals||{};s.savingDone=s.savingDone||{};s.safetyMargins=s.safetyMargins||{};s.monthNotes=s.monthNotes||{};s.exceptions=s.exceptions||{};
+s.routineDay=s.routineDay||0;s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.budgets=s.budgets||{};s.balances=s.balances||{};s.paid=s.paid||{};s.incomeReceived=s.incomeReceived||{};s.savingGoals=s.savingGoals||{};s.savingDone=s.savingDone||{};s.safetyMargins=s.safetyMargins||{};s.monthNotes=s.monthNotes||{};s.exceptions=s.exceptions||{};
 const $=x=>document.getElementById(x), eur=n=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(+n||0);
 let mode='expense'; const today=new Date(); $('month').value=today.toISOString().slice(0,7);
 try{
@@ -764,6 +790,19 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
  $('movementSummary').textContent=rows.length?rows.length+' mouvement'+(rows.length>1?'s':'')+' enregistré'+(rows.length>1?'s':'')+' ce mois-ci.':'Aucun mouvement enregistré ce mois-ci.';
  let unpaid=s.fixed.filter(f=>!(s.paid[m]||{})[f.id]).reduce((a,f)=>a+f.amount,0);
  let [yy,mm]=m.split('-').map(Number);
+ if($('routineDay'))$('routineDay').value=s.routineDay||'';
+ if($('routineStatus'))$('routineStatus').textContent=s.routineDay?'Point budget prévu chaque mois le '+s.routineDay+'.':'Aucune routine activée.';
+ if($('routineReminder')){
+   let now=new Date(),currentKey=now.toISOString().slice(0,7),box=$('routineReminder'),txt=$('routineReminderText');
+   if(s.routineDay && m===currentKey){
+     let diff=s.routineDay-now.getDate();
+     box.style.display='block';
+     if(diff>1)txt.textContent='Prochain point le '+s.routineDay+' · dans '+diff+' jours.';
+     else if(diff===1)txt.textContent='Votre point budget est prévu demain.';
+     else if(diff===0)txt.textContent='C’est le jour de votre point budget.';
+     else txt.textContent='Votre point budget du '+s.routineDay+' est à faire.';
+   }else box.style.display='none';
+ }
  let expected=s.fixedIncome.filter(f=>!(s.incomeReceived[m]||{})[f.id]).reduce((a,f)=>a+f.amount,0);
  $('expectedIncome').textContent=eur(expected);$('unpaidFixed').textContent=eur(unpaid);
  $('dashExpected').textContent=eur(expected);$('dashUnpaid').textContent=eur(unpaid);
