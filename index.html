@@ -106,7 +106,7 @@ body.entrySimple #undoLastBtn{grid-column:1/-1}
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V161</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V162</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -598,28 +598,6 @@ function openBySummary(text){
  return target;
 }
 function closeOtherMainMenus(current){
-$('globalUndoBtn').onclick=restoreLastChange;
-$('smartEntryApply').onclick=applySmartSuggestion;
-$('saveRoutineDay').onclick=()=>{
- let d=parseInt($('routineDay').value,10);
- if(!d||d<1||d>28){showToast('Choisissez un jour entre 1 et 28');return}
- s.routineDay=d;localStorage.setItem(KEY,JSON.stringify(s));render();showToast('Routine enregistrée ✓');
-};
-$('clearRoutineDay').onclick=()=>{
- s.routineDay=0;$('routineDay').value='';localStorage.setItem(KEY,JSON.stringify(s));render();showToast('Routine désactivée');
-};
-$('attentionAction').onclick=()=>{if(attentionTarget)openBySummary(attentionTarget)};
-$('routineGo').onclick=()=>{openBySummary('Gérer le mois');setTimeout(()=>document.querySelector('.monthGuide')?.scrollIntoView({behavior:'smooth',block:'start'}),200)};
-$('restoreSafety').onclick=()=>{if(restoreSafetyBackup())showToast('Sauvegarde restaurée ✓');else showToast('Aucune sauvegarde à restaurer')};
-$('toggleEntryDetails').onclick=()=>setEntryMode(document.body.classList.contains('entrySimple')?'full':'simple');
-setEntryMode(localStorage.getItem('budget_entry_mode')||'simple');
-function bindViewButtons(){
- let be=$('viewEssential'),bf=$('viewFull');
- if(be)be.onclick=function(e){if(e)e.preventDefault();setViewMode('essential');return false};
- if(bf)bf.onclick=function(e){if(e)e.preventDefault();setViewMode('full');return false};
-}
-bindViewButtons();
-setViewMode(localStorage.getItem('budget_view_mode')||'essential');
  document.querySelectorAll('details.menuGroup').forEach(d=>{if(d!==current)d.open=false});
 }
 
@@ -693,6 +671,31 @@ const KEY='monBudgetSimpleV3';
 let s=JSON.parse(localStorage.getItem(KEY)||'{"entries":[],"fixed":[],"fixedIncome":[],"budgets":{},"balances":{},"paid":{},"incomeReceived":{}}');
 s.routineDay=s.routineDay||0;s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.budgets=s.budgets||{};s.balances=s.balances||{};s.paid=s.paid||{};s.incomeReceived=s.incomeReceived||{};s.savingGoals=s.savingGoals||{};s.savingDone=s.savingDone||{};s.safetyMargins=s.safetyMargins||{};s.monthNotes=s.monthNotes||{};s.exceptions=s.exceptions||{};
 const $=x=>document.getElementById(x), eur=n=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(+n||0);
+function bindCoreUI(){
+ $('globalUndoBtn').onclick=restoreLastChange;
+ $('smartEntryApply').onclick=applySmartSuggestion;
+ $('saveRoutineDay').onclick=()=>{
+  let d=parseInt($('routineDay').value,10);
+  if(!d||d<1||d>28){showToast('Choisissez un jour entre 1 et 28');return}
+  s.routineDay=d;localStorage.setItem(KEY,JSON.stringify(s));render();showToast('Routine enregistrée ✓');
+ };
+ $('clearRoutineDay').onclick=()=>{
+  s.routineDay=0;$('routineDay').value='';localStorage.setItem(KEY,JSON.stringify(s));render();showToast('Routine désactivée');
+ };
+ $('attentionAction').onclick=()=>{if(attentionTarget)openBySummary(attentionTarget)};
+ $('routineGo').onclick=()=>{openBySummary('Gérer le mois');setTimeout(()=>document.querySelector('.monthGuide')?.scrollIntoView({behavior:'smooth',block:'start'}),200)};
+ $('restoreSafety').onclick=()=>{if(restoreSafetyBackup())showToast('Sauvegarde restaurée ✓');else showToast('Aucune sauvegarde à restaurer')};
+ $('toggleEntryDetails').onclick=()=>setEntryMode(document.body.classList.contains('entrySimple')?'full':'simple');
+
+ let be=$('viewEssential'),bf=$('viewFull');
+ if(be)be.onclick=e=>{e.preventDefault();setViewMode('essential')};
+ if(bf)bf.onclick=e=>{e.preventDefault();setViewMode('full')};
+
+ setEntryMode(localStorage.getItem('budget_entry_mode')||'simple');
+ setViewMode(localStorage.getItem('budget_view_mode')||'essential');
+}
+bindCoreUI();
+
 let mode='expense'; const today=new Date(); $('month').value=today.toISOString().slice(0,7);
 try{
  let savedMonth=localStorage.getItem('budget_last_month');
