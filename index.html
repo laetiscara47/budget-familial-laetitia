@@ -105,7 +105,7 @@ body.entrySimple #undoLastBtn{grid-column:1/-1}
 .smartEntry button{padding:8px 10px;white-space:nowrap}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V160</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V160-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -516,6 +516,14 @@ Le statut « Reçu / Payé » reste indépendant pour chaque mois.
 <details class="menuGroup">
  <summary>📚 Historique & sauvegarde</summary>
  <div class="menuBody">
+  <div class="section" style="margin:0 0 10px">
+   <h2>🛡️ Sécurité des données</h2>
+   <div id="safeStatus" class="note" style="margin-bottom:9px">Sauvegarde automatique active.</div>
+   <div class="actions">
+    <button id="safeDownload" type="button">Télécharger une sauvegarde</button>
+    <button id="safeRestore" class="secondary" type="button">Restaurer la copie automatique</button>
+   </div>
+  </div>
   <details class="fold">
 <summary>📋 Mouvements du mois</summary>
 <div class="foldBody">
@@ -598,6 +606,26 @@ function openBySummary(text){
 }
 function closeOtherMainMenus(current){
 $('globalUndoBtn').onclick=restoreLastChange;
+$('safeDownload').onclick=()=>{
+ makeSafetyCopy();updateSafeStatus();
+ let blob=new Blob([JSON.stringify({version:'V160-SAFE',exportedAt:new Date().toISOString(),data:s},null,2)],{type:'application/json'});
+ let a=document.createElement('a');a.href=URL.createObjectURL(blob);
+ a.download='mon-budget-sauvegarde-securite-'+new Date().toISOString().slice(0,10)+'.json';
+ a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);showToast('Sauvegarde téléchargée ✓');
+};
+$('safeRestore').onclick=()=>{
+ let p=getSafetyCopy();
+ if(!p){showToast('Aucune copie automatique disponible');return}
+ if(!confirm('Restaurer la copie automatique ? Les données actuelles seront remplacées.'))return;
+ try{
+  let current=JSON.stringify(s);
+  s=JSON.parse(JSON.stringify(p.data));
+  localStorage.setItem(KEY,JSON.stringify(s));
+  localStorage.setItem(SAFE_KEY,JSON.stringify({savedAt:new Date().toISOString(),data:JSON.parse(current)}));
+  render();updateSafeStatus();showToast('Copie restaurée ✓');
+ }catch(e){showToast('Restauration impossible')}
+};
+
 $('smartEntryApply').onclick=applySmartSuggestion;
 $('saveRoutineDay').onclick=()=>{
  let d=parseInt($('routineDay').value,10);
@@ -683,6 +711,31 @@ function applySmartSuggestion(){
  $('amount').focus();$('amount').select();
 }
 
+
+const SAFE_KEY='monBudgetSimpleV3_SAFE';
+function makeSafetyCopy(){
+ try{
+  if(typeof s==='undefined'||!s)return false;
+  localStorage.setItem(SAFE_KEY,JSON.stringify({savedAt:new Date().toISOString(),data:s}));
+  return true;
+ }catch(e){return false}
+}
+function getSafetyCopy(){
+ try{
+  let raw=localStorage.getItem(SAFE_KEY);
+  if(!raw)return null;
+  let p=JSON.parse(raw);
+  return p&&p.data?p:null;
+ }catch(e){return null}
+}
+function updateSafeStatus(){
+ let el=$('safeStatus');if(!el)return;
+ let p=getSafetyCopy();
+ if(!p){el.textContent='Sauvegarde automatique active. Une copie sera créée à la prochaine modification.';return}
+ let d=new Date(p.savedAt);
+ el.textContent='Copie automatique disponible · '+d.toLocaleDateString('fr-FR')+' '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+}
+
 const KEY='monBudgetSimpleV3';
 let s=JSON.parse(localStorage.getItem(KEY)||'{"entries":[],"fixed":[],"fixedIncome":[],"budgets":{},"balances":{},"paid":{},"incomeReceived":{}}');
 s.routineDay=s.routineDay||0;s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.budgets=s.budgets||{};s.balances=s.balances||{};s.paid=s.paid||{};s.incomeReceived=s.incomeReceived||{};s.savingGoals=s.savingGoals||{};s.savingDone=s.savingDone||{};s.safetyMargins=s.safetyMargins||{};s.monthNotes=s.monthNotes||{};s.exceptions=s.exceptions||{};
@@ -693,7 +746,16 @@ try{
  if(savedMonth && /^\d{4}-\d{2}$/.test(savedMonth)) $('month').value=savedMonth;
 }catch(e){}
 $('date').value=today.toISOString().slice(0,10);
-function persist(){localStorage.setItem(KEY,JSON.stringify(s));render()}
+function persist(){
+ try{
+  let previous=localStorage.getItem(KEY);
+  if(previous){
+   let oldData=JSON.parse(previous);
+   localStorage.setItem(SAFE_KEY,JSON.stringify({savedAt:new Date().toISOString(),data:oldData}));
+  }else makeSafetyCopy();
+ }catch(e){}
+ localStorage.setItem(KEY,JSON.stringify(s));render();updateSafeStatus();
+}
 function updateEntryChoiceSummary(){
  if(!$('entryChoiceSummary'))return;
  let cat=$('category')?$('category').value:'';
@@ -1388,6 +1450,8 @@ render();
     }
   });
 })();
+
+try{if(!getSafetyCopy())makeSafetyCopy();updateSafeStatus()}catch(e){}
 </script>
 
 <div id="globalUndo" class="globalUndo" style="display:none">
