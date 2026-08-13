@@ -209,9 +209,15 @@ body.essentialMode .compactMonthDetails{display:block!important}
 /* V1000.4 — correctif ciblé affichage revenus fixes */
 #fixedIncomeList{display:grid;gap:7px}
 #fixedIncomeList .fixedIncomeVisibleRow{display:grid}
+
+/* SIMPLE-1 — quotidien d'abord, options avancées derrière "Plus" */
+.simpleModeBar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0;padding:11px 13px;border:1px solid var(--line);border-radius:14px;background:#fff}
+.simpleModeBar b{display:block;font-size:14px}
+.simpleModeBar span{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+.simpleModeBar button{padding:7px 13px;min-width:74px}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V1000.4-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-1-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -382,10 +388,14 @@ body.essentialMode .compactMonthDetails{display:block!important}
 <div id="fixedNote" class="note" style="display:none">Le montant sera prévu automatiquement chaque mois à la date choisie. Vous pourrez ensuite indiquer « Payé ».</div>
 </div>
 
+<div class="simpleModeBar">
+ <div><b>Mode simple</b><span>Le nécessaire au quotidien</span></div>
+ <button id="toggleAdvancedSimple" class="secondary" type="button">Plus</button>
+</div>
 <details class="menuGroup">
  <summary>🔮 Prévisions</summary>
  <div class="menuBody">
-  <details class="fold">
+  <details class="fold" data-simple-advanced="1">
 <summary>📊 Repère quotidien</summary>
 <div class="foldBody">
  <div class="cards">
@@ -418,7 +428,7 @@ body.essentialMode .compactMonthDetails{display:block!important}
 
 
 </div></details>
-  <details class="fold">
+  <details class="fold" data-simple-advanced="1">
 <summary>🔮 Prévision du mois</summary>
 <div class="foldBody">
 <div class="cards">
@@ -443,7 +453,7 @@ body.essentialMode .compactMonthDetails{display:block!important}
 
 
 
-<details class="fold">
+<details class="fold" data-simple-advanced="1">
 <summary>🐷 Objectif d’épargne</summary>
 <div class="foldBody">
  <div class="note" style="margin-bottom:10px">Définissez la somme que vous souhaitez préserver ce mois-ci. Elle sera déduite du disponible réellement utilisable.</div>
@@ -461,7 +471,7 @@ body.essentialMode .compactMonthDetails{display:block!important}
   <div class="card wide"><span class="smalllabel">Épargne des derniers mois</span><div id="savingHistory" style="margin-top:8px"></div></div>
  </div>
 </div></details>
-<details class="fold">
+<details class="fold" data-simple-advanced="1">
 <summary>🏁 Fin de mois</summary>
 <div class="foldBody">
  <div class="cards">
@@ -471,13 +481,13 @@ body.essentialMode .compactMonthDetails{display:block!important}
  </div>
  <div id="endMonthMessage" class="note" style="margin-top:10px"></div>
 </div></details>
-<details class="fold">
+<details class="fold" data-simple-advanced="1">
 <summary>🚦 État du budget</summary>
 <div class="foldBody">
  <div id="budgetStatus" class="list"></div>
 </div></details>
 
-<details class="fold">
+<details class="fold" data-simple-advanced="1">
 <summary>📊 Analyses détaillées</summary>
 <div class="foldBody">
  <div class="note" style="margin-bottom:10px">Ces informations restent disponibles, mais sont rangées ici pour garder l’écran principal simple.</div>
@@ -544,7 +554,7 @@ body.essentialMode .compactMonthDetails{display:block!important}
  <div id="monthCompare" class="list"></div>
 </div></details>
 </div></details>
-<details class="fold">
+<details class="fold" data-simple-advanced="1">
 <summary>🎯 Budgets du mois</summary>
 <div class="foldBody">
 <div class="note" style="margin-bottom:10px">Facultatif : indiquez seulement les catégories que vous souhaitez surveiller.</div>
@@ -1337,6 +1347,21 @@ function refreshFixedIncomeVisibleList(){
    };
    fil.appendChild(d);
  });
+}
+
+
+let simpleAdvancedOpen=false;
+function applySimpleMode(){
+ document.querySelectorAll('[data-simple-advanced="1"]').forEach(el=>{
+   el.style.display=simpleAdvancedOpen?'':'none';
+   if(!simpleAdvancedOpen)el.open=false;
+ });
+ let b=$('toggleAdvancedSimple');
+ if(b)b.textContent=simpleAdvancedOpen?'Moins':'Plus';
+}
+function toggleSimpleAdvanced(){
+ simpleAdvancedOpen=!simpleAdvancedOpen;
+ applySimpleMode();
 }
 
 const KEY='monBudgetSimpleV3';
@@ -2133,6 +2158,12 @@ try{renderFavoriteEntryChips()}catch(e){}
 
 document.addEventListener('DOMContentLoaded',()=>{
  setTimeout(()=>{try{refreshFixedIncomeVisibleList()}catch(e){}},50);
+});
+
+document.addEventListener('DOMContentLoaded',()=>{
+ const b=$('toggleAdvancedSimple');
+ if(b)b.onclick=toggleSimpleAdvanced;
+ setTimeout(applySimpleMode,80);
 });
 </script>
 
