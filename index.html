@@ -292,7 +292,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
   </div>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-5-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-5.1-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -1487,9 +1487,11 @@ function simple4Refresh(){
  const dash=$('simple4Dashboard'); if(!dash)return;
  // Read values from the application's own rendered fields to preserve all calculations.
  const all=[...document.querySelectorAll('body *')];
- const available=all.find(e=>(e.textContent||'').trim().match(/^-?[\d\s.,]+\s*€$/) &&
-   e.parentElement && (e.parentElement.textContent||'').includes('Disponible prévu fin de mois'));
- if(available)$('simple4AvailableValue').textContent=available.textContent.trim();
+ // SIMPLE-5.1: use the canonical calculated value from the original dashboard.
+ // Do not search the whole DOM here: that could pick simple4AvailableValue itself
+ // and leave the Essential amount stale after a new card expense.
+ const canonicalAvailable=$('rest');
+ if(canonicalAvailable)$('simple4AvailableValue').textContent=canonicalAvailable.textContent.trim();
 
  const labelValue=(label)=>{
    const lab=all.find(e=>(e.textContent||'').trim()===label);
