@@ -114,23 +114,31 @@ body.essentialMode .dailyActions{display:block!important}
 .snapshotGrid b{font-size:16px}
 body.essentialMode .monthSnapshot{display:block!important}
 
-body.essentialMode .monthCompare{display:block!important}
+
 
 .categoryBars{display:grid;gap:7px;margin-top:8px}
 .categoryRow{display:grid;grid-template-columns:minmax(75px,1fr) 2fr auto;align-items:center;gap:7px;font-size:11px}
 .categoryTrack{height:8px;border-radius:999px;background:#eceef4;overflow:hidden}
 .categoryFill{height:100%;background:currentColor;border-radius:999px}
 .categoryAmount{font-weight:800;white-space:nowrap}
-body.essentialMode .categorySnapshot{display:block!important}
+
 
 .projectionGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}
 .projectionGrid>div{border:1px solid var(--line);border-radius:11px;padding:9px;background:#fafbff}
 .projectionGrid span{display:block;font-size:11px;color:#666;margin-bottom:3px}
 .projectionGrid b{font-size:16px}
-body.essentialMode .monthProjection{display:block!important}
+
+
+.compactMonthDetails{margin:0 0 10px}
+.compactMonthDetails summary{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.compactHint{font-size:10px;font-weight:600;color:#777;text-align:right}
+.compactMonthBody>.section{margin:8px 0!important;padding:10px}
+.compactMonthBody>.section:first-child{margin-top:0!important}
+.compactMonthBody>.section:last-child{margin-bottom:0!important}
+body.essentialMode .compactMonthDetails{display:block!important}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V240-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V250-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -158,7 +166,7 @@ body.essentialMode .monthProjection{display:block!important}
 </div>
 
 <div class="section monthSnapshot" style="margin-top:0;margin-bottom:10px">
- <h2 style="margin-bottom:7px">🧾 Résumé du mois</h2>
+ <h2 style="margin-bottom:7px">🧾 Mon mois en un coup d’œil</h2>
  <div class="snapshotGrid">
   <div><span>Disponible maintenant</span><b id="snapAvailable">—</b></div>
   <div><span>Reste réellement dépensable</span><b id="snapSpendable">—</b></div>
@@ -167,6 +175,9 @@ body.essentialMode .monthProjection{display:block!important}
  </div>
 </div>
 
+<details class="fold compactMonthDetails">
+ <summary>📊 Détails du mois <span class="compactHint">comparaison · catégories · projection</span></summary>
+ <div class="foldBody compactMonthBody">
 <div class="section monthCompare" style="margin-top:0;margin-bottom:10px">
  <h2 style="margin-bottom:7px">↔️ Par rapport au mois précédent</h2>
  <div id="compareMonthText" class="note"></div>
@@ -186,6 +197,9 @@ body.essentialMode .monthProjection{display:block!important}
   <div><span>Repère quotidien</span><b id="projectionDaily">—</b></div>
  </div>
 </div>
+
+ </div>
+</details>
 
 <div class="section dailyActions" style="margin-top:0;margin-bottom:10px">
  <h2 style="margin-bottom:4px">⚡ Actions rapides</h2>
