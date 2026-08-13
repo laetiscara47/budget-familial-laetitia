@@ -280,7 +280,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
   </div>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-4.1-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-4.2-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -1516,9 +1516,27 @@ function simple4Setup(){
    dash.parentElement.appendChild(wrap);
  }
  // Directly delegate the 3 essential actions to the existing proven buttons.
- $('simple4Add').onclick=()=>{let b=simple4FindButton('Ajouter');if(b)b.click()};
- $('simple4Due').onclick=()=>{let b=simple4FindButton('Échéances');if(b)b.click()};
- $('simple4Balance').onclick=()=>{let b=simple4FindButton('Solde');if(b)b.click()};
+ $('simple4Add').onclick=()=>{
+   document.body.classList.remove('simple4TrueEssential');
+   setTimeout(()=>{
+     let b=simple4FindButton('Ajouter');
+     if(b){b.click(); setTimeout(()=>{try{window.scrollTo({top:b.getBoundingClientRect().top+window.scrollY-120,behavior:'smooth'})}catch(e){}},50);}
+   },0);
+ };
+ $('simple4Due').onclick=()=>{
+   document.body.classList.remove('simple4TrueEssential');
+   setTimeout(()=>{
+     let b=simple4FindButton('Échéances');
+     if(b)b.click();
+   },0);
+ };
+ $('simple4Balance').onclick=()=>{
+   document.body.classList.remove('simple4TrueEssential');
+   setTimeout(()=>{
+     let b=simple4FindButton('Solde');
+     if(b)b.click();
+   },0);
+ };
 
  if(essentialBtn)essentialBtn.addEventListener('click',()=>setTimeout(()=>{document.body.classList.add('simple4TrueEssential');simple4Refresh()},0));
  const completeBtn=simple4FindButton('Complet');
