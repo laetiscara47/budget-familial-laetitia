@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V72</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V73</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -448,6 +448,13 @@ try{
 }catch(e){}
 $('date').value=today.toISOString().slice(0,10);
 function persist(){localStorage.setItem(KEY,JSON.stringify(s));render()}
+function updateAddReady(){
+ let btn=$('addBtn');if(!btn)return;
+ let nameOk=($('label').value||'').trim().length>0;
+ let amountOk=(parseFloat($('amount').value)||0)>0;
+ btn.style.opacity=(nameOk&&amountOk)?'1':'.65';
+ btn.title=(nameOk&&amountOk)?'Prêt à enregistrer':'Indiquez un nom et un montant';
+}
 function updateAddButton(){
  let btn=$('addBtn');if(!btn)return;
  let mv=$('month').value, d=mv?new Date(mv+'-01T12:00:00'):new Date();
@@ -526,7 +533,7 @@ function copyPreviousBudgets(){
  $('copyBudgetMsg').textContent='Budgets du mois précédent repris ✓';
  persist();
 }
-function render(){updateAddButton();updateQuickHabits();
+function render(){updateAddButton();updateAddReady();updateQuickHabits();
  let m=$('month').value,b=s.balances[m]||{bank:0,card:0};
  let paymentExpenses=s.entries.filter(e=>e.month===m&&e.type==='expense');
  let payCard=paymentExpenses.filter(e=>!e.payment||e.payment==='card').reduce((a,e)=>a+(+e.amount||0),0);
@@ -859,8 +866,10 @@ $('form').onsubmit=e=>{e.preventDefault();let btn=$('addBtn');if(btn.dataset.bus
    let bb=s.balances[mm]||{bank:0,card:0};
    s.balances[mm]={bank:+bb.bank||0,card:(+bb.card||0)+obj.amount};
  }
-}$('label').value='';$('amount').value='';persist();$('label').focus();setTimeout(()=>{btn.dataset.busy='0';btn.disabled=false},450)};
+}$('label').value='';$('amount').value='';persist();$('label').focus();updateAddReady();setTimeout(()=>{btn.dataset.busy='0';btn.disabled=false},450)};
 function move(n){let[y,m]=$('month').value.split('-').map(Number);m+=n;if(m<1){m=12;y--}if(m>12){m=1;y++}$('month').value=y+'-'+String(m).padStart(2,'0');localStorage.setItem('budget_last_month',$('month').value);let today=new Date().toISOString().slice(0,10),selected=$('month').value;$('date').value=(selected===today.slice(0,7))?today:selected+'-01';render()}$('prev').onclick=()=>move(-1);$('next').onclick=()=>move(1);$('resetFilters').onclick=()=>{$('movementFilter').value='all';$('movementCategory').value='all';$('movementPayment').value='all';$('movementSearch').value='';$('movementSort').value='dateDesc';render()};
+if($('label'))$('label').oninput=updateAddReady;
+if($('amount'))$('amount').oninput=updateAddReady;
 if($('paymentMethod'))$('paymentMethod').onchange=()=>localStorage.setItem('budget_last_payment',$('paymentMethod').value);
 if($('category'))$('category').onchange=()=>localStorage.setItem('budget_last_category',$('category').value);
 $('movementFilter').onchange=render;$('movementCategory').onchange=render;$('movementPayment').onchange=render;$('movementSearch').oninput=render;$('movementSort').onchange=render;
