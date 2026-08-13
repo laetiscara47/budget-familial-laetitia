@@ -288,6 +288,17 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
 
 .simple5Undo{width:100%;margin-top:9px;min-height:42px}
 .simple5Undo[hidden]{display:none!important}
+
+.fixedManage{align-items:center!important;gap:10px!important}
+.fixedManage .main{min-width:150px}
+.fixedBtns{display:flex;flex-wrap:wrap;gap:6px}
+.fixedBtns button{min-height:38px;padding:7px 10px;font-size:13px}
+@media(max-width:520px){
+ .fixedManage{display:block!important}
+ .fixedManage .amt{margin:5px 0 8px}
+ .fixedBtns{width:100%}
+ .fixedBtns button{flex:1 1 auto}
+}
 </style></head>
 <body>
 <div id="simple4Dashboard" class="simple4Dashboard">
@@ -312,7 +323,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
   <button id="simple5Undo" class="secondary simple5Undo" type="button" hidden>↩️ Annuler la dernière action</button>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-5.7-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-5.8-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -2198,9 +2209,21 @@ if($('monthProjectionText')){
  }
  let fil=$('fixedIncomeList');fil.innerHTML='';if(!s.fixedIncome.length)fil.innerHTML='<div class="empty"><b>Aucun revenu fixe enregistré.</b><br><span class="note">Ajoutez ici seulement les revenus qui reviennent chaque mois.</span></div>';
  s.fixedIncome.forEach(f=>{let received=!!(s.incomeReceived[m]||{})[f.id],d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt green"></div><button class="secondary pay"></button><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=f.label;d.querySelector('.meta').textContent='Prévu le '+f.day+' de chaque mois';d.querySelector('.amt').textContent=eur(f.amount);d.querySelector('.pay').textContent=received?'Reçu ✓':'À recevoir';d.querySelector('.pay').className='secondary pay '+(received?'statusDone':'statusTodo');d.querySelector('.pay').onclick=()=>{rememberLastChange('Statut revenu');s.incomeReceived[m]=s.incomeReceived[m]||{};s.incomeReceived[m][f.id]=!received;persist();render()};d.querySelector('.edit').onclick=()=>openEdit('income',f.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce revenu fixe ?')){s.fixedIncome=s.fixedIncome.filter(x=>x.id!==f.id);persist()}};fil.appendChild(d)});
- let fl=$('fixedList');fl.innerHTML='';if(!s.fixed.length)fl.innerHTML='<div class="empty"><b>Aucun prélèvement fixe enregistré.</b><br><span class="note">Ajoutez ici les prélèvements qui reviennent chaque mois.</span></div>';
- s.fixed.forEach(f=>{let paid=!!(s.paid[m]||{})[f.id],d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="secondary pay"></button><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=f.label;d.querySelector('.meta').textContent='Le '+(f.day||'?')+' de chaque mois · '+f.category;d.querySelector('.amt').textContent=eur(f.amount);d.querySelector('.pay').textContent=paid?'Payé ✓':'À payer';d.querySelector('.pay').className='secondary pay '+(paid?'statusDone':'statusTodo');d.querySelector('.pay').onclick=()=>{s.paid[m]=s.paid[m]||{};s.paid[m][f.id]=!paid;persist()};d.querySelector('.edit').onclick=()=>openEdit('fixed',f.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce prélèvement fixe ?')){rememberLastChange('Suppression prélèvement fixe');s.fixed=s.fixed.filter(x=>x.id!==f.id);persist();render()}};fl.appendChild(d)});
- let paceExpenses=rows.filter(e=>e.type==='expense').reduce((a,e)=>a+(+e.amount||0),0);
+ let fl=$('fixedList');fl.innerHTML='';
+ if(!s.fixed.length)fl.innerHTML='<div class="empty"><b>Aucun prélèvement fixe enregistré.</b><br><span class="note">Ajoutez ici les prélèvements qui reviennent chaque mois.</span></div>';
+ s.fixed.slice().sort((a,b)=>(a.day||99)-(b.day||99)).forEach(f=>{
+   let paid=!!(s.paid[m]||{})[f.id],d=document.createElement('div');d.className='item fixedManage';
+   d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><div class="fixedBtns"><button class="secondary pay"></button><button class="edit">✏️ Modifier</button><button class="del">Supprimer</button></div>';
+   d.querySelector('.title').textContent=f.label;
+   d.querySelector('.meta').textContent='Le '+(f.day||'?')+' de chaque mois';
+   d.querySelector('.amt').textContent=eur(f.amount);
+   d.querySelector('.pay').textContent=paid?'✓ Payé ce mois-ci':'À payer ce mois-ci';
+   d.querySelector('.pay').className='secondary pay '+(paid?'statusDone':'statusTodo');
+   d.querySelector('.pay').onclick=()=>{s.paid[m]=s.paid[m]||{};s.paid[m][f.id]=!paid;persist();render()};
+   d.querySelector('.edit').onclick=()=>openEdit('fixed',f.id);
+   d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce prélèvement fixe ?')){rememberLastChange('Suppression prélèvement fixe');s.fixed=s.fixed.filter(x=>x.id!==f.id);persist();render()}};
+   fl.appendChild(d)
+ }); let paceExpenses=rows.filter(e=>e.type==='expense').reduce((a,e)=>a+(+e.amount||0),0);
  let nowPace=new Date(), selectedNow=(nowPace.getFullYear()===yy&&nowPace.getMonth()===mm);
  let daysInMonth=new Date(yy,mm+1,0).getDate();
  let elapsedDays=selectedNow?Math.max(1,nowPace.getDate()):daysInMonth;
