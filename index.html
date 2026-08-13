@@ -103,9 +103,13 @@ body.entrySimple #undoLastBtn{grid-column:1/-1}
 .smartEntry{display:flex;align-items:center;justify-content:space-between;gap:9px;padding:9px 10px;margin:0 0 8px;border:1px solid var(--line);border-radius:12px;background:#fafbff}
 .smartEntry>div{min-width:0}
 .smartEntry button{padding:8px 10px;white-space:nowrap}
+
+.dailyActionGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.dailyActionGrid button{min-height:44px;padding:9px 8px;font-size:12px}
+body.essentialMode .dailyActions{display:block!important}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V170-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V180-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -130,6 +134,17 @@ body.entrySimple #undoLastBtn{grid-column:1/-1}
  <div class="attentionHead"><b id="attentionTitle">✓ Tout va bien</b><span id="attentionBadge"></span></div>
  <div id="attentionText" class="note" style="margin-top:5px"></div>
  <button id="attentionAction" class="secondary" type="button" style="display:none;width:100%;margin-top:8px">Voir</button>
+</div>
+
+<div class="section dailyActions" style="margin-top:0;margin-bottom:10px">
+ <h2 style="margin-bottom:4px">⚡ Actions rapides</h2>
+ <div id="dailyActionHint" class="note" style="margin-bottom:7px"></div>
+ <div class="dailyActionGrid">
+  <button id="dailyAdd" type="button">➕ Ajouter</button>
+  <button id="dailyDue" class="secondary" type="button">📌 Échéances</button>
+  <button id="dailyBalance" class="secondary" type="button">🏦 Solde</button>
+  <button id="dailyBackup" class="secondary" type="button">🛡️ Sauvegarde</button>
+ </div>
 </div>
 
 <div id="todaySection" class="section" style="margin-top:0;margin-bottom:10px">
@@ -616,6 +631,10 @@ function downloadSafetyFile(prefix){
  a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 $('safeDownload').onclick=()=>{downloadSafetyFile('mon-budget-sauvegarde-securite');showToast('Sauvegarde téléchargée ✓')};
+$('dailyAdd').onclick=()=>{document.getElementById('form').scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>$('label').focus(),250)};
+$('dailyDue').onclick=()=>openBySummary('À venir ce mois-ci');
+$('dailyBalance').onclick=()=>openBySummary('Modifier solde et carte');
+$('dailyBackup').onclick=()=>openBySummary('Historique & sauvegarde');
 $('beforeUpdateBackup').onclick=()=>{downloadSafetyFile('AVANT-MISE-A-JOUR-mon-budget');showToast('Sauvegarde avant mise à jour créée ✓')};
 $('safeRestore').onclick=()=>{
  let p=getSafetyCopy();
@@ -1114,6 +1133,10 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
      txt.textContent='Aucune action prioritaire détectée pour le mois sélectionné.';
    }
  }
+ if($('dailyActionHint')){
+ let p=dueItems.length;
+ $('dailyActionHint').textContent=p?p+' échéance'+(p>1?'s':'')+' à suivre ce mois-ci.':'Aucune échéance en attente.';
+}
  if($('monthPace')){
    if(daysLeft>0 && spendable>=0) $('monthPace').textContent='💡 Repère réellement dépensable : '+eur(pd)+' par jour jusqu’à la fin du mois';
    else if(spendable<0) $('monthPace').textContent='⚠️ Marge dépassée de '+eur(Math.abs(spendable));
