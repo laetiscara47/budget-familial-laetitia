@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V63</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V64</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -836,7 +836,7 @@ $('form').onsubmit=e=>{e.preventDefault();let obj={id:crypto.randomUUID(),label:
    let bb=s.balances[mm]||{bank:0,card:0};
    s.balances[mm]={bank:+bb.bank||0,card:(+bb.card||0)+obj.amount};
  }
-}$('label').value='';$('amount').value='';persist()};
+}$('label').value='';$('amount').value='';persist();$('label').focus()};
 function move(n){let[y,m]=$('month').value.split('-').map(Number);m+=n;if(m<1){m=12;y--}if(m>12){m=1;y++}$('month').value=y+'-'+String(m).padStart(2,'0');localStorage.setItem('budget_last_month',$('month').value);render()}$('prev').onclick=()=>move(-1);$('next').onclick=()=>move(1);$('resetFilters').onclick=()=>{$('movementFilter').value='all';$('movementCategory').value='all';$('movementPayment').value='all';$('movementSearch').value='';$('movementSort').value='dateDesc';render()};
 if($('paymentMethod'))$('paymentMethod').onchange=()=>localStorage.setItem('budget_last_payment',$('paymentMethod').value);
 $('movementFilter').onchange=render;$('movementCategory').onchange=render;$('movementPayment').onchange=render;$('movementSearch').oninput=render;$('movementSort').onchange=render;
