@@ -182,9 +182,15 @@ body.essentialMode .compactMonthDetails{display:block!important}
  .entryToolButtons{gap:4px}
  .entryToolButtons button{font-size:10px;padding:6px 7px}
 }
+
+/* V800 — filtres d'historique compacts */
+.historyFilters{display:flex;gap:5px;overflow-x:auto;margin:0 0 8px;padding-bottom:2px;scrollbar-width:none}
+.historyFilters::-webkit-scrollbar{display:none}
+.historyFilters button{flex:0 0 auto;padding:6px 8px;font-size:10px}
+.historyFilters button.active{font-weight:800;outline:2px solid currentColor}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V700-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V800-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -326,6 +332,7 @@ body.essentialMode .compactMonthDetails{display:block!important}
   <button id="repeatLastEntry" class="secondary" type="button" style="display:none">↻ Reprendre</button>
   <button id="clearQuickEntry" class="secondary" type="button">✕ Effacer</button>
   <button id="entryToday" class="secondary" type="button">Aujourd’hui</button>
+  <button id="entryThisMonth" class="secondary" type="button">Ce mois</button>
   <button id="toggleEntryDetails" class="secondary" type="button">Plus d’options</button>
  </div>
 </div>
@@ -652,7 +659,12 @@ Le statut « Reçu / Payé » reste indépendant pour chaque mois.
  <input id="historySearch" type="search" placeholder="Rechercher une opération…" autocomplete="off">
  <button id="historyClearSearch" class="secondary" type="button">Effacer</button>
 </div>
-<div id="historySearchInfo" class="note" style="margin:0 0 7px"></div>
+<div id="historySearchInfo" class="note" style="margin:0 0 7px"></div><div class="historyFilters">
+ <button class="secondary historyFilter active" type="button" data-history-filter="all">Tout</button>
+ <button class="secondary historyFilter" type="button" data-history-filter="expense">Dépenses</button>
+ <button class="secondary historyFilter" type="button" data-history-filter="income">Revenus</button>
+ <button class="secondary historyFilter" type="button" data-history-filter="fixed">Prélèvements</button>
+</div>
   <div class="section" style="margin:0 0 10px">
    <h2>🛡️ Sécurité des données</h2>
    <div id="safeStatus" class="note" style="margin-bottom:9px">Sauvegarde automatique active.</div>
@@ -803,6 +815,8 @@ $('repeatLastEntry').onclick=repeatLastEntry;
 $('collapseMonthDetails').onclick=()=>{let d=$('compactMonthDetails');if(d){d.open=false;d.scrollIntoView({behavior:'smooth',block:'center'})}};
 $('clearQuickEntry').onclick=clearQuickEntry;
 $('entryToday').onclick=setEntryDateToday;
+$('entryThisMonth').onclick=setEntryDateThisMonth;
+document.querySelectorAll('.historyFilter').forEach(b=>b.onclick=()=>setHistoryTypeFilter(b.dataset.historyFilter));
 $('historySearch').oninput=applyHistorySearch;
 $('historyClearSearch').onclick=clearHistorySearch;
 $('toggleEntryDetails').onclick=()=>setEntryMode(document.body.classList.contains('entrySimple')?'full':'simple');
@@ -1121,7 +1135,6 @@ function applyHistorySearch(){
  let info=$('historySearchInfo');
  let candidates=[...document.querySelectorAll('#historyList .row, #historyList .entry, .historyList .row, .historyList .entry')];
  if(!candidates.length){
-   // Fallback: filter direct children of the known history container if markup differs.
    let box=$('historyList')||document.querySelector('.historyList');
    if(box)candidates=[...box.children];
  }
@@ -1129,15 +1142,46 @@ function applyHistorySearch(){
  candidates.forEach(el=>{
    if(el.closest && el.closest('.historyQuickTools'))return;
    total++;
-   let ok=!q||(el.textContent||'').toLowerCase().includes(q);
+   let txt=(el.textContent||'').toLowerCase();
+   let textOk=!q||txt.includes(q);
+   let typeOk=true;
+   if(historyTypeFilter!=='all'){
+     let marker=(el.dataset.type||el.getAttribute('data-type')||'').toLowerCase();
+     if(marker) typeOk=marker===historyTypeFilter;
+     else{
+       if(historyTypeFilter==='expense') typeOk=txt.includes('dépense')||txt.includes('−')||txt.includes('-');
+       if(historyTypeFilter==='income') typeOk=txt.includes('revenu')||txt.includes('+');
+       if(historyTypeFilter==='fixed') typeOk=txt.includes('prélèvement')||txt.includes('fixe');
+     }
+   }
+   let ok=textOk&&typeOk;
    el.style.display=ok?'':'none';
    if(ok)shown++;
  });
- if(info)info.textContent=q?(shown+' résultat'+(shown>1?'s':'')+' sur '+total):'';
+ if(info)info.textContent=(q||historyTypeFilter!=='all')?(shown+' résultat'+(shown>1?'s':'')+' sur '+total):'';
 }
 function clearHistorySearch(){
  if($('historySearch'))$('historySearch').value='';
+ historyTypeFilter='all';
+ document.querySelectorAll('.historyFilter').forEach(b=>b.classList.toggle('active',b.dataset.historyFilter==='all'));
  applyHistorySearch();
+}
+
+
+let historyTypeFilter='all';
+function setHistoryTypeFilter(type){
+ historyTypeFilter=type||'all';
+ document.querySelectorAll('.historyFilter').forEach(b=>b.classList.toggle('active',b.dataset.historyFilter===historyTypeFilter));
+ applyHistorySearch();
+}
+function setEntryDateThisMonth(){
+ if(!$('date'))return;
+ let current=$('date').value||'';
+ let day=parseInt(current.slice(8,10),10)||new Date().getDate();
+ let [yy,mm]=m.split('-').map(Number);
+ let maxDay=new Date(yy,mm,0).getDate();
+ $('date').value=m+'-'+String(Math.min(day,maxDay)).padStart(2,'0');
+ updateEntryChoiceSummary();
 }
 
 const KEY='monBudgetSimpleV3';
