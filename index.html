@@ -108,11 +108,11 @@ body.entrySimple #undoLastBtn{grid-column:1/-1}
 .dailyActionGrid button{min-height:44px;padding:9px 8px;font-size:12px}
 body.essentialMode .dailyActions{display:block!important}
 
-.snapshotGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.snapshotGrid>div{border:1px solid var(--line);border-radius:11px;padding:8px;background:#fafbff}
-.snapshotGrid span{display:block;font-size:11px;color:#666;margin-bottom:3px}
-.snapshotGrid b{font-size:16px}
-body.essentialMode .monthSnapshot{display:block!important}
+
+
+
+
+
 
 
 
@@ -155,14 +155,14 @@ body.essentialMode .compactMonthDetails{display:block!important}
 .closeAssistantGrid button{min-height:42px;text-align:left;padding:9px 10px}
 
 /* V500.1 — accueil plus compact */
-.monthSnapshot{padding:11px!important;margin-bottom:8px!important}
-.snapshotGrid{gap:6px!important}
-.snapshotGrid>div{padding:7px!important}
+
+
+
 .compactMonthDetails{margin-bottom:8px!important}
 .dailyActions{padding:11px!important;margin-bottom:8px!important}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V500.2-SAFE</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V500.3-SAFE</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -189,15 +189,7 @@ body.essentialMode .compactMonthDetails{display:block!important}
  <button id="attentionAction" class="secondary" type="button" style="display:none;width:100%;margin-top:8px">Voir</button>
 </div>
 
-<div class="section monthSnapshot" style="margin-top:0;margin-bottom:10px">
- <h2 style="margin-bottom:7px">🧾 Mon mois en un coup d’œil</h2>
- <div class="snapshotGrid">
-  <div><span>Disponible maintenant</span><b id="snapAvailable">—</b></div>
-  <div><span>Reste réellement dépensable</span><b id="snapSpendable">—</b></div>
-  <div><span>Échéances à suivre</span><b id="snapDue">—</b></div>
-  <div><span>Repère / jour</span><b id="snapPerDay">—</b></div>
- </div>
-</div>
+
 
 <details id="compactMonthDetails" class="fold compactMonthDetails">
  <summary>📊 Détails du mois <span id="compactHint" class="compactHint">comparaison · catégories · projection</span></summary>
@@ -1505,18 +1497,7 @@ if($('monthProjectionText')){
   $('monthProjectionText').textContent='Repère simple pour répartir ce qui reste réellement dépensable jusqu’à la fin du mois.';
  }
 }
-if($('snapAvailable')){
- $('snapAvailable').textContent=eur(availableNow);
- $('snapAvailable').className=availableNow<0?'red':'green';
- $('snapSpendable').textContent=eur(spendable);
- $('snapSpendable').className=spendable<0?'red':'green';
- $('snapDue').textContent=String(dueItems.length);
- $('snapDue').className=dueItems.length?'orange':'green';
- let _snapDays=Math.max(1,daysLeft||1);
- let _snapPd=spendable/_snapDays;
- $('snapPerDay').textContent=eur(_snapPd);
- $('snapPerDay').className=_snapPd<0?'red':'green';
-}
+
  if($('monthPace')){
    if(daysLeft>0 && spendable>=0) $('monthPace').textContent='💡 Repère réellement dépensable : '+eur(pd)+' par jour jusqu’à la fin du mois';
    else if(spendable<0) $('monthPace').textContent='⚠️ Marge dépassée de '+eur(Math.abs(spendable));
