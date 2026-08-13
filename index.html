@@ -40,7 +40,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V58</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V59</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -161,6 +161,15 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 
 </div></details>
   <details class="fold">
+<summary>🏆 Plus gros poste de dépense</summary>
+<div class="foldBody">
+ <div class="cards">
+  <div class="card"><span class="smalllabel">Catégorie n°1</span><b id="topCategoryName">—</b></div>
+  <div class="card"><span class="smalllabel">Montant</span><b id="topCategoryAmount" class="red">0,00 €</b></div>
+ </div>
+ <div id="topCategoryInfo" class="note" style="margin-top:10px"></div>
+</div></details>
+<details class="fold">
 <summary>🎯 Suis-je dans le bon rythme ?</summary>
 <div class="foldBody">
  <div class="cards">
@@ -671,6 +680,14 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
  let catTotals={};
  rows.filter(e=>e.type==='expense').forEach(e=>{let c=e.category||'Autre';catTotals[c]=(catTotals[c]||0)+(+e.amount||0)});
  let catRows=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]),totalCat=catRows.reduce((a,x)=>a+x[1],0);
+ if(catRows.length){
+  let topCat=catRows[0],topPct=totalCat>0?topCat[1]/totalCat*100:0;
+  $('topCategoryName').textContent=topCat[0];$('topCategoryAmount').textContent=eur(topCat[1]);
+  $('topCategoryInfo').textContent=topCat[0]+' représente environ '+Math.round(topPct)+' % de vos dépenses enregistrées ce mois-ci.';
+ }else{
+  $('topCategoryName').textContent='—';$('topCategoryAmount').textContent=eur(0);
+  $('topCategoryInfo').textContent='Pas encore de dépenses enregistrées pour identifier un poste principal.';
+ }
  if(!catRows.length)cb.innerHTML='<div class="empty">Aucune dépense enregistrée ce mois-ci.</div>';
  catRows.forEach(([cat,val])=>{let pct=totalCat>0?(val/totalCat)*100:0,d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div><div class="progress"><div class="bar"></div></div></div><div class="amt red"></div>';d.querySelector('.title').textContent=cat;d.querySelector('.meta').textContent=pct.toLocaleString('fr-FR',{maximumFractionDigits:0})+' % des dépenses';d.querySelector('.bar').style.width=pct+'%';d.querySelector('.amt').textContent=eur(val);cb.appendChild(d)});
  let bs=$('budgetStatus');bs.innerHTML='';
