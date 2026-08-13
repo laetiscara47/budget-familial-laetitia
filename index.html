@@ -94,9 +94,14 @@ body.entrySimple #undoLastBtn{grid-column:1/-1}
 .globalUndo span{font-size:13px;font-weight:700}
 .globalUndo button{padding:8px 12px;background:#fff;color:#20232a;white-space:nowrap}
 
+
+.attentionCard{border-width:2px}
+.attentionHead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+#attentionBadge{font-size:11px;font-weight:800;padding:4px 7px;border-radius:999px;background:#eef0f6}
+
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V140</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V150</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -115,6 +120,12 @@ body.entrySimple #undoLastBtn{grid-column:1/-1}
   <div><b>🔔 Point budget</b><div id="routineReminderText" class="note" style="margin-top:3px"></div></div>
   <button id="routineGo" class="secondary" type="button">Faire le point</button>
  </div>
+</div>
+
+<div id="attentionCard" class="section attentionCard" style="margin-top:0;margin-bottom:10px">
+ <div class="attentionHead"><b id="attentionTitle">✓ Tout va bien</b><span id="attentionBadge"></span></div>
+ <div id="attentionText" class="note" style="margin-top:5px"></div>
+ <button id="attentionAction" class="secondary" type="button" style="display:none;width:100%;margin-top:8px">Voir</button>
 </div>
 
 <div id="todaySection" class="section" style="margin-top:0;margin-bottom:10px">
@@ -561,7 +572,7 @@ Le statut « Reçu / Payé » reste indépendant pour chaque mois.
 
 <script>
 
-let toastTimer=null,lastDueAction=null;
+let toastTimer=null,lastDueAction=null,attentionTarget=null;
 function showToast(msg){
  let x=$('toast');if(!x)return;
  x.textContent=msg;x.classList.add('show');
@@ -587,6 +598,7 @@ $('saveRoutineDay').onclick=()=>{
 $('clearRoutineDay').onclick=()=>{
  s.routineDay=0;$('routineDay').value='';localStorage.setItem(KEY,JSON.stringify(s));render();showToast('Routine désactivée');
 };
+$('attentionAction').onclick=()=>{if(attentionTarget)openBySummary(attentionTarget)};
 $('routineGo').onclick=()=>{openBySummary('Gérer le mois');setTimeout(()=>document.querySelector('.monthGuide')?.scrollIntoView({behavior:'smooth',block:'start'}),200)};
 $('restoreSafety').onclick=()=>{if(restoreSafetyBackup())showToast('Sauvegarde restaurée ✓');else showToast('Aucune sauvegarde à restaurer')};
 $('toggleEntryDetails').onclick=()=>setEntryMode(document.body.classList.contains('entrySimple')?'full':'simple');
@@ -958,6 +970,36 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
    let left=pd-spentToday;
    $('homeTodayMsg').textContent=left>=0?'Il reste environ '+eur(left)+' sur votre repère d’aujourd’hui.':'Votre repère du jour est dépassé d’environ '+eur(Math.abs(left))+'.';
   }
+ }
+ if($('attentionCard')){
+   let title=$('attentionTitle'),txt=$('attentionText'),badge=$('attentionBadge'),btn=$('attentionAction');
+   let hasBal=Object.prototype.hasOwnProperty.call(s.balances,m);
+   let overdueCount=todayItems.filter(x=>x.over).length;
+   attentionTarget=null;btn.style.display='none';
+   if(!hasBal){
+     title.textContent='🏦 Solde à renseigner';badge.textContent='Priorité';
+     txt.textContent='Mettez à jour le solde du compte et la carte pour fiabiliser le mois.';
+     attentionTarget='Modifier solde et carte';btn.textContent='Mettre à jour';btn.style.display='block';
+   }else if(overdueCount>0){
+     title.textContent='⚠️ Échéance à vérifier';badge.textContent=overdueCount+' en retard';
+     txt.textContent='Une ou plusieurs échéances prévues sont encore non validées.';
+     attentionTarget='À venir ce mois-ci';btn.textContent='Voir les échéances';btn.style.display='block';
+   }else if(spendable<0){
+     title.textContent='⚠️ Budget à surveiller';badge.textContent='Attention';
+     txt.textContent='Les prévisions dépassent actuellement votre marge disponible de '+eur(Math.abs(spendable))+'.';
+     attentionTarget='Prévision du mois';btn.textContent='Voir la prévision';btn.style.display='block';
+   }else if(dueItems.length>0){
+     title.textContent='📌 Prochaine étape';badge.textContent=dueItems.length+' à suivre';
+     txt.textContent='Des revenus ou prélèvements restent à valider ce mois-ci.';
+     attentionTarget='À venir ce mois-ci';btn.textContent='Voir les échéances';btn.style.display='block';
+   }else if(s.routineDay && m===new Date().toISOString().slice(0,7) && new Date().getDate()>=s.routineDay){
+     title.textContent='🔔 Point budget';badge.textContent='À faire';
+     txt.textContent='Votre jour de routine est arrivé. Un contrôle rapide du mois suffit.';
+     attentionTarget='Gérer le mois';btn.textContent='Faire le point';btn.style.display='block';
+   }else{
+     title.textContent='✓ Rien d’urgent';badge.textContent='OK';
+     txt.textContent='Aucune action prioritaire détectée pour le mois sélectionné.';
+   }
  }
  if($('monthPace')){
    if(daysLeft>0 && spendable>=0) $('monthPace').textContent='💡 Repère réellement dépensable : '+eur(pd)+' par jour jusqu’à la fin du mois';
