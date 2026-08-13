@@ -63,9 +63,11 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 .habitBtn{white-space:nowrap;padding:9px 11px!important}
 .reuseHome{background:#eef0f6;color:#444;padding:7px 9px;font-size:13px}
 
+.homeDone{padding:7px 9px;font-size:12px;white-space:nowrap}
+@media(max-width:520px){.homeDone{padding:7px 8px;font-size:11px}}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V83</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V84</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -114,7 +116,8 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 </div>
 
 <div class="section" style="margin-top:0;margin-bottom:10px">
- <h2 style="margin-bottom:8px">📌 À faire</h2>
+ <h2 style="margin-bottom:5px">📌 À faire</h2>
+ <div class="note" style="margin-bottom:8px">Validez directement ici ce qui a été payé ou reçu.</div>
  <div id="homeTodo" class="list"></div>
  <button id="qaTodo" class="secondary" type="button" style="width:100%;margin-top:8px">Voir toutes les échéances</button>
 </div>
@@ -706,10 +709,12 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
   if(!relevant.length)todo.innerHTML='<div class="empty">Rien à faire pour ce mois.</div>';
   relevant.forEach(x=>{
    let d=document.createElement('div');d.className='item';
-   d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div>';
+   d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="homeDone" type="button"></button>';
    d.querySelector('.title').textContent=(x.kind==='income'?'💰 ':'🧾 ')+x.label;
    d.querySelector('.meta').textContent='Le '+x.day+' du mois';
    let a=d.querySelector('.amt');a.textContent=eur(x.amount);a.className='amt '+(x.kind==='income'?'green':'orange');
+   let done=d.querySelector('.homeDone');done.textContent=x.kind==='income'?'Reçu ✓':'Payé ✓';
+   done.onclick=()=>{if(x.kind==='income'){s.incomeReceived[m]=s.incomeReceived[m]||{};s.incomeReceived[m][x.id]=true}else{s.paid[m]=s.paid[m]||{};s.paid[m][x.id]=true}persist();showToast(x.kind==='income'?'Revenu marqué reçu ✓':'Prélèvement marqué payé ✓')};
    todo.appendChild(d);
   });
  }
