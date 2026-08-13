@@ -67,7 +67,7 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
 @media(max-width:520px){.homeDone{padding:7px 8px;font-size:11px}}
 </style></head>
 <body><div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V84</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">V85</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 
 <div class="hero">
@@ -119,7 +119,10 @@ button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#ff
  <h2 style="margin-bottom:5px">📌 À faire</h2>
  <div class="note" style="margin-bottom:8px">Validez directement ici ce qui a été payé ou reçu.</div>
  <div id="homeTodo" class="list"></div>
- <button id="qaTodo" class="secondary" type="button" style="width:100%;margin-top:8px">Voir toutes les échéances</button>
+ <div class="actions" style="margin-top:8px">
+ <button id="undoDueAction" class="secondary" type="button" style="display:none">↩️ Annuler</button>
+ <button id="qaTodo" class="secondary" type="button">Voir les échéances</button>
+</div>
 </div>
 
 <details class="fold homeRecent">
@@ -490,7 +493,7 @@ Le statut « Reçu / Payé » reste indépendant pour chaque mois.
 
 <script>
 
-let toastTimer=null;
+let toastTimer=null,lastDueAction=null;
 function showToast(msg){
  let x=$('toast');if(!x)return;
  x.textContent=msg;x.classList.add('show');
@@ -606,7 +609,7 @@ function copyPreviousBudgets(){
  $('copyBudgetMsg').textContent='Budgets du mois précédent repris ✓';
  persist();
 }
-function render(){updateAddButton();updateAddReady();updateQuickHabits();
+function render(){updateAddButton();updateAddReady();if($('undoDueAction'))$('undoDueAction').style.display=lastDueAction?'block':'none';updateQuickHabits();
  let m=$('month').value,b=s.balances[m]||{bank:0,card:0};
  let paymentExpenses=s.entries.filter(e=>e.month===m&&e.type==='expense');
  let payCard=paymentExpenses.filter(e=>!e.payment||e.payment==='card').reduce((a,e)=>a+(+e.amount||0),0);
@@ -679,8 +682,8 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
  closeChecks.forEach(x=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div>';d.querySelector('.title').textContent=x.label;d.querySelector('.meta').textContent=x.detail;d.querySelector('.amt').textContent=x.ok?'✓':'À vérifier';d.querySelector('.amt').className='amt '+(x.ok?'green':'orange');closeList.appendChild(d)});
 
  let dueItems=[];
- s.fixed.forEach(f=>{if(!(s.paid[m]||{})[f.id])dueItems.push({day:+f.day||1,label:f.label,amount:f.amount,type:'À payer'})});
- s.fixedIncome.forEach(f=>{if(!(s.incomeReceived[m]||{})[f.id])dueItems.push({day:+f.day||1,label:f.label,amount:f.amount,type:'À recevoir'})});
+ s.fixed.forEach(f=>{if(!(s.paid[m]||{})[f.id])dueItems.push({kind:'fixed',id:f.id,day:+f.day||1,label:f.label,amount:f.amount,type:'À payer'})});
+ s.fixedIncome.forEach(f=>{if(!(s.incomeReceived[m]||{})[f.id])dueItems.push({kind:'income',id:f.id,day:+f.day||1,label:f.label,amount:f.amount,type:'À recevoir'})});
  let todayNum=(new Date().getFullYear()===yy && new Date().getMonth()+1===mm)?new Date().getDate():1;
  let todayBox=$('todayDueList'),todayNote=$('todayDueNote');todayBox.innerHTML='';
  let isCurrentMonth=(new Date().getFullYear()===yy && new Date().getMonth()+1===mm);
@@ -714,7 +717,14 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
    d.querySelector('.meta').textContent='Le '+x.day+' du mois';
    let a=d.querySelector('.amt');a.textContent=eur(x.amount);a.className='amt '+(x.kind==='income'?'green':'orange');
    let done=d.querySelector('.homeDone');done.textContent=x.kind==='income'?'Reçu ✓':'Payé ✓';
-   done.onclick=()=>{if(x.kind==='income'){s.incomeReceived[m]=s.incomeReceived[m]||{};s.incomeReceived[m][x.id]=true}else{s.paid[m]=s.paid[m]||{};s.paid[m][x.id]=true}persist();showToast(x.kind==='income'?'Revenu marqué reçu ✓':'Prélèvement marqué payé ✓')};
+   done.onclick=()=>{
+     lastDueAction={month:m,kind:x.kind,id:x.id,label:x.label};
+     if(x.kind==='income'){s.incomeReceived[m]=s.incomeReceived[m]||{};s.incomeReceived[m][x.id]=true}
+     else{s.paid[m]=s.paid[m]||{};s.paid[m][x.id]=true}
+     persist();
+     if($('undoDueAction'))$('undoDueAction').style.display='block';
+     showToast(x.kind==='income'?'Revenu marqué reçu ✓':'Prélèvement marqué payé ✓');
+   };
    todo.appendChild(d);
   });
  }
@@ -1014,6 +1024,18 @@ $('qaBalance').onclick=()=>{openBySummary('Modifier solde et carte');setTimeout(
 $('qaHistory').onclick=()=>openBySummary('Mouvements du mois');
 $('qaBackup').onclick=()=>{$('export').click()};
 $('qaTodo').onclick=()=>openBySummary('À venir ce mois-ci');
+$('undoDueAction').onclick=()=>{
+ if(!lastDueAction)return;
+ let a=lastDueAction;
+ if(a.kind==='income'){
+   if(s.incomeReceived[a.month])delete s.incomeReceived[a.month][a.id];
+ }else{
+   if(s.paid[a.month])delete s.paid[a.month][a.id];
+ }
+ lastDueAction=null;
+ $('undoDueAction').style.display='none';
+ persist();showToast('Validation annulée ✓');
+};
 $('qaToday').onclick=()=>{
  let today=new Date().toISOString().slice(0,10);
  $('month').value=today.slice(0,7);$('date').value=today;
