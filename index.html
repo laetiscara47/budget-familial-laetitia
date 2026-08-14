@@ -300,7 +300,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
  .fixedBtns button{flex:1 1 auto}
 }
 
-/* SIMPLE-9.2 — liste « Déjà traité » plus compacte et noms lisibles */
+/* SIMPLE-9.3 — liste « Déjà traité » plus compacte et noms lisibles */
 .treated-item{
   display:grid !important;
   grid-template-columns:minmax(0,1fr) auto auto !important;
@@ -356,7 +356,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
 }
 
 
-/* SIMPLE-9.2 — lot confort iPhone, sans changement des calculs */
+/* SIMPLE-9.3 — lot confort iPhone, sans changement des calculs */
 :root{scroll-behavior:smooth}
 button, summary, select{touch-action:manipulation}
 button:active{transform:scale(.985)}
@@ -385,7 +385,7 @@ summary{cursor:pointer}
 button:not(:disabled), summary{ -webkit-tap-highlight-color:rgba(86,101,214,.12); }
 
 
-/* SIMPLE-9.2 — utilisation quotidienne */
+/* SIMPLE-9.3 — utilisation quotidienne */
 .daily66{
   margin:10px 0 12px;padding:12px;border:1px solid var(--line);
   border-radius:16px;background:var(--card);
@@ -402,7 +402,7 @@ button:not(:disabled), summary{ -webkit-tap-highlight-color:rgba(86,101,214,.12)
 }
 
 
-/* SIMPLE-9.2 — saisie quotidienne + dernières opérations */
+/* SIMPLE-9.3 — saisie quotidienne + dernières opérations */
 .daily67Recent{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
 .daily67RecentHead{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .daily67RecentHead button{min-height:34px!important;padding:6px 9px!important;font-size:12px!important}
@@ -415,21 +415,21 @@ button:not(:disabled), summary{ -webkit-tap-highlight-color:rgba(86,101,214,.12)
 .daily67Empty{font-size:13px;opacity:.7;padding:8px 0}
 
 
-/* SIMPLE-9.2 — résumé mensuel immédiat */
+/* SIMPLE-9.3 — résumé mensuel immédiat */
 .daily68Summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}
 .daily68Summary>div{border:1px solid var(--line);border-radius:13px;padding:9px 10px;display:flex;flex-direction:column;gap:3px}
 .daily68Summary span{font-size:12px;opacity:.72}
 .daily68Summary b{font-size:17px}
 
 
-/* SIMPLE-9.2 — pilotage du mois */
+/* SIMPLE-9.3 — pilotage du mois */
 .daily69Pilot{margin-top:11px;border:1px solid var(--line);border-radius:14px;padding:10px 11px}
 .daily69PilotTitle{font-weight:900;font-size:14px}
 .daily69Message{font-size:13px;font-weight:750;margin-top:5px;line-height:1.3}
 .daily69Next{font-size:12px;opacity:.76;margin-top:4px;line-height:1.3}
 
 
-/* SIMPLE-9.2 — accueil quotidien final */
+/* SIMPLE-9.3 — accueil quotidien final */
 .daily70Status{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
 .daily70Status>div{border:1px solid var(--line);border-radius:14px;padding:9px 10px;display:flex;flex-direction:column;gap:3px}
 .daily70Status span{font-size:12px;opacity:.7}
@@ -437,7 +437,7 @@ button:not(:disabled), summary{ -webkit-tap-highlight-color:rgba(86,101,214,.12)
 @media(max-width:430px){.daily70Status b{font-size:16px}}
 
 
-/* SIMPLE-9.2 — NETTOYAGE
+/* SIMPLE-9.3 — NETTOYAGE
    Retour à l'objectif initial : simple, clair, mensuel.
    Les couches de tableau de bord ajoutées en 6.6–7.0 sont masquées.
    Les données et calculs existants restent intacts. */
@@ -462,7 +462,7 @@ button, summary, input, select { min-height:46px; }
 }
 
 
-/* SIMPLE-9.2 — accueil minimaliste */
+/* SIMPLE-9.3 — accueil minimaliste */
 #simple4Balance{display:none !important;}
 #simple4Bank{cursor:pointer;touch-action:manipulation}
 #manage72{margin:14px auto 0;width:auto;min-width:150px;min-height:44px;padding:9px 18px;display:block;border-radius:14px;font-size:15px}
@@ -470,7 +470,7 @@ button, summary, input, select { min-height:46px; }
 .smalllabel{display:none !important;}
 
 
-/* SIMPLE-9.2 — suppression de la barre de raccourcis en double */
+/* SIMPLE-9.3 — suppression de la barre de raccourcis en double */
 .quickNav,
 #quickNav,
 .bottomQuickNav,
@@ -481,7 +481,7 @@ button, summary, input, select { min-height:46px; }
 }
 
 
-/* SIMPLE-9.2 — saisie Dépense claire */
+/* SIMPLE-9.3 — saisie Dépense claire */
 body.expense74-on #quickTypeRow,
 body.expense74-on #quickCategoryRow,
 body.expense74-on #quickUtilityRow {display:none !important;}
@@ -505,7 +505,7 @@ body.expense74-on input,
 body.expense74-on select{font-size:17px}
 
 
-/* SIMPLE-9.2 — suppression des couches de saisie devenues inutiles */
+/* SIMPLE-9.3 — suppression des couches de saisie devenues inutiles */
 #expense74Header{display:none !important;}
 body.expense74-on #expense74Header{display:none !important;}
 
@@ -514,7 +514,7 @@ body.expense74-on #expense74Header{display:none !important;}
 
 
 /* =========================================================
-   SIMPLE-9.2 — nettoyage VISUEL uniquement, base fonctionnelle 7.6
+   SIMPLE-9.3 — nettoyage VISUEL uniquement, base fonctionnelle 7.6
    Aucun changement du stockage ou des fonctions métier.
    ========================================================= */
 
@@ -525,14 +525,14 @@ body.expense74-on #expense74Header{display:none !important;}
 .v81AddOperation, #v81AddOperation { display:none !important; }
 
 
-/* SIMPLE-9.2 — gestion native, sans boutons intermédiaires */
+/* SIMPLE-9.3 — gestion native, sans boutons intermédiaires */
 body.manage90-open #advancedManager,
 body.manage90-open #managerPanel,
 body.manage90-open .advancedManager {display:block !important;}
 body.manage90-open details.menuGroup {display:block !important;}
 
 
-/* SIMPLE-9.2 */
+/* SIMPLE-9.3 */
 #manage91Panel{margin:16px 22px;padding:16px;border-radius:22px}
 .manage91Head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;font-size:24px}
 .manage91Head button{width:auto;padding:10px 14px}
@@ -542,12 +542,21 @@ body.manage90-open details.menuGroup {display:block !important;}
 .manage91Body label{display:block;margin:10px 0 6px;font-weight:700}
 .manage91Body input,.manage91Body button{width:100%;margin:6px 0}
 
+
+/* SIMPLE-9.3 — Gestion compacte */
+#manage91Panel details.manage91Section:not([open]) > .manage91Body{display:none!important}
+#manage91Panel details.manage91Section[open] > .manage91Body{display:block!important}
+#manage91Panel details.manage91Section > summary{list-style:none}
+#manage91Panel details.manage91Section > summary::-webkit-details-marker{display:none}
+#manage91Panel details.manage91Section > summary:after{content:"›";float:right;font-size:28px;line-height:1;transform:rotate(90deg)}
+#manage91Panel details.manage91Section[open] > summary:after{transform:rotate(-90deg)}
+
 </style></head>
 <body>
-<!-- SIMPLE-9.2 : interface nettoyée; données 7.0.1 conservées -->
+<!-- SIMPLE-9.3 : interface nettoyée; données 7.0.1 conservées -->
 
 <script>
-/* SIMPLE-9.2 — compatibilité : mois actuellement sélectionné */
+/* SIMPLE-9.3 — compatibilité : mois actuellement sélectionné */
 var currentMonth = (function(){
   var el=document.getElementById('month');
   if(el && el.value) return el.value;
@@ -610,7 +619,7 @@ document.addEventListener('change',function(e){
   <button id="simple5Undo" class="secondary simple5Undo" type="button" hidden>↩️ Annuler la dernière action</button>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-9.2</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-9.3</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -3091,7 +3100,7 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
 
 
 <script>
-/* SIMPLE-9.2 — prélèvements/revenus fixes mensuels robustes */
+/* SIMPLE-9.3 — prélèvements/revenus fixes mensuels robustes */
 (function(){
  function monthKey(){ var e=document.getElementById('month'); return e&&e.value ? e.value : new Date().toISOString().slice(0,7); }
  function ensure(){
@@ -3161,7 +3170,7 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
 
 
 <script>
-/* SIMPLE-9.2 — raccourcis sûrs vers les fonctions déjà existantes */
+/* SIMPLE-9.3 — raccourcis sûrs vers les fonctions déjà existantes */
 (function(){
  function clickExisting(id){
    var b=document.getElementById(id);
@@ -3204,7 +3213,7 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
 
 
 <script>
-/* SIMPLE-9.2 — aperçu des dernières opérations, sans modifier les calculs */
+/* SIMPLE-9.3 — aperçu des dernières opérations, sans modifier les calculs */
 (function(){
  function money67(v){
    try{return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(Number(v)||0)}
@@ -3256,7 +3265,7 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
 
 
 <script>
-/* SIMPLE-9.2 — résumé à recevoir / à payer depuis les données existantes */
+/* SIMPLE-9.3 — résumé à recevoir / à payer depuis les données existantes */
 (function(){
  function euro68(v){
   try{return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(Number(v)||0)}
@@ -3289,7 +3298,7 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
 
 
 <script>
-/* SIMPLE-9.2 — synthèse d'attention depuis les données existantes */
+/* SIMPLE-9.3 — synthèse d'attention depuis les données existantes */
 (function(){
  function eur69(v){try{return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(Number(v)||0)}catch(e){return (Number(v)||0).toFixed(2).replace('.',',')+' €'}}
  function refresh69(){
@@ -3330,7 +3339,7 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
 
 
 <script>
-/* SIMPLE-9.2 — synchronise l'accueil avec les valeurs déjà calculées par l'application */
+/* SIMPLE-9.3 — synchronise l'accueil avec les valeurs déjà calculées par l'application */
 (function(){
  function refresh70(){
   var av=document.getElementById('daily70Available'),mo=document.getElementById('daily70Month');
@@ -3380,7 +3389,7 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
 
 
 <script>
-/* SIMPLE-9.2 — masque uniquement la barre contenant les 5 raccourcis redondants */
+/* SIMPLE-9.3 — masque uniquement la barre contenant les 5 raccourcis redondants */
 (function(){
   function clean73(){
     var labels=['Ajouter','Solde','Historique','Sauvegarder',"Aujourd’hui","Aujourd'hui"];
@@ -3803,20 +3812,16 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
     </div>
   </details>
 
-  <details class="manage91Section">
+  <details class="manage91Section" id="manage93Income">
     <summary>💰 Revenus fixes</summary>
-    <div class="manage91Body">
-      <button type="button" id="manage91OpenIncome" class="secondary">Gérer les revenus fixes</button>
-    </div>
+    <div class="manage91Body"></div>
   </details>
-  <details class="manage91Section">
+  <details class="manage91Section" id="manage93Bills">
     <summary>🧾 Prélèvements fixes</summary>
-    <div class="manage91Body">
-      <button type="button" id="manage91OpenBills" class="secondary">Gérer les prélèvements fixes</button>
-    </div>
+    <div class="manage91Body"></div>
   </details>
 
-  <details class="manage91Section">
+  <details class="manage91Section" id="manage93History">
     <summary>📚 Historique & sauvegarde</summary>
     <div class="manage91Body">
       <button type="button" id="manage91OpenHistory" class="secondary">🧾 Historique</button>
@@ -3882,8 +3887,19 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
      };
      document.getElementById('manage91Bank').value =
        (bankSrc && bankSrc.value) ? bankSrc.value : readVisibleAmount('Banque');
+     const visibleCard = (function(){
+       const candidates=Array.from(document.querySelectorAll('div,section,article')).filter(e=>{
+         const s=T(e);
+         return /Carte/.test(s) && /\d[\d\s]*[,.]\d{2}\s*€/.test(s) && s.length<120;
+       }).sort((a,b)=>T(a).length-T(b).length);
+       for(const e of candidates){
+         const m=T(e).match(/(\d[\d\s]*[,.]\d{2})\s*€/);
+         if(m && Number(m[1].replace(/\s/g,'').replace(',','.'))>0) return m[1].replace(/\s/g,'');
+       }
+       return '';
+     })();
      document.getElementById('manage91Card').value =
-       (cardSrc && cardSrc.value) ? cardSrc.value : readVisibleAmount('Carte');
+       visibleCard || ((cardSrc && cardSrc.value) ? cardSrc.value : readVisibleAmount('Carte'));
      panel.scrollIntoView({behavior:'smooth',block:'start'});
    };
    document.getElementById('manage91Close').onclick=function(){
@@ -3922,6 +3938,70 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install91);
  else install91();
  setTimeout(install91,500);
+})();
+</script>
+
+
+<script>
+(function(){
+ const T=e=>(e&&e.textContent||'').replace(/\s+/g,' ').trim();
+ function findNative(words){
+   let els=Array.from(document.querySelectorAll('details,section,div'));
+   els=els.filter(e=>{
+     if(e.closest && e.closest('#manage91Panel')) return false;
+     const s=T(e).toLowerCase();
+     return words.every(w=>s.includes(w.toLowerCase()));
+   });
+   els.sort((a,b)=>T(a).length-T(b).length);
+   return els[0]||null;
+ }
+ function showNative(el){
+   if(!el)return;
+   let p=el;
+   while(p&&p!==document.body){
+     p.hidden=false;
+     if(p.style)p.style.removeProperty('display');
+     if(p.tagName==='DETAILS')p.open=true;
+     p=p.parentElement;
+   }
+   if(el.tagName==='DETAILS')el.open=true;
+   setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'start'}),60);
+ }
+ function install93(){
+   const panel=document.getElementById('manage91Panel');
+   if(!panel)return;
+
+   // Fermer les autres rubriques lorsqu'on en ouvre une.
+   panel.querySelectorAll('details.manage91Section').forEach(d=>{
+     d.addEventListener('toggle',()=>{
+       if(d.open){
+         panel.querySelectorAll('details.manage91Section').forEach(o=>{
+           if(o!==d)o.open=false;
+         });
+       }
+     });
+   });
+
+   const income=document.querySelector('#manage93Income > summary');
+   const bills=document.querySelector('#manage93Bills > summary');
+   const history=document.querySelector('#manage93History > summary');
+
+   if(income) income.addEventListener('click',e=>{
+     e.preventDefault();
+     showNative(findNative(['Revenus fixes mensuels'])||findNative(['Revenus fixes']));
+   });
+   if(bills) bills.addEventListener('click',e=>{
+     e.preventDefault();
+     showNative(findNative(['Prélèvements fixes']));
+   });
+   if(history) history.addEventListener('click',e=>{
+     e.preventDefault();
+     showNative(findNative(['Historique','sauvegarde'])||findNative(['Historique']));
+   });
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install93);
+ else install93();
+ setTimeout(install93,500);
 })();
 </script>
 
