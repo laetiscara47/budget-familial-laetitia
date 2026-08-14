@@ -632,6 +632,22 @@ body.manage90-open details.menuGroup {display:block !important;}
   }
 }
 
+
+/* SIMPLE-10.2 — revenus/prélèvements : montant insécable + actions plus compactes */
+.manage95Item strong{display:block!important;min-width:0!important}
+.manage95Name{overflow-wrap:anywhere}
+.manage95Amount{white-space:nowrap!important;display:inline-block!important}
+.manage95Item{grid-template-columns:minmax(0,1fr) auto!important;gap:6px!important}
+.manage95Item>div:last-child{display:flex!important;gap:4px!important;align-items:center!important}
+.manage95Item .manage95Edit,.manage95Item .manage95Delete{
+  width:38px!important;height:38px!important;min-width:38px!important;max-width:38px!important;
+  min-height:38px!important;padding:0!important;margin:0!important;border-radius:11px!important;
+}
+.manage95Item .manage95Edit::before,.manage95Item .manage95Delete::before{font-size:17px!important}
+@media(max-width:430px){
+  .manage95Item{grid-template-columns:minmax(0,1fr) 80px!important}
+  .manage95Item strong{font-size:16px!important;line-height:1.18!important}
+}
 </style></head>
 <body>
 <!-- SIMPLE-10.1 : interface nettoyée; données 7.0.1 conservées -->
@@ -700,7 +716,7 @@ document.addEventListener('change',function(e){
   <button id="simple5Undo" class="secondary simple5Undo" type="button" hidden>↩️ Annuler la dernière action</button>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-10.1</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-10.2</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -4173,8 +4189,9 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
    box.innerHTML=arr.length?'':'<div style="padding:8px 0;color:#7b8190">Aucun élément enregistré.</div>';
    arr.slice().sort((a,b)=>(a.day||99)-(b.day||99)).forEach(x=>{
      const row=document.createElement('div'); row.className='manage95Item';
-     row.innerHTML='<div><strong></strong><small></small></div><div><button type="button" class="manage95Edit">Modifier</button><button type="button" class="manage95Delete">Supprimer</button></div>';
-     row.querySelector('strong').textContent=(x.label||x.name||'Sans nom')+' · '+fmt(x.amount);
+     row.innerHTML='<div><strong><span class="manage95Name"></span><span class="manage95Amount"></span></strong><small></small></div><div><button type="button" class="manage95Edit">Modifier</button><button type="button" class="manage95Delete">Supprimer</button></div>';
+     row.querySelector('.manage95Name').textContent=(x.label||x.name||'Sans nom');
+     row.querySelector('.manage95Amount').textContent=' · '+fmt(x.amount);
      row.querySelector('small').textContent='Le '+(x.day||'?')+' du mois';
      row.querySelector('.manage95Edit').onclick=()=>{
        const label=prompt(isIncome?'Nom du revenu':'Nom du prélèvement',x.label||x.name||''); if(label===null)return;
