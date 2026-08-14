@@ -648,9 +648,21 @@ body.manage90-open details.menuGroup {display:block !important;}
   .manage95Item{grid-template-columns:minmax(0,1fr) 80px!important}
   .manage95Item strong{font-size:16px!important;line-height:1.18!important}
 }
+
+/* SIMPLE-10.3 — gagne de la largeur pour garder nom + montant ensemble sur iPhone */
+@media(max-width:430px){
+  .manage95Item{grid-template-columns:minmax(0,1fr) 67px!important;gap:4px!important}
+  .manage95Item>div:last-child{gap:3px!important}
+  .manage95Item .manage95Edit,.manage95Item .manage95Delete{
+    width:32px!important;height:36px!important;min-width:32px!important;max-width:32px!important;min-height:36px!important;
+    border-radius:10px!important;
+  }
+  .manage95Item .manage95Edit::before,.manage95Item .manage95Delete::before{font-size:16px!important}
+  .manage95Item strong{letter-spacing:-.2px!important}
+}
 </style></head>
 <body>
-<!-- SIMPLE-10.1 : interface nettoyée; données 7.0.1 conservées -->
+<!-- SIMPLE-10.3 : affichage mobile des listes fixes optimisé; données conservées -->
 
 <script>
 /* SIMPLE-10.1 — compatibilité : mois actuellement sélectionné */
