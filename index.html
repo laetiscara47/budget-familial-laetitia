@@ -649,7 +649,7 @@ body.manage90-open details.menuGroup {display:block !important;}
   .manage95Item strong{font-size:16px!important;line-height:1.18!important}
 }
 
-/* SIMPLE-10.3 — gagne de la largeur pour garder nom + montant ensemble sur iPhone */
+/* SIMPLE-10.2 — gagne de la largeur pour garder nom + montant ensemble sur iPhone */
 @media(max-width:430px){
   .manage95Item{grid-template-columns:minmax(0,1fr) 67px!important;gap:4px!important}
   .manage95Item>div:last-child{gap:3px!important}
@@ -660,9 +660,24 @@ body.manage90-open details.menuGroup {display:block !important;}
   .manage95Item .manage95Edit::before,.manage95Item .manage95Delete::before{font-size:16px!important}
   .manage95Item strong{letter-spacing:-.2px!important}
 }
+
+/* SIMPLE-10.2 — Historique & sauvegarde simplifiés */
+.manage102Tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px}
+.manage102Tabs button{min-height:44px;padding:8px;font-size:14px}
+.manage102HistoryHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:3px 0 7px}
+#manage102HistoryCount{font-size:12px;color:var(--muted)}
+.manage102HistoryRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 9px;padding:9px 0;border-top:1px solid var(--line)}
+.manage102HistoryRow:first-child{border-top:0}
+.manage102HistoryName{font-weight:800;overflow-wrap:anywhere}
+.manage102HistoryMeta{font-size:12px;color:var(--muted)}
+.manage102HistoryAmt{grid-column:2;grid-row:1/3;align-self:center;font-weight:900;white-space:nowrap}
+.manage102Empty{padding:12px 0;color:var(--muted);font-size:14px}
+.manage102Wide{width:100%;margin-top:8px}
+.manage102Note{font-size:13px;color:var(--muted);line-height:1.35;margin:2px 0 10px}
+
 </style></head>
 <body>
-<!-- SIMPLE-10.3 : affichage mobile des listes fixes optimisé; données conservées -->
+<!-- SIMPLE-10.2 : affichage mobile des listes fixes optimisé; données conservées -->
 
 <script>
 /* SIMPLE-10.1 — compatibilité : mois actuellement sélectionné */
@@ -3946,13 +3961,28 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
   </div>
 </details>
 
-  <details class="manage91Section" id="manage94History">
-    <summary>📚 Historique & sauvegarde</summary>
-    <div class="manage91Body">
-      <button type="button" id="manage91OpenHistory" class="secondary">🧾 Historique</button>
-      <button type="button" id="manage91OpenBackup" class="secondary">💾 Sauvegarde</button>
+  <details class="manage91Section" id="manage102History">
+  <summary>📚 Historique & sauvegarde</summary>
+  <div class="manage91Body">
+    <div class="manage102Tabs">
+      <button type="button" id="manage102HistoryBtn">🧾 Historique du mois</button>
+      <button type="button" id="manage102BackupBtn" class="secondary">💾 Sauvegarde</button>
     </div>
-  </details>
+    <div id="manage102HistoryBox">
+      <div class="manage102HistoryHead">
+        <b>Opérations du mois</b>
+        <span id="manage102HistoryCount"></span>
+      </div>
+      <div id="manage102HistoryList"></div>
+      <button type="button" id="manage102OpenFullHistory" class="secondary manage102Wide">Voir l’historique complet</button>
+    </div>
+    <div id="manage102BackupBox" hidden>
+      <p class="manage102Note">Conserve une copie de tes données avant une grosse modification ou un changement de téléphone.</p>
+      <button type="button" id="manage102Backup" class="manage102Wide">💾 Sauvegarder mes données</button>
+      <button type="button" id="manage102Restore" class="secondary manage102Wide">📥 Restaurer mes données</button>
+    </div>
+  </div>
+</details>
 </div>
 
 
@@ -4239,6 +4269,88 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
    if(ai)ai.onclick=()=>add95('income'); if(ab)ab.onclick=()=>add95('bill'); render95('income');render95('bill');
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install95);else install95(); setTimeout(install95,400);
+})();
+</script>
+
+
+<script>
+(function(){
+ const $=id=>document.getElementById(id);
+ const txt=e=>(e&&e.textContent||'').replace(/\s+/g,' ').trim();
+ function money(v){return Number(v||0).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €'}
+ function monthKey(){
+   const m=$('month');
+   if(m&&m.value)return m.value;
+   const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+ }
+ function locateHistoryRows(){
+   const list=$('list');
+   if(list && list.children.length) return Array.from(list.children);
+   const candidates=Array.from(document.querySelectorAll('.list')).filter(e=>{
+     if(e.closest('#manage91Panel'))return false;
+     const s=txt(e).toLowerCase();
+     return e.children.length && !s.includes('prélèvements fixes') && !s.includes('revenus fixes');
+   });
+   return candidates.sort((a,b)=>b.children.length-a.children.length)[0]
+     ? Array.from(candidates.sort((a,b)=>b.children.length-a.children.length)[0].children)
+     : [];
+ }
+ function renderHistory(){
+   const box=$('manage102HistoryList'); if(!box)return;
+   const rows=locateHistoryRows().slice(0,8);
+   box.innerHTML='';
+   if(!rows.length){
+     box.innerHTML='<div class="manage102Empty">Aucune opération à afficher pour ce mois.</div>';
+     $('manage102HistoryCount').textContent='';
+     return;
+   }
+   $('manage102HistoryCount').textContent=rows.length+(rows.length===8?' dernières':'');
+   rows.forEach(r=>{
+     const raw=txt(r);
+     const amount=(raw.match(/[-+]?\s*\d[\d\s]*[,.]\d{2}\s*€/)||[''])[0].trim();
+     const name=(r.querySelector('.title')&&txt(r.querySelector('.title'))) ||
+                (r.querySelector('b')&&txt(r.querySelector('b'))) ||
+                raw.replace(amount,'').slice(0,80);
+     const meta=(r.querySelector('.meta')&&txt(r.querySelector('.meta'))) || '';
+     const line=document.createElement('div');
+     line.className='manage102HistoryRow';
+     line.innerHTML='<div class="manage102HistoryName"></div><div class="manage102HistoryMeta"></div><div class="manage102HistoryAmt"></div>';
+     line.querySelector('.manage102HistoryName').textContent=name;
+     line.querySelector('.manage102HistoryMeta').textContent=meta;
+     line.querySelector('.manage102HistoryAmt').textContent=amount;
+     box.appendChild(line);
+   });
+ }
+ function findButton(words){
+   return Array.from(document.querySelectorAll('button')).find(b=>{
+     if(b.closest('#manage102History'))return false;
+     const s=txt(b).toLowerCase();
+     return words.some(w=>s.includes(w));
+   });
+ }
+ function install(){
+   if(!$('manage102History'))return;
+   const hb=$('manage102HistoryBtn'), bb=$('manage102BackupBtn');
+   const hx=$('manage102HistoryBox'), bx=$('manage102BackupBox');
+   hb.onclick=()=>{hx.hidden=false;bx.hidden=true;hb.classList.remove('secondary');bb.classList.add('secondary');renderHistory()};
+   bb.onclick=()=>{hx.hidden=true;bx.hidden=false;bb.classList.remove('secondary');hb.classList.add('secondary')};
+
+   $('manage102OpenFullHistory').onclick=()=>{
+     const b=findButton(['historique']);
+     if(b){b.click();setTimeout(()=>b.scrollIntoView({behavior:'smooth',block:'center'}),80)}
+   };
+   $('manage102Backup').onclick=()=>{
+     const b=findButton(['sauvegarder','export']);
+     if(b)b.click(); else alert("Le bouton de sauvegarde existant n'a pas été trouvé.");
+   };
+   $('manage102Restore').onclick=()=>{
+     const b=findButton(['restaurer','import']);
+     if(b)b.click(); else alert("Le bouton de restauration existant n'a pas été trouvé.");
+   };
+   $('manage102History').addEventListener('toggle',()=>{if($('manage102History').open)renderHistory()});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install); else install();
+ setTimeout(install,500);
 })();
 </script>
 
