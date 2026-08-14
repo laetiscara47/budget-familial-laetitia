@@ -323,7 +323,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
   <button id="simple5Undo" class="secondary simple5Undo" type="button" hidden>↩️ Annuler la dernière action</button>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-6.4.3</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-6.4.4</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -2034,7 +2034,8 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
  if(upcomingBox){
    upcomingBox.innerHTML='';
    let rows=dueItems.slice().sort((a,b)=>a.day-b.day || (a.kind==='income'?-1:1));
-   if(!rows.length){upcomingBox.innerHTML='<div class="empty">✓ Rien en attente pour ce mois.</div>'}
+   let pendingTitle=document.createElement('div');pendingTitle.className='smalllabel';pendingTitle.style.margin='8px 0';pendingTitle.textContent='À venir / en attente';upcomingBox.appendChild(pendingTitle);
+   if(!rows.length){let e=document.createElement('div');e.className='empty';e.textContent='✓ Rien en attente pour ce mois.';upcomingBox.appendChild(e)}
    rows.forEach(x=>{
      let d=document.createElement('div');d.className='item';
      d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="secondary pay" type="button"></button>';
@@ -2046,6 +2047,13 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
      bt.onclick=()=>{if(x.kind==='income'){s.incomeReceived[m]=s.incomeReceived[m]||{};s.incomeReceived[m][x.id]=true}else{s.paid[m]=s.paid[m]||{};s.paid[m][x.id]=true}persist()};
      upcomingBox.appendChild(d);
    });
+   let treated=[];
+   s.fixedIncome.forEach(f=>{if((s.incomeReceived[m]||{})[f.id])treated.push({kind:'income',day:+f.day||1,label:f.label,amount:f.amount,type:'Reçu'})});
+   s.fixed.forEach(f=>{if((s.paid[m]||{})[f.id])treated.push({kind:'fixed',day:+f.day||1,label:f.label,amount:f.amount,type:'Payé'})});
+   treated.sort((a,b)=>a.day-b.day || (a.kind==='income'?-1:1));
+   let treatedTitle=document.createElement('div');treatedTitle.className='smalllabel';treatedTitle.style.margin='16px 0 8px';treatedTitle.textContent='✓ Déjà traité ce mois-ci';upcomingBox.appendChild(treatedTitle);
+   if(!treated.length){let e=document.createElement('div');e.className='empty';e.textContent='Aucun élément traité pour ce mois.';upcomingBox.appendChild(e)}
+   treated.forEach(x=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><div class="green" style="font-weight:800"></div>';d.querySelector('.title').textContent=(x.kind==='income'?'💰 ':'🧾 ')+x.label;d.querySelector('.meta').textContent='Le '+x.day+' · '+x.type;let a=d.querySelector('.amt');a.textContent=eur(x.amount);a.className='amt '+(x.kind==='income'?'green':'orange');d.querySelector('.green').textContent='✓';upcomingBox.appendChild(d)});
  }
 
  if($('homeTodo')){
@@ -2780,7 +2788,7 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
 
 
 <script>
-/* SIMPLE-6.4.3 — prélèvements/revenus fixes mensuels robustes */
+/* SIMPLE-6.4.4 — prélèvements/revenus fixes mensuels robustes */
 (function(){
  function monthKey(){ var e=document.getElementById('month'); return e&&e.value ? e.value : new Date().toISOString().slice(0,7); }
  function ensure(){
