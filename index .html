@@ -1,0 +1,3689 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#f5f6fa">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Mon Budget">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>Mon Budget</title>
+<style>
+:root{--bg:#f5f6fa;--card:#fff;--text:#20232a;--muted:#727886;--line:#e5e7ed;--green:#16875d;--red:#d44b4b;--blue:#5667d8;--orange:#c4771e}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
+.app{padding-bottom:82px;max-width:720px;margin:auto;padding:18px 14px 90px}h1{font-size:28px;margin:5px 0 2px}.subtitle{font-size:14px;color:var(--muted);margin-bottom:14px}
+.month{display:flex;gap:8px;margin-bottom:12px}.month input{flex:1}.month button{width:46px}
+input,select,button{font:inherit}input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff}
+button{padding:12px;border:0;border-radius:12px;background:var(--blue);color:#fff;font-weight:700}.secondary{background:#eef0f6;color:#333;border:1px solid var(--line)}
+.hero{background:#fff;border:1px solid var(--line);border-radius:18px;padding:17px;box-shadow:0 8px 22px rgba(30,35,50,.06);margin-bottom:10px}
+.hero .label,.smalllabel{font-size:12px;color:var(--muted)}.hero .big{font-size:34px;font-weight:850;margin:4px 0}.green{color:var(--green)}.red{color:var(--red)}.orange{color:var(--orange)}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:9px}.card,.section{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 7px 18px rgba(30,35,50,.05)}
+.card b{display:block;font-size:19px;margin-top:4px}.section{margin-top:11px}.section h2{font-size:18px;margin:0 0 11px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.wide{grid-column:1/-1}.note{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.4}
+.tabs{display:flex;gap:7px;margin-bottom:10px}.tabs button{flex:1;background:#eef0f6;color:#444}.tabs button.active{background:var(--blue);color:white}
+.list{display:flex;flex-direction:column;gap:8px}.item{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;padding:10px}.main{flex:1;min-width:0}.title{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.meta{font-size:12px;color:var(--muted);margin-top:2px}.amt{font-weight:800}.del,.edit{background:#f0f1f4;color:#555;padding:8px 10px}.edit{background:#eef0f6}.empty{text-align:center;color:var(--muted);padding:14px}
+.progress{height:9px;background:#eceef3;border-radius:999px;overflow:hidden;margin-top:8px}.bar{height:100%;background:var(--blue);width:0}
+.actions{display:flex;gap:8px}.actions button{flex:1}.statusDone{background:#e8f6ef!important;color:#16875d!important}.statusTodo{background:#fff5e8!important;color:#a45e12!important}.monthOverview{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.overviewBox{padding:11px;border:1px solid var(--line);border-radius:12px;background:#f8f9fb}.overviewBox b{display:block;font-size:18px;margin-top:4px}
+.compactSection{padding:12px}.compactSection h2{margin-bottom:8px}.compactSection summary{cursor:pointer;font-weight:800;font-size:16px;list-style:none}.compactSection summary::-webkit-details-marker{display:none}.compactSection summary:after{content:"⌄";float:right;color:var(--muted)}.compactSection details[open] summary:after{content:"⌃"}.compactBody{margin-top:10px}
+.quickStats{display:grid;grid-template-columns:repeat(4,minmax(112px,1fr));gap:8px;overflow-x:auto;padding-bottom:3px;margin-bottom:10px}.quickStat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:11px;min-width:112px}.quickStat .smalllabel{white-space:nowrap}.quickStat b{display:block;font-size:18px;margin-top:4px}.fold{margin-top:10px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:0 14px;box-shadow:0 7px 18px rgba(30,35,50,.05)}.fold>summary{padding:14px 0;cursor:pointer;font-weight:800;font-size:17px;list-style:none}.fold>summary::-webkit-details-marker{display:none}.fold>summary:after{content:"＋";float:right;color:var(--muted)}.fold[open]>summary:after{content:"−"}.foldBody{padding:0 0 14px}.fold .section{box-shadow:none;border:0;padding:0;margin:0}.todayHidden{display:none}
+
+.menuGroup{margin-top:10px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:0 14px;box-shadow:0 7px 18px rgba(30,35,50,.05)}
+.menuGroup>summary{padding:15px 0;cursor:pointer;font-weight:850;font-size:18px;list-style:none}
+.menuGroup>summary::-webkit-details-marker{display:none}
+.menuGroup>summary:after{content:"＋";float:right;color:var(--muted)}
+.menuGroup[open]>summary:after{content:"−"}
+.menuBody{padding:0 0 14px}
+.menuBody>.fold{box-shadow:none;border:1px solid var(--line);margin-top:8px}
+.menuBody>.fold>summary{font-size:15px;padding:12px 0}
+
+
+/* V80 — simplification et confort iPhone */
+.quickActions{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:4px 0 10px}
+.quickActions button{padding:10px 6px;font-size:12px;line-height:1.15;min-height:48px}
+.quickActions .secondary{background:#fff}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:#20232a;color:#fff;padding:11px 16px;border-radius:999px;font-size:13px;font-weight:700;opacity:0;pointer-events:none;transition:.2s;z-index:100;max-width:90%;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.homeRecent{margin-top:10px}
+.homeRecent>summary{font-size:15px!important;padding:11px 0!important}
+@media(max-width:520px){
+ .app{padding:12px 10px 78px}
+ h1{font-size:25px}
+ .hero{padding:14px}
+ .hero .big{font-size:30px}
+ .quickStats{display:grid;grid-template-columns:1fr 1fr;overflow:visible;gap:7px}
+ .quickStat{min-width:0;padding:10px}
+ .quickStat b{font-size:17px}
+ .section{padding:12px}
+ .quickActions{grid-template-columns:repeat(5,1fr)}
+}
+
+
+.habitBtn{white-space:nowrap;padding:9px 11px!important}
+.reuseHome{background:#eef0f6;color:#444;padding:7px 9px;font-size:13px}
+
+.homeDone{padding:7px 9px;font-size:12px;white-space:nowrap}
+@media(max-width:520px){.homeDone{padding:7px 8px;font-size:11px}}
+
+.monthSteps{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.monthSteps button{text-align:left;padding:10px 11px;font-size:13px}
+.monthSteps span{float:right;font-weight:900}
+@media(max-width:520px){.monthSteps{grid-template-columns:1fr 1fr}.monthSteps button{font-size:12px;padding:9px}}
+
+
+.viewMode{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:0 0 10px}
+.viewMode button{padding:11px 10px;font-size:13px;min-height:44px;touch-action:manipulation}
+body.essentialMode .optionalHome{display:none!important}
+body.essentialMode .quickStats{margin-bottom:8px}
+
+
+.entryTools{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px}
+.entryTools button{padding:7px 10px;font-size:12px}
+body.entrySimple .entryAdvanced{display:none!important}
+body.entrySimple #form{grid-template-columns:1fr 1fr}
+body.entrySimple #label{grid-column:1/-1}
+body.entrySimple #addBtn{grid-column:1/-1}
+body.entrySimple #undoLastBtn{grid-column:1/-1}
+@media(max-width:520px){
+ body.entrySimple #form{grid-template-columns:1fr 1fr}
+}
+
+
+.globalUndo{position:fixed;left:10px;right:10px;bottom:12px;z-index:120;background:#20232a;color:#fff;border-radius:14px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 8px 28px rgba(0,0,0,.22)}
+.globalUndo span{font-size:13px;font-weight:700}
+.globalUndo button{padding:8px 12px;background:#fff;color:#20232a;white-space:nowrap}
+
+
+.attentionCard{border-width:2px}
+.attentionHead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+#attentionBadge{font-size:11px;font-weight:800;padding:4px 7px;border-radius:999px;background:#eef0f6}
+
+
+.smartEntry{display:flex;align-items:center;justify-content:space-between;gap:9px;padding:9px 10px;margin:0 0 8px;border:1px solid var(--line);border-radius:12px;background:#fafbff}
+.smartEntry>div{min-width:0}
+.smartEntry button{padding:8px 10px;white-space:nowrap}
+
+.dailyActionGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.dailyActionGrid button{min-height:44px;padding:9px 8px;font-size:12px}
+body.essentialMode .dailyActions{display:block!important}
+
+
+
+
+
+
+
+
+
+.categoryBars{display:grid;gap:7px;margin-top:8px}
+.categoryRow{display:grid;grid-template-columns:minmax(75px,1fr) 2fr auto;align-items:center;gap:7px;font-size:11px}
+.categoryTrack{height:8px;border-radius:999px;background:#eceef4;overflow:hidden}
+.categoryFill{height:100%;background:currentColor;border-radius:999px}
+.categoryAmount{font-weight:800;white-space:nowrap}
+
+
+.projectionGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}
+.projectionGrid>div{border:1px solid var(--line);border-radius:11px;padding:9px;background:#fafbff}
+.projectionGrid span{display:block;font-size:11px;color:#666;margin-bottom:3px}
+.projectionGrid b{font-size:16px}
+
+
+.compactMonthDetails{margin:0 0 10px}
+.compactMonthDetails summary{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.compactHint{font-size:10px;font-weight:600;color:#777;text-align:right}
+.compactMonthBody>.section{margin:8px 0!important;padding:10px}
+.compactMonthBody>.section:first-child{margin-top:0!important}
+.compactMonthBody>.section:last-child{margin-bottom:0!important}
+body.essentialMode .compactMonthDetails{display:block!important}
+
+.entryToolButtons{display:flex;gap:5px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.entryToolButtons button{padding:7px 9px;font-size:11px}
+@media(max-width:420px){
+ .entryTools{align-items:flex-start}
+ .entryToolButtons{flex-direction:column;align-items:stretch}
+ .entryToolButtons button{padding:6px 8px}
+}
+
+.recentEntryWrap{margin:0 0 8px}
+.recentEntryChips{display:flex;gap:6px;overflow-x:auto;padding:5px 0 2px;scrollbar-width:none}
+.recentEntryChips::-webkit-scrollbar{display:none}
+.recentEntryChips button{flex:0 0 auto;padding:7px 9px;font-size:11px;white-space:nowrap;max-width:170px;overflow:hidden;text-overflow:ellipsis}
+.compactCollapse{width:100%;margin:0 0 7px;padding:7px;font-size:11px}
+
+.closeAssistantGrid{display:grid;grid-template-columns:1fr;gap:7px}
+.closeAssistantGrid button{min-height:42px;text-align:left;padding:9px 10px}
+
+/* V500.1 — accueil plus compact */
+
+
+
+.compactMonthDetails{margin-bottom:8px!important}
+.dailyActions{padding:11px!important;margin-bottom:8px!important}
+
+/* V600 — accueil plus compact sur iPhone */
+.hero{margin-bottom:8px!important}
+.attentionCard{margin-top:0!important;margin-bottom:8px!important}
+.compactMonthDetails{margin-top:0!important;margin-bottom:8px!important}
+.dailyActions{margin-top:0!important;margin-bottom:8px!important}
+.dailyActions h2{margin-bottom:5px!important}
+.dailyActionGrid{gap:6px!important}
+.dailyActionGrid button{min-height:40px!important;padding:7px!important}
+@media(max-width:430px){
+ .compactHint{max-width:175px;line-height:1.1}
+ .compactMonthDetails summary{padding-top:9px!important;padding-bottom:9px!important}
+}
+
+/* V700 — outils pratiques sans rallonger l'accueil */
+.historyQuickTools{display:grid;grid-template-columns:1fr auto;gap:6px;margin:0 0 6px}
+.historyQuickTools input{min-width:0}
+.historyQuickTools button{padding:7px 10px}
+@media(max-width:430px){
+ .entryToolButtons{gap:4px}
+ .entryToolButtons button{font-size:10px;padding:6px 7px}
+}
+
+/* V800 — filtres d'historique compacts */
+.historyFilters{display:flex;gap:5px;overflow-x:auto;margin:0 0 8px;padding-bottom:2px;scrollbar-width:none}
+.historyFilters::-webkit-scrollbar{display:none}
+.historyFilters button{flex:0 0 auto;padding:6px 8px;font-size:10px}
+.historyFilters button.active{font-weight:800;outline:2px solid currentColor}
+
+/* V900 — navigation mensuelle compacte */
+.monthNavTools{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin:0 0 9px}
+.monthNavTools button{padding:7px 5px;font-size:10px}
+.nextMonthPreview{margin:-2px 0 8px;padding:7px 8px;border:1px solid var(--line);border-radius:9px;background:#fafbff}
+@media(max-width:430px){
+ .monthNavTools{grid-template-columns:1fr 1fr}
+ .monthNavTools button:last-child{grid-column:1/-1}
+}
+
+/* V1000 — favoris de saisie + badge intégrité, sans nouveau bloc accueil */
+.favoriteEntryWrap{margin:0 0 7px}
+.integrityBadge{display:inline-block;padding:6px 8px;border-radius:999px;font-size:11px;font-weight:800;margin-bottom:8px}
+.integrityBadge.ok{background:#edf8f1}
+.integrityBadge.warn{background:#fff5e8}
+
+
+
+/* V1000.4 — correctif ciblé affichage revenus fixes */
+#fixedIncomeList{display:grid;gap:7px}
+#fixedIncomeList .fixedIncomeVisibleRow{display:grid}
+
+/* SIMPLE-1 — quotidien d'abord, options avancées derrière "Plus" */
+.simpleModeBar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0;padding:11px 13px;border:1px solid var(--line);border-radius:14px;background:#fff}
+.simpleModeBar b{display:block;font-size:14px}
+.simpleModeBar span{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+.simpleModeBar button{padding:7px 13px;min-width:74px}
+
+/* SIMPLE-2 — accueil quotidien ultra simple */
+body.simpleEssential #quickStatus,
+body.simpleEssential #urgentCard,
+body.simpleEssential #monthDetailsCard{display:none!important}
+body.simpleEssential .simpleModeBar{margin-top:8px}
+body.simpleEssential #quickActions .note{display:none!important}
+
+/* SIMPLE-3 — accueil essentiel réellement minimal */
+body.simpleEssential #urgentCard{display:none!important}
+body.simpleEssential #quickActions .note{display:none!important}
+body.simpleEssential #quickActions .quickGrid>*{display:none!important}
+body.simpleEssential #quickActions .quickGrid>*:nth-child(1),
+body.simpleEssential #quickActions .quickGrid>*:nth-child(2),
+body.simpleEssential #quickActions .quickGrid>*:nth-child(3){display:flex!important}
+body.simpleEssential #quickActions .quickGrid>*:nth-child(1){order:1}
+body.simpleEssential #quickActions .quickGrid>*:nth-child(2){order:2}
+body.simpleEssential #quickActions .quickGrid>*:nth-child(3){order:3}
+body.simpleEssential #quickActions .quickGrid{grid-template-columns:1fr!important}
+body.simpleEssential #quickActions .quickGrid>*:nth-child(1){font-size:0}
+body.simpleEssential #quickActions .quickGrid>*:nth-child(1)::after{content:"+ Dépense";font-size:15px}
+body.simpleEssential #quickActions .quickGrid>*:nth-child(2){font-size:0}
+body.simpleEssential #quickActions .quickGrid>*:nth-child(2)::after{content:"📌 Échéances";font-size:15px}
+body.simpleEssential #quickActions .quickGrid>*:nth-child(3){font-size:0}
+body.simpleEssential #quickActions .quickGrid>*:nth-child(3)::after{content:"🏦 Mettre à jour le solde";font-size:15px}
+body.simpleEssential .statGrid>*:nth-child(n+3){display:none!important}
+body.simpleEssential .statGrid{grid-template-columns:1fr 1fr!important}
+body.simpleEssential #monthDetailsCard{display:none!important}
+
+/* SIMPLE-4 — véritable tableau de bord Essentiel indépendant */
+.simple4Dashboard{display:none}
+body.simple4TrueEssential .simple4Dashboard{display:block;margin:10px 18px 22px}
+.simple4Available{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px}
+.simple4Label{color:var(--muted);font-size:13px}
+.simple4Amount{font-size:32px;font-weight:800;color:#348f62;margin:5px 0}
+.simple4Sub{font-size:12px;color:var(--muted);line-height:1.35}
+.simple4Actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.simple4Actions button{min-height:48px;font-size:14px}
+.simple4Actions .simple4Wide{grid-column:1/-1}
+.simple4Stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.simple4Stats>div{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px}
+.simple4Stats span{display:block;color:var(--muted);font-size:12px}
+.simple4Stats b{display:block;font-size:20px;margin-top:5px}
+body.simple4TrueEssential #simple4OriginalArea{display:none!important}
+
+/* SIMPLE-5 — actions intégrées sans quitter l'accueil simple */
+.simple5Panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px;margin:10px 0}
+.simple5Panel[hidden]{display:none!important}
+.simple5Head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.simple5Head b{font-size:17px}.simple5Close{border:0;background:transparent;font-size:22px;padding:4px 8px}
+.simple5Panel input,.simple5Panel select{width:100%;box-sizing:border-box;margin:5px 0;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;font-size:16px}
+.simple5Row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.simple5Panel .primary{width:100%;margin-top:8px}
+.simple5Hint{font-size:12px;color:var(--muted);margin-top:7px}
+
+.simple5DueSummary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:4px 0 10px}
+.simple5DueSummary>div{background:#f7f8fb;border:1px solid var(--line);border-radius:14px;padding:10px}
+.simple5DueSummary span{display:block;color:var(--muted);font-size:12px}
+.simple5DueSummary b{display:block;font-size:19px;margin-top:4px}
+.simple5DueList{display:grid;gap:8px}
+.simple5DueItem{border:1px solid var(--line);border-radius:14px;padding:11px}
+.simple5DueTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.simple5DueTitle{font-weight:750}
+.simple5DueMeta{font-size:12px;color:var(--muted);margin-top:3px}
+.simple5DueAmt{font-weight:800;white-space:nowrap}
+.simple5DueItem button{width:100%;margin-top:9px;min-height:42px}
+.simple5Empty{text-align:center;color:var(--muted);padding:14px 4px}
+
+.simple5CompactHead{margin-bottom:0}
+.simple5EmptyCompact{padding:4px 2px 2px;text-align:left;font-size:14px}
+
+.simple5Undo{width:100%;margin-top:9px;min-height:42px}
+.simple5Undo[hidden]{display:none!important}
+
+.fixedManage{align-items:center!important;gap:10px!important}
+.fixedManage .main{min-width:150px}
+.fixedBtns{display:flex;flex-wrap:wrap;gap:6px}
+.fixedBtns button{min-height:38px;padding:7px 10px;font-size:13px}
+@media(max-width:520px){
+ .fixedManage{display:block!important}
+ .fixedManage .amt{margin:5px 0 8px}
+ .fixedBtns{width:100%}
+ .fixedBtns button{flex:1 1 auto}
+}
+
+/* SIMPLE-8.4 — liste « Déjà traité » plus compacte et noms lisibles */
+.treated-item{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) auto auto !important;
+  align-items:center !important;
+  gap:8px !important;
+  padding:10px 12px !important;
+  min-height:0 !important;
+}
+.treated-item .main{
+  min-width:0 !important;
+}
+.treated-item .title{
+  white-space:normal !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+  line-height:1.12 !important;
+  overflow-wrap:anywhere !important;
+}
+.treated-item .meta{
+  margin-top:2px !important;
+  line-height:1.15 !important;
+}
+.treated-item .amt{
+  white-space:nowrap !important;
+  margin:0 !important;
+}
+.treated-item .treated-cancel{
+  width:auto !important;
+  min-width:82px !important;
+  padding:10px 12px !important;
+  margin:0 !important;
+  white-space:nowrap !important;
+}
+@media (max-width:430px){
+  .treated-item{
+    grid-template-columns:minmax(0,1fr) auto !important;
+  }
+  .treated-item .main{
+    grid-column:1 / 2 !important;
+  }
+  .treated-item .amt{
+    grid-column:1 / 2 !important;
+    justify-self:start !important;
+    margin-top:4px !important;
+  }
+  .treated-item .treated-cancel{
+    grid-column:2 / 3 !important;
+    grid-row:1 / 3 !important;
+    align-self:center !important;
+    min-width:76px !important;
+    padding:9px 10px !important;
+  }
+}
+
+
+/* SIMPLE-8.4 — lot confort iPhone, sans changement des calculs */
+:root{scroll-behavior:smooth}
+button, summary, select{touch-action:manipulation}
+button:active{transform:scale(.985)}
+input,select,button{font-size:16px} /* évite le zoom automatique iOS */
+summary{cursor:pointer}
+.fold > summary{
+  position:relative;
+}
+.fold[open] > summary{
+  margin-bottom:8px;
+}
+.item .title{
+  overflow-wrap:anywhere;
+}
+.actions button,.wide{
+  min-height:48px;
+}
+@media (max-width:430px){
+  .card,.foldBody{scroll-margin-top:105px}
+  .item{gap:8px}
+  .item .amt{white-space:nowrap}
+  input,select{min-height:48px}
+  button{min-height:46px}
+}
+/* repère visuel discret pour les éléments cliquables */
+button:not(:disabled), summary{ -webkit-tap-highlight-color:rgba(86,101,214,.12); }
+
+
+/* SIMPLE-8.4 — utilisation quotidienne */
+.daily66{
+  margin:10px 0 12px;padding:12px;border:1px solid var(--line);
+  border-radius:16px;background:var(--card);
+}
+.daily66Title{font-weight:900;margin-bottom:9px}
+.daily66Grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.daily66Grid button{min-height:46px}
+.daily66Grid button:last-child{grid-column:1/-1}
+.daily66Hint{font-size:12px;opacity:.72;margin-top:7px;text-align:center}
+@media(max-width:430px){
+ .daily66{padding:10px}
+ .daily66Grid{grid-template-columns:1fr 1fr}
+ .daily66Grid button{font-size:14px;padding:9px 8px}
+}
+
+
+/* SIMPLE-8.4 — saisie quotidienne + dernières opérations */
+.daily67Recent{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.daily67RecentHead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.daily67RecentHead button{min-height:34px!important;padding:6px 9px!important;font-size:12px!important}
+.daily67RecentList{margin-top:7px}
+.daily67Row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;padding:8px 0;border-top:1px solid var(--line)}
+.daily67Row:first-child{border-top:0}
+.daily67Row .n{font-weight:800;overflow-wrap:anywhere}
+.daily67Row .m{font-size:12px;opacity:.72}
+.daily67Row .a{grid-column:2;grid-row:1/3;align-self:center;font-weight:900;white-space:nowrap}
+.daily67Empty{font-size:13px;opacity:.7;padding:8px 0}
+
+
+/* SIMPLE-8.4 — résumé mensuel immédiat */
+.daily68Summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}
+.daily68Summary>div{border:1px solid var(--line);border-radius:13px;padding:9px 10px;display:flex;flex-direction:column;gap:3px}
+.daily68Summary span{font-size:12px;opacity:.72}
+.daily68Summary b{font-size:17px}
+
+
+/* SIMPLE-8.4 — pilotage du mois */
+.daily69Pilot{margin-top:11px;border:1px solid var(--line);border-radius:14px;padding:10px 11px}
+.daily69PilotTitle{font-weight:900;font-size:14px}
+.daily69Message{font-size:13px;font-weight:750;margin-top:5px;line-height:1.3}
+.daily69Next{font-size:12px;opacity:.76;margin-top:4px;line-height:1.3}
+
+
+/* SIMPLE-8.4 — accueil quotidien final */
+.daily70Status{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.daily70Status>div{border:1px solid var(--line);border-radius:14px;padding:9px 10px;display:flex;flex-direction:column;gap:3px}
+.daily70Status span{font-size:12px;opacity:.7}
+.daily70Status b{font-size:18px;overflow-wrap:anywhere}
+@media(max-width:430px){.daily70Status b{font-size:16px}}
+
+
+/* SIMPLE-8.4 — NETTOYAGE
+   Retour à l'objectif initial : simple, clair, mensuel.
+   Les couches de tableau de bord ajoutées en 6.6–7.0 sont masquées.
+   Les données et calculs existants restent intacts. */
+#daily66,
+.daily66,
+#daily69Pilot,
+.daily69Pilot,
+.daily68Summary,
+.daily70Status,
+.daily67Recent,
+.daily67RecentHead,
+.daily67RecentList,
+.daily66Hint { display:none !important; }
+
+/* Interface plus calme : les outils secondaires restent dans leurs rubriques. */
+#quickTop65 { display:none !important; }
+
+/* Conserver des cibles confortables sur iPhone sans ajouter de nouveaux blocs. */
+button, summary, input, select { min-height:46px; }
+@media(max-width:430px){
+  .card,.foldBody{scroll-margin-top:100px}
+}
+
+
+/* SIMPLE-8.4 — accueil minimaliste */
+#simple4Balance{display:none !important;}
+#simple4Bank{cursor:pointer;touch-action:manipulation}
+#manage72{margin:14px auto 0;width:auto;min-width:150px;min-height:44px;padding:9px 18px;display:block;border-radius:14px;font-size:15px}
+
+.smalllabel{display:none !important;}
+
+
+/* SIMPLE-8.4 — suppression de la barre de raccourcis en double */
+.quickNav,
+#quickNav,
+.bottomQuickNav,
+#bottomQuickNav,
+.dailyNav,
+#dailyNav {
+  display:none !important;
+}
+
+
+/* SIMPLE-8.4 — saisie Dépense claire */
+body.expense74-on #quickTypeRow,
+body.expense74-on #quickCategoryRow,
+body.expense74-on #quickUtilityRow {display:none !important;}
+
+#expense74Header{display:none}
+body.expense74-on #expense74Header{display:block;margin:0 0 14px}
+#expense74Header h2{margin:0 0 4px;font-size:25px}
+#expense74Header p{margin:0;color:var(--muted);font-size:14px}
+
+body.expense74-on #expense74DateWrap{display:flex !important;align-items:center;gap:10px}
+#expense74DateToday{display:none}
+body.expense74-on #expense74DateToday{display:inline-flex;align-items:center;min-height:46px;padding:0 14px;border-radius:13px}
+
+body.expense74-on #moreOptions74{display:block}
+#moreOptions74{display:none;margin-top:10px}
+#moreOptions74 summary{cursor:pointer;font-weight:700;padding:10px 2px}
+#moreOptions74 .more74Body{padding-top:8px}
+
+/* Keep the primary form compact on iPhone */
+body.expense74-on input,
+body.expense74-on select{font-size:17px}
+
+
+/* SIMPLE-8.4 — suppression des couches de saisie devenues inutiles */
+#expense74Header{display:none !important;}
+body.expense74-on #expense74Header{display:none !important;}
+
+/* Les anciens raccourcis "Ajouter rapidement" et "Mode simple / Plus"
+   sont repérés et masqués par le correctif JS ci-dessous. */
+
+
+/* =========================================================
+   SIMPLE-8.4 — nettoyage VISUEL uniquement, base fonctionnelle 7.6
+   Aucun changement du stockage ou des fonctions métier.
+   ========================================================= */
+
+/* Masquer uniquement les éléments visuels devenus redondants. */
+#expense74Header { display:none !important; }
+
+/* Les anciens blocs de saisie rapide expérimentaux restent invisibles. */
+.v81AddOperation, #v81AddOperation { display:none !important; }
+
+</style></head>
+<body>
+<!-- SIMPLE-8.4 : interface nettoyée; données 7.0.1 conservées -->
+
+<script>
+/* SIMPLE-8.4 — compatibilité : mois actuellement sélectionné */
+var currentMonth = (function(){
+  var el=document.getElementById('month');
+  if(el && el.value) return el.value;
+  var d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+})();
+document.addEventListener('change',function(e){
+  if(e.target && e.target.id==='month') currentMonth=e.target.value;
+});
+</script>
+
+<div id="simple4Dashboard" class="simple4Dashboard">
+  <div class="simple4Available">
+    <div class="simple4Label">💶 Disponible prévu fin de mois</div>
+    <div id="simple4AvailableValue" class="simple4Amount">—</div>
+    <div class="simple4Sub">Après la carte, les prélèvements restant à payer et les revenus fixes encore attendus.</div>
+  </div>
+
+  <div class="simple4Actions">
+    <button id="simple4Add" type="button" class="primary">＋ Dépense</button>
+    <button id="simple4Due" type="button" class="secondary">📌 Échéances</button>
+    <button id="simple4Balance" type="button" class="secondary simple4Wide">🏦 Mettre à jour le solde</button>
+  </div>
+
+  
+<div id="daily66" class="daily66">
+  <div class="daily66Title">⚡ Mon budget aujourd’hui</div>
+  <div class="daily66Grid">
+    <button id="daily66Expense" type="button">＋ Dépense rapide</button>
+    <button id="daily66Due" type="button" class="secondary">📌 Voir les échéances</button>
+    <button id="daily66History" type="button" class="secondary">🧾 Corriger un mouvement</button>
+  </div>
+  <div id="daily66Hint" class="daily66Hint">Dépense, échéances et corrections au même endroit.</div>
+  <div class="daily70Status">
+    <div><span>💶 Disponible</span><b id="daily70Available">—</b></div>
+    <div><span>📅 Mois</span><b id="daily70Month">—</b></div>
+  </div>
+  <div id="daily69Pilot" class="daily69Pilot">
+    <div class="daily69PilotTitle">🧭 Pilotage du mois</div>
+    <div id="daily69Message" class="daily69Message">Analyse du mois…</div>
+    <div id="daily69Next" class="daily69Next"></div>
+  </div>
+  <div class="daily68Summary">
+    <div><span>📥 À recevoir</span><b id="daily68Income">—</b></div>
+    <div><span>📤 À payer</span><b id="daily68Fixed">—</b></div>
+  </div>
+  <div class="daily67Recent">
+    <div class="daily67RecentHead"><b>🕘 Dernières opérations</b><button id="daily67Refresh" type="button" class="secondary">Actualiser</button></div>
+    <div id="daily67RecentList" class="daily67RecentList"></div>
+  </div>
+</div>
+<div id="simple5Panel" class="simple5Panel" hidden></div>
+
+  <div class="simple4Stats">
+    <div><span>🏦 Banque</span><b id="simple4Bank">—</b></div>
+    <div><span>💳 Carte</span><b id="simple4Card">—</b></div>
+<button id="manage72" type="button" class="secondary">⚙️ Gérer</button>
+
+  </div>
+  <button id="simple5Undo" class="secondary simple5Undo" type="button" hidden>↩️ Annuler la dernière action</button>
+</div>
+<div class="app">
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-8.4</span></div>
+<div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
+<div class="viewMode">
+ <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
+ <button id="viewFull" type="button" class="secondary" aria-pressed="false">Complet</button>
+</div>
+
+<div class="hero">
+ <div class="label">💶 Disponible prévu fin de mois</div>
+ <div id="rest" class="big green">0 €</div>
+ <div id="restText" class="smalllabel">Après la carte, les prélèvements et les dépenses exceptionnelles prévues.</div>
+<div id="monthPace" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:14px;font-weight:700"></div>
+</div>
+<div id="homeGuidance" class="note" style="margin:-2px 2px 10px;text-align:center;font-weight:700"></div>
+<div id="routineReminder" class="section" style="display:none;margin-top:0;margin-bottom:10px">
+ <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+  <div><b>🔔 Point budget</b><div id="routineReminderText" class="note" style="margin-top:3px"></div></div>
+  <button id="routineGo" class="secondary" type="button">Faire le point</button>
+ </div>
+</div>
+
+<div id="attentionCard" class="section attentionCard" style="margin-top:0;margin-bottom:10px">
+ <div class="attentionHead"><b id="attentionTitle">✓ Tout va bien</b><span id="attentionBadge"></span></div>
+ <div id="attentionText" class="note" style="margin-top:5px"></div>
+ <button id="attentionAction" class="secondary" type="button" style="display:none;width:100%;margin-top:8px">Voir</button>
+</div>
+
+
+
+<details id="compactMonthDetails" class="fold compactMonthDetails">
+ <summary>📊 Détails du mois <span id="compactHint" class="compactHint">comparaison · catégories · projection</span></summary>
+ <div class="foldBody compactMonthBody"><button id="collapseMonthDetails" class="secondary compactCollapse" type="button">↑ Refermer les détails</button>
+<div class="section monthCompare" style="margin-top:0;margin-bottom:10px">
+ <h2 style="margin-bottom:7px">↔️ Par rapport au mois précédent</h2>
+ <div id="compareMonthText" class="note"></div>
+</div>
+
+<div class="section categorySnapshot" style="margin-top:0;margin-bottom:10px">
+ <h2 style="margin-bottom:7px">🏷️ Où part mon budget ?</h2>
+ <div id="categorySnapshotText" class="note"></div>
+ <div id="categorySnapshotBars" class="categoryBars"></div>
+</div>
+
+<div class="section monthProjection" style="margin-top:0;margin-bottom:10px">
+ <h2 style="margin-bottom:7px">🔭 Jusqu’à la fin du mois</h2>
+ <div id="monthProjectionText" class="note"></div>
+ <div class="projectionGrid">
+  <div><span>Jours restants</span><b id="projectionDays">—</b></div>
+  <div><span>Repère quotidien</span><b id="projectionDaily">—</b></div>
+ </div>
+</div>
+
+ </div>
+</details>
+
+<div class="section dailyActions" style="margin-top:0;margin-bottom:10px">
+ <h2 style="margin-bottom:4px">⚡ Actions rapides</h2>
+ <div id="dailyActionHint" class="note" style="margin-bottom:7px"></div>
+ <div id="monthCheckStatus" class="note" style="margin:0 0 7px"></div>
+ <div class="dailyActionGrid">
+  <button id="dailyAdd" type="button">➕ Ajouter</button>
+  <button id="dailyDue" class="secondary" type="button">📌 Échéances</button>
+  <button id="dailyBalance" class="secondary" type="button">🏦 Solde</button>
+  <button id="dailyMonthCheck" class="secondary" type="button">✓ Faire le point</button>
+ </div>
+</div>
+
+<div id="todaySection" class="section" style="margin-top:0;margin-bottom:10px">
+<h2>📌 Aujourd’hui</h2>
+<div id="todayDueList" class="list"></div>
+<div id="todayDueNote" class="note"></div>
+</div>
+
+<div class="quickStats">
+ <div class="quickStat"><span class="smalllabel">🏦 Banque</span><b id="bankView">0 €</b></div>
+ <div class="quickStat"><span class="smalllabel">💳 Carte</span><b id="cardView" class="orange">0 €</b></div>
+ <div class="quickStat"><span class="smalllabel">⬇️ Revenus</span><b id="incomeView" class="green">0 €</b></div>
+ <div class="quickStat"><span class="smalllabel">⬆️ Dépenses</span><b id="expenseView" class="red">0 €</b></div>
+</div>
+
+
+
+
+
+
+
+
+
+<div class="quickActions" aria-label="Accès rapides">
+ <button id="qaAdd" class="secondary" type="button">➕<br>Ajouter</button>
+ <button id="qaBalance" class="secondary" type="button">🏦<br>Solde</button>
+ <button id="qaHistory" class="secondary" type="button">📋<br>Historique</button>
+ <button id="qaBackup" class="secondary" type="button">💾<br>Sauvegarder</button>
+ <button id="qaToday" class="secondary" type="button">📅<br>Aujourd’hui</button>
+</div>
+
+<div class="section optionalHome" style="margin-top:0;margin-bottom:10px">
+ <h2 style="margin-bottom:8px">☀️ Aujourd’hui</h2>
+ <div class="cards">
+  <div class="card"><span class="smalllabel">Dépensé aujourd’hui</span><b id="homeTodaySpent" class="red">0,00 €</b></div>
+  <div class="card"><span class="smalllabel">Repère disponible / jour</span><b id="homePerDay">0,00 €</b></div>
+ </div>
+ <div id="homeTodayMsg" class="note" style="margin-top:8px"></div>
+</div>
+
+<div class="section" style="margin-top:0;margin-bottom:10px">
+ <h2 style="margin-bottom:5px">📌 À faire</h2>
+ <div class="note" style="margin-bottom:8px">Validez directement ici ce qui a été payé ou reçu.</div>
+ <div id="homeTodo" class="list"></div>
+ <div class="actions" style="margin-top:8px">
+ <button id="undoDueAction" class="secondary" type="button" style="display:none">↩️ Annuler</button>
+ <button id="qaTodo" class="secondary" type="button">Voir les échéances</button>
+</div>
+</div>
+
+<details class="fold homeRecent optionalHome">
+ <summary>🕘 Dernières opérations</summary>
+ <div class="foldBody"><div id="recentEntries" class="list"></div></div>
+</details>
+
+<div class="section">
+<h2>Ajouter rapidement</h2>
+<div class="tabs"><button id="tabExpense" class="active">Dépense</button><button id="tabIncome">Revenu</button><button id="tabFixed">Fixe</button></div>
+<div id="habitHint" class="note" style="display:none;margin:0 0 6px">Saisies récentes — touchez pour préremplir</div>
+<div id="habitRow" style="display:none;gap:7px;overflow-x:auto;margin-bottom:10px;padding-bottom:2px"></div>
+<div id="quickExpense" style="display:flex;gap:7px;overflow-x:auto;margin-bottom:10px;padding-bottom:2px">
+<button type="button" class="secondary quickcat" data-cat="Courses" data-label="Courses">Courses</button>
+<button type="button" class="secondary quickcat" data-cat="Carburant" data-label="Carburant">Carburant</button>
+<button type="button" class="secondary quickcat" data-cat="Loisirs" data-label="Loisirs">Loisirs</button>
+<button type="button" class="secondary quickcat" data-cat="Animaux" data-label="Animaux">Animaux</button>
+</div>
+<div id="smartEntry" class="smartEntry" style="display:none">
+ <div><b id="smartEntryTitle">✨ Suggestion</b><div id="smartEntryText" class="note"></div></div>
+ <button id="smartEntryApply" class="secondary" type="button">Utiliser</button>
+</div>
+<div id="favoriteEntryWrap" class="favoriteEntryWrap" style="display:none">
+ <span class="note">Favoris</span>
+ <div id="favoriteEntryChips" class="recentEntryChips"></div>
+</div>
+<div id="recentEntryWrap" class="recentEntryWrap" style="display:none"><span class="note">Récents</span><div id="recentEntryChips" class="recentEntryChips"></div></div>
+<div class="entryTools">
+ <span class="note">Saisie rapide <span id="entryChoiceSummary"></span></span>
+ <div class="entryToolButtons">
+  <button id="repeatLastEntry" class="secondary" type="button" style="display:none">↻ Reprendre</button>
+  <button id="clearQuickEntry" class="secondary" type="button">✕ Effacer</button>
+  <button id="entryToday" class="secondary" type="button">Aujourd’hui</button>
+  <button id="entryThisMonth" class="secondary" type="button">Ce mois</button>
+  <button id="saveFavoriteEntry" class="secondary" type="button">☆ Favori</button>
+  <button id="toggleEntryDetails" class="secondary" type="button">Plus d’options</button>
+ </div>
+</div>
+<form id="form" class="grid">
+ <input id="label" class="wide" list="recentLabels" autocomplete="off" placeholder="Nom : courses, salaire, assurance…" required>
+ <datalist id="recentLabels"></datalist>
+ <input id="amount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Montant €" required>
+ <input id="date" class="entryAdvanced" type="date" required>
+ <input id="fixedDay" class="wide" type="number" min="1" max="28" inputmode="numeric" placeholder="Jour du prélèvement (1 à 28)" style="display:none">
+ <select id="paymentMethod" class="wide entryAdvanced">
+<option value="card">💳 Carte bancaire</option>
+<option value="bank">🏦 Compte / prélèvement</option>
+<option value="cash">💶 Espèces</option>
+</select>
+<select id="category" class="wide entryAdvanced"><option>Courses</option><option>Carburant</option><option>Factures</option><option>Logement</option><option>Voiture</option><option>Santé</option><option>Enfants</option><option>Loisirs</option><option>Animaux</option><option>Autre</option></select>
+ <button class="wide" id="addBtn">Ajouter la dépense</button>
+<button class="secondary" id="undoLastBtn" type="button" style="margin-top:10px;width:100%">
+↩️ Annuler la dernière saisie
+</button>
+</form>
+<div id="fixedNote" class="note" style="display:none">Le montant sera prévu automatiquement chaque mois à la date choisie. Vous pourrez ensuite indiquer « Payé ».</div>
+</div>
+
+<div class="simpleModeBar">
+ <div><b>Mode simple</b><span>Le nécessaire au quotidien</span></div>
+ <button id="toggleAdvancedSimple" class="secondary" type="button">Plus</button>
+</div>
+<details class="menuGroup">
+ <summary>🔮 Prévisions</summary>
+ <div class="menuBody">
+  <details class="fold" data-simple-advanced="1">
+<summary>📊 Repère quotidien</summary>
+<div class="foldBody">
+ <div class="cards">
+  <div class="card"><span class="smalllabel">📅 Jours restants</span><b id="daysLeft">0</b></div>
+  <div class="card"><span class="smalllabel">💶 Disponible / jour</span><b id="perDay">0,00 €</b></div>
+  <div class="card"><span class="smalllabel">🛒 Aujourd’hui</span><b id="spentToday" class="red">0,00 €</b></div>
+  <div class="card"><span class="smalllabel">📆 Sur 7 jours</span><b id="spentWeek" class="red">0,00 €</b></div>
+ </div>
+ <div class="note">C’est seulement un repère : vous n’êtes pas obligée de dépenser la même somme chaque jour.</div>
+</div></details>
+  <details class="fold">
+<summary>📅 À venir ce mois-ci</summary>
+<div class="foldBody">
+ <div class="cards">
+  <div class="card"><span class="smalllabel">💰 Revenus attendus</span><b id="dashExpected" class="green">0,00 €</b></div>
+  <div class="card"><span class="smalllabel">🧾 Charges à payer</span><b id="dashUnpaid" class="orange">0,00 €</b></div>
+ </div>
+ <div style="margin-top:10px;padding:11px;border:1px solid var(--line);border-radius:12px;background:#f8f9fb"><span class="smalllabel">⏰ Prochaine échéance</span><div id="nextDue" style="font-weight:800;margin-top:4px">Aucune échéance</div><div id="nextDueDetail" class="note" style="margin-top:3px"></div></div>
+ <div id="upcomingMonthList" class="list" style="margin-top:10px"></div>
+</div></details>
+  <details class="fold">
+<summary>💰 Revenus fixes mensuels</summary>
+<div class="foldBody"><div class="note" style="margin-bottom:10px">Enregistrés une seule fois, ils apparaissent tous les mois. « Reçu » est mémorisé séparément pour chaque mois.</div>
+<div class="grid">
+ <input id="fiLabel" class="wide" placeholder="Ex. Salaire, allocation…">
+ <input id="fiAmount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Montant €">
+ <input id="fiDay" type="number" min="1" max="28" inputmode="numeric" placeholder="Jour (1 à 28)">
+ <button id="addFixedIncome" type="button">Ajouter</button>
+</div>
+<div id="fixedIncomeList" class="list" style="margin-top:10px"></div>
+
+
+</div></details>
+  <details class="fold" data-simple-advanced="1">
+<summary>🔮 Prévision du mois</summary>
+<div class="foldBody">
+<div class="cards">
+ <div class="card"><span class="smalllabel">Revenus encore attendus</span><b id="expectedIncome" class="green">0 €</b></div>
+ <div class="card"><span class="smalllabel">Fixes encore à payer</span><b id="unpaidFixed" class="orange">0 €</b></div>
+</div>
+<div class="note">Le reste à vivre tient compte de la carte, des prélèvements restant à payer et des revenus fixes qui ne sont pas encore reçus.</div>
+
+
+</div></details>
+  <details class="fold">
+<summary>🧾 Prélèvements fixes</summary>
+<div class="foldBody"><div class="note" style="margin-bottom:10px">Enregistrés une seule fois, ils apparaissent tous les mois. « Payé » est mémorisé séparément pour chaque mois.</div>
+<div class="grid">
+ <input id="sfLabel" class="wide" placeholder="Ex. EDF, assurance, crédit…">
+ <input id="sfAmount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Montant €">
+ <input id="sfDay" type="number" min="1" max="28" inputmode="numeric" placeholder="Jour (1 à 28)">
+ <button id="addSimpleFixed" type="button">Ajouter</button>
+</div>
+<div id="fixedList" class="list" style="margin-top:10px"></div>
+<div class="note" style="margin-top:10px">✓ Vous pouvez modifier, supprimer ou marquer chaque prélèvement comme payé. Le statut « Payé » concerne uniquement le mois affiché.</div>
+
+
+</div></details>
+  
+
+
+
+
+
+
+<details class="fold" data-simple-advanced="1">
+<summary>🐷 Objectif d’épargne</summary>
+<div class="foldBody">
+ <div class="note" style="margin-bottom:10px">Définissez la somme que vous souhaitez préserver ce mois-ci. Elle sera déduite du disponible réellement utilisable.</div>
+ <div class="grid">
+  <input id="savingGoal" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Objectif d’épargne €">
+  <input id="savingDone" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Épargne réellement mise de côté €">
+  <input id="safetyMargin" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Marge de sécurité à garder €">
+  <button id="saveSavingGoal">Enregistrer</button>
+ </div>
+ <div class="cards" style="margin-top:10px">
+  <div class="card"><span class="smalllabel">Objectif</span><b id="savingGoalView">0,00 €</b></div>
+  <div class="card"><span class="smalllabel">Disponible après épargne</span><b id="afterSavingView" class="green">0,00 €</b></div>
+  <div class="card wide"><span class="smalllabel">🛡️ Marge de sécurité</span><b id="safetyMarginView">0,00 €</b><div class="note" id="safetyMarginText" style="margin-top:4px"></div></div>
+  <div class="card wide"><span class="smalllabel">Progression de l’objectif</span><b id="savingProgressText">0 %</b><div class="progress"><div id="savingProgressBar" class="bar"></div></div></div>
+  <div class="card wide"><span class="smalllabel">Épargne des derniers mois</span><div id="savingHistory" style="margin-top:8px"></div></div>
+ </div>
+</div></details>
+<details class="fold" data-simple-advanced="1">
+<summary>🏁 Fin de mois</summary>
+<div class="foldBody">
+ <div class="cards">
+  <div class="card"><span class="smalllabel">Disponible prévu</span><b id="endForecast">0,00 €</b></div>
+  <div class="card"><span class="smalllabel">Réservé</span><b id="endReserved">0,00 €</b></div>
+  <div class="card wide"><span class="smalllabel">Réellement libre</span><b id="endFree" class="green">0,00 €</b></div>
+ </div>
+ <div id="endMonthMessage" class="note" style="margin-top:10px"></div>
+</div></details>
+<details class="fold" data-simple-advanced="1">
+<summary>🚦 État du budget</summary>
+<div class="foldBody">
+ <div id="budgetStatus" class="list"></div>
+</div></details>
+
+<details class="fold" data-simple-advanced="1">
+<summary>📊 Analyses détaillées</summary>
+<div class="foldBody">
+ <div class="note" style="margin-bottom:10px">Ces informations restent disponibles, mais sont rangées ici pour garder l’écran principal simple.</div>
+<details class="fold">
+<summary>🥇 Top 3 des dépenses</summary>
+<div class="foldBody">
+ <div id="topThreeCategories" class="list"></div>
+ <div class="note" style="margin-top:10px">Vos trois catégories les plus importantes du mois, classées automatiquement.</div>
+</div></details>
+<details class="fold">
+<summary>🏆 Plus gros poste de dépense</summary>
+<div class="foldBody">
+ <div class="cards">
+  <div class="card"><span class="smalllabel">Catégorie n°1</span><b id="topCategoryName">—</b></div>
+  <div class="card"><span class="smalllabel">Montant</span><b id="topCategoryAmount" class="red">0,00 €</b></div>
+ </div>
+ <div id="topCategoryInfo" class="note" style="margin-top:10px"></div>
+</div></details>
+<details class="fold">
+<summary>🎯 Suis-je dans le bon rythme ?</summary>
+<div class="foldBody">
+ <div class="cards">
+  <div class="card"><span class="smalllabel">Rythme réel / jour</span><b id="paceActual">0,00 €</b></div>
+  <div class="card"><span class="smalllabel">Repère autorisé / jour</span><b id="paceAllowed">0,00 €</b></div>
+ </div>
+ <div class="card wide" style="margin-top:10px"><b id="paceVerdictTitle"></b><div id="paceVerdictText" class="note" style="margin-top:4px"></div></div>
+</div></details>
+<details class="fold">
+<summary>📉 Rythme des dépenses</summary>
+<div class="foldBody">
+ <div class="cards">
+  <div class="card"><span class="smalllabel">Moyenne dépensée / jour</span><b id="avgSpentDay">0,00 €</b></div>
+  <div class="card"><span class="smalllabel">Dépenses du mois</span><b id="spentSoFar" class="red">0,00 €</b></div>
+  <div class="card wide"><span class="smalllabel">Projection au même rythme</span><b id="spendingProjection">0,00 €</b></div>
+ </div>
+ <div id="spendingPaceMessage" class="note" style="margin-top:10px"></div>
+</div></details>
+<details class="fold">
+<summary>📅 Dépenses par semaine</summary>
+<div class="foldBody">
+ <div id="weeklySpending" class="list"></div>
+ <div class="note" style="margin-top:10px">Les dépenses réellement enregistrées sont regroupées par périodes du mois pour repérer rapidement les semaines les plus coûteuses.</div>
+</div></details>
+<details class="fold">
+<summary>💳 Dépenses par moyen de paiement</summary>
+<div class="foldBody">
+ <div class="cards">
+  <div class="card"><span class="smalllabel">💳 Carte</span><b id="payCardTotal">0,00 €</b></div>
+  <div class="card"><span class="smalllabel">🏦 Compte</span><b id="payBankTotal">0,00 €</b></div>
+  <div class="card"><span class="smalllabel">💶 Espèces</span><b id="payCashTotal">0,00 €</b></div>
+  <div class="card"><span class="smalllabel">Total dépenses</span><b id="payAllTotal" class="red">0,00 €</b></div>
+ </div>
+ <div class="note" style="margin-top:10px">Répartition des dépenses réellement enregistrées pour le mois sélectionné.</div>
+</div></details>
+<details class="fold">
+<summary>📊 Dépenses par catégorie</summary>
+<div class="foldBody">
+<div class="note" style="margin-bottom:10px">Répartition automatique des dépenses enregistrées ce mois-ci.</div>
+<div id="categoryBreakdown" class="list"></div>
+</div></details>
+<details class="fold">
+<summary>📈 Comparaison avec le mois précédent</summary>
+<div class="foldBody">
+ <div id="monthCompare" class="list"></div>
+</div></details>
+</div></details>
+<details class="fold" data-simple-advanced="1">
+<summary>🎯 Budgets du mois</summary>
+<div class="foldBody">
+<div class="note" style="margin-bottom:10px">Facultatif : indiquez seulement les catégories que vous souhaitez surveiller.</div>
+<div class="grid">
+ <select id="budgetCat"><option>Courses</option><option>Carburant</option><option>Factures</option><option>Logement</option><option>Voiture</option><option>Santé</option><option>Enfants</option><option>Loisirs</option><option>Animaux</option><option>Autre</option></select>
+ <input id="budgetAmount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Budget €">
+ <button id="saveBudget" class="wide">Enregistrer le budget</button>
+</div>
+<div id="budgetList" class="list" style="margin-top:10px"></div>
+
+
+</div></details>
+ </div>
+</details>
+
+<details class="menuGroup">
+ <summary>🗓️ Gérer le mois</summary>
+ <div class="menuBody"><div class="monthNavTools">
+ <button id="goPrevMonth" class="secondary" type="button">← Mois précédent</button>
+ <button id="goCurrentMonth" class="secondary" type="button">Ce mois-ci</button>
+ <button id="goNextMonth" class="secondary" type="button">Mois suivant →</button>
+</div><div class="section closeAssistant" style="margin:0 0 10px">
+ <h2 style="margin-bottom:6px">🏁 Fin de mois</h2>
+ <div id="closeAssistantText" class="note" style="margin-bottom:8px"></div>
+ <div id="nextMonthPreview" class="note nextMonthPreview"></div>
+ <div class="closeAssistantGrid">
+  <button id="closeCheckDue" class="secondary" type="button">1 · Vérifier les échéances</button>
+  <button id="closeCheckBalance" class="secondary" type="button">2 · Vérifier le solde</button>
+  <button id="closePrepareNext" type="button">3 · Préparer le mois suivant</button>
+ </div>
+</div><button id="copyPrevFixed" class="secondary" type="button" style="width:100%;margin-bottom:8px">↪ Reprendre les prélèvements du mois précédent</button>
+  <div class="section monthGuide" style="margin:0 0 10px">
+   <h2 style="margin-bottom:6px">🧭 Mon mois en 4 étapes</h2>
+   <div id="monthGuideStatus" class="note" style="margin-bottom:9px"></div>
+   <div class="monthSteps">
+    <button id="stepBalance" class="secondary" type="button">1 · Solde & carte <span id="stepBalanceState"></span></button>
+    <button id="stepDue" class="secondary" type="button">2 · Échéances <span id="stepDueState"></span></button>
+    <button id="stepBudget" class="secondary" type="button">3 · Budgets <span id="stepBudgetState"></span></button>
+    <button id="stepClose" class="secondary" type="button">4 · Clôture <span id="stepCloseState"></span></button>
+   </div>
+  </div>
+  <details class="fold">
+<summary>✏️ Modifier solde et carte</summary>
+<div class="foldBody">
+ <div class="grid">
+  <input id="bank" type="number" step="0.01" inputmode="decimal" placeholder="Solde du compte €">
+  <input id="card" type="number" step="0.01" inputmode="decimal" placeholder="Carte en cours €">
+  <button id="saveBalance" class="wide">Mettre à jour</button>
+ </div>
+ <div class="note"><b>Disponible maintenant :</b> <span id="situationAvailable">0,00 €</span></div>
+ <div class="note"><span id="situationDetail">Solde bancaire − carte en cours.</span></div>
+</div></details>
+  <details class="fold">
+<summary>✅ Suivi des échéances</summary>
+<div class="foldBody">
+ <div class="monthOverview">
+  <div class="overviewBox"><span class="smalllabel">Revenus déjà reçus</span><b id="receivedFixed" class="green">0,00 €</b></div>
+  <div class="overviewBox"><span class="smalllabel">Charges déjà payées</span><b id="paidFixed" class="green">0,00 €</b></div>
+ </div>
+</div></details>
+  <details class="fold">
+<summary>✅ Clôture du mois</summary>
+<div class="foldBody">
+ <div id="monthCloseList" class="list"></div>
+ <div class="note" style="margin-top:10px">Ce contrôle ne modifie aucune donnée : il vous indique simplement ce qu’il reste à vérifier avant de passer au mois suivant.</div>
+</div></details>
+<details class="fold">
+<summary>🧳 Dépenses exceptionnelles prévues</summary>
+<div class="foldBody">
+ <div class="note" style="margin-bottom:10px">Anticipez une dépense inhabituelle. Avec « Payé ✓ », choisissez ensuite Carte, Compte/prélèvement ou Espèces : elle passe dans les mouvements et quitte automatiquement les prévisions.</div>
+ <div class="grid">
+  <input id="exceptionLabel" placeholder="Ex. Révision voiture">
+  <input id="exceptionAmount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Montant €">
+ </div>
+ <button id="addException" type="button" style="width:100%;margin-top:8px">Ajouter à la prévision</button>
+ <div id="exceptionList" class="list" style="margin-top:10px"></div>
+ <div class="card" style="margin-top:10px"><span class="smalllabel">Total exceptionnel prévu</span><b id="exceptionTotal" class="orange">0,00 €</b></div>
+</div></details>
+<details class="fold">
+<summary>📝 Notes du mois</summary>
+<div class="foldBody">
+ <div class="note" style="margin-bottom:10px">Gardez ici les dépenses exceptionnelles, rappels ou informations utiles pour le mois sélectionné.</div>
+ <textarea id="monthNotes" placeholder="Ex. Révision voiture, anniversaire, remboursement attendu…" style="width:100%;min-height:100px;padding:12px;border:1px solid var(--line);border-radius:12px;font:inherit;resize:vertical"></textarea>
+ <button id="saveMonthNotes" type="button" style="width:100%;margin-top:8px">Enregistrer la note</button>
+ <div id="monthNotesSaved" class="note" style="display:none">Note enregistrée ✓</div>
+</div></details>
+<details class="fold">
+<summary>🔔 Routine budget</summary>
+<div class="foldBody">
+ <div class="note" style="margin-bottom:10px">Choisissez le jour où vous aimez faire votre point budget chaque mois. Mon Budget vous le rappellera simplement sur l’accueil.</div>
+ <div class="grid">
+  <input id="routineDay" type="number" min="1" max="28" inputmode="numeric" placeholder="Jour du mois (1 à 28)">
+  <button id="saveRoutineDay" type="button">Enregistrer</button>
+ </div>
+ <button id="clearRoutineDay" class="secondary" type="button" style="width:100%;margin-top:8px">Désactiver la routine</button>
+ <div id="routineStatus" class="note" style="margin-top:8px"></div>
+</div></details>
+<details class="fold">
+<summary>🗓️ Préparer le mois prochain</summary>
+<div class="foldBody">
+ <div class="cards">
+  <div class="card"><span class="smalllabel">Revenus fixes prévus</span><b id="nextIncomeTotal" class="green">0,00 €</b></div>
+  <div class="card"><span class="smalllabel">Prélèvements fixes prévus</span><b id="nextFixedTotal" class="orange">0,00 €</b></div>
+ </div>
+ <div id="nextMonthName" class="note" style="margin-top:10px"></div>
+ <button id="prepareNextMonth" type="button" style="width:100%;margin-top:10px">✨ Préparer automatiquement le mois prochain</button>
+<button id="goNextMonth" class="secondary" type="button" style="width:100%;margin-top:7px">Voir le mois prochain →</button>
+<div id="prepareNextMsg" class="note" style="display:none;margin-top:8px"></div>
+</div></details>
+<details class="fold">
+<summary>➡️ Passage au mois suivant</summary>
+<div class="foldBody">
+<div class="note" style="margin-bottom:10px">
+Les revenus fixes et prélèvements fixes restent automatiquement enregistrés chaque mois.
+Le statut « Reçu / Payé » reste indépendant pour chaque mois.
+</div>
+<button id="copyPreviousBudgets" class="secondary" style="width:100%">Reprendre les budgets du mois précédent</button>
+<div id="copyBudgetMsg" class="note" style="display:none;margin-top:10px"></div>
+
+
+</div></details>
+  <details class="fold">
+<summary>📊 Bilan du mois</summary>
+<div class="foldBody">
+<div class="cards">
+ <div class="card"><span class="smalllabel">Total revenus</span><b id="reportIncome" class="green">0,00 €</b></div>
+ <div class="card"><span class="smalllabel">Total dépenses</span><b id="reportExpense" class="red">0,00 €</b></div>
+ <div class="card"><span class="smalllabel">Solde revenus − dépenses</span><b id="reportNet">0,00 €</b></div>
+ <div class="card"><span class="smalllabel">Plus grosse dépense</span><b id="reportLargest">0,00 €</b></div>
+</div>
+<div id="reportLargestLabel" class="note"></div>
+<button id="copyReport" class="secondary" style="width:100%;margin-top:10px">Copier le bilan</button>
+<div id="copyReportMsg" class="note" style="display:none">Bilan copié ✓</div>
+
+
+</div></details>
+ </div>
+</details>
+
+<details class="menuGroup">
+ <summary>📚 Historique & sauvegarde</summary>
+ <div class="menuBody"><div class="historyQuickTools">
+ <input id="historySearch" type="search" placeholder="Rechercher une opération…" autocomplete="off">
+ <button id="historyClearSearch" class="secondary" type="button">Effacer</button>
+</div>
+<div id="historySearchInfo" class="note" style="margin:0 0 7px"></div><div class="historyFilters">
+ <button class="secondary historyFilter active" type="button" data-history-filter="all">Tout</button>
+ <button class="secondary historyFilter" type="button" data-history-filter="expense">Dépenses</button>
+ <button class="secondary historyFilter" type="button" data-history-filter="income">Revenus</button>
+ <button class="secondary historyFilter" type="button" data-history-filter="fixed">Prélèvements</button>
+</div>
+  <div class="section" style="margin:0 0 10px">
+   <h2>🛡️ Sécurité des données</h2>
+   <div id="safeStatus" class="note" style="margin-bottom:9px">Sauvegarde automatique active.</div>
+   <div id="lastBackupInfo" class="note" style="margin-bottom:8px"></div>
+   <div id="integrityBadge" class="integrityBadge">Contrôle des données…</div>
+   <div class="actions">
+    <button id="safeDownload" type="button">Télécharger une sauvegarde</button>
+    <button id="safeRestore" class="secondary" type="button">Restaurer la copie automatique</button>
+   </div>
+   <button id="beforeUpdateBackup" class="secondary" type="button" style="width:100%;margin-top:8px">🛡️ Sauvegarder avant une mise à jour</button>
+   <div id="dataHealth" class="note" style="margin-top:8px"></div>
+   <div class="section" style="margin:10px 0 0;padding:10px">
+    <b>🔎 Contrôle avant mise à jour</b>
+    <div id="updateCheck" class="note" style="margin-top:5px"></div>
+    <button id="runUpdateCheck" class="secondary" type="button" style="width:100%;margin-top:8px">Vérifier maintenant</button>
+   </div>
+  </div>
+  <details class="fold">
+<summary>📋 Mouvements du mois</summary>
+<div class="foldBody">
+<div class="note" id="movementSummary" style="margin-bottom:10px"></div>
+<div class="grid" style="margin-bottom:10px">
+ <select id="movementFilter">
+  <option value="all">Tout afficher</option>
+  <option value="expense">Dépenses seulement</option>
+  <option value="income">Revenus seulement</option>
+ </select>
+ <input id="movementSearch" class="wide" type="search" placeholder="🔎 Rechercher une opération…">
+ <select id="movementSort" class="wide">
+  <option value="dateDesc">Plus récentes d’abord</option>
+  <option value="dateAsc">Plus anciennes d’abord</option>
+  <option value="amountDesc">Montant : du plus élevé</option>
+  <option value="amountAsc">Montant : du plus faible</option>
+  <option value="labelAsc">Nom : A → Z</option>
+ </select>
+ <select id="movementPayment">
+  <option value="all">Tous les paiements</option>
+  <option value="card">💳 Carte</option>
+  <option value="bank">🏦 Compte</option>
+  <option value="cash">💶 Espèces</option>
+ </select>
+ <select id="movementCategory">
+  <option value="all">Toutes catégories</option>
+  <option>Courses</option><option>Carburant</option><option>Factures</option><option>Logement</option>
+  <option>Voiture</option><option>Santé</option><option>Enfants</option><option>Loisirs</option><option>Animaux</option><option>Autre</option>
+ </select>
+ <button id="resetFilters" class="secondary wide" type="button">Réinitialiser les filtres</button>
+</div>
+<div class="card" style="margin:10px 0">
+ <span class="smalllabel">Total de la sélection affichée</span>
+ <b id="filteredTotal">0,00 €</b>
+ <div id="filteredCount" class="note" style="margin-top:4px"></div>
+</div>
+<div id="entryList" class="list"></div><div class="note" style="margin-top:10px">↻ Réutiliser remplit automatiquement la saisie avec le même nom, montant, catégorie et moyen de paiement. Vous pouvez modifier avant d’ajouter.</div>
+
+
+</div></details>
+  <details class="fold">
+<summary>💾 Sauvegarde</summary>
+<div class="foldBody">
+<div class="actions"><button id="export" class="secondary">Exporter</button><button id="import" class="secondary">Importer</button></div>
+<button id="restoreSafety" class="secondary" type="button" style="width:100%;margin-top:8px">↩️ Restaurer avant le dernier import</button>
+<input id="file" type="file" accept="application/json" hidden>
+
+</div></details>
+ </div>
+</details>
+
+
+
+
+
+
+
+
+
+
+</div>
+
+<script>
+
+let toastTimer=null,lastDueAction=null,attentionTarget=null;
+function showToast(msg){
+ let x=$('toast');if(!x)return;
+ x.textContent=msg;x.classList.add('show');
+ clearTimeout(toastTimer);toastTimer=setTimeout(()=>x.classList.remove('show'),1800);
+}
+function openBySummary(text){
+ let all=[...document.querySelectorAll('details')];
+ let target=all.find(d=>{let s=d.querySelector(':scope > summary');return s&&s.textContent.includes(text)});
+ if(!target)return null;
+ let p=target.parentElement;
+ while(p){if(p.tagName==='DETAILS')p.open=true;p=p.parentElement}
+ target.open=true;
+ target.scrollIntoView({behavior:'smooth',block:'start'});
+ return target;
+}
+function closeOtherMainMenus(current){
+$('globalUndoBtn').onclick=restoreLastChange;
+function downloadSafetyFile(prefix){
+ makeSafetyCopy();updateSafeStatus();updateDataHealth();updateLastBackupInfo();updateIntegrityBadge();
+ let blob=new Blob([JSON.stringify({version:'V170-SAFE',exportedAt:new Date().toISOString(),data:s},null,2)],{type:'application/json'});
+ let a=document.createElement('a');a.href=URL.createObjectURL(blob);
+ a.download=(prefix||'mon-budget-sauvegarde-securite')+'-'+new Date().toISOString().slice(0,10)+'.json';
+ a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+$('safeDownload').onclick=()=>{downloadSafetyFile('mon-budget-sauvegarde-securite');showToast('Sauvegarde téléchargée ✓')};
+$('dailyAdd').onclick=()=>{document.getElementById('form').scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>$('label').focus(),250)};
+$('dailyDue').onclick=()=>openBySummary('À venir ce mois-ci');
+$('dailyBalance').onclick=()=>openBySummary('Modifier solde et carte');
+$('dailyMonthCheck').onclick=runMonthlyCheck;
+$('copyPrevFixed').onclick=copyPreviousFixedToCurrent;
+$('closeCheckDue').onclick=()=>openBySummary('À venir ce mois-ci');
+$('closeCheckBalance').onclick=()=>openBySummary('Modifier solde et carte');
+$('goPrevMonth').onclick=()=>setSelectedMonthSafe(shiftMonthKey(m,-1));
+$('goCurrentMonth').onclick=()=>setSelectedMonthSafe(currentMonthKey());
+$('goNextMonth').onclick=()=>setSelectedMonthSafe(shiftMonthKey(m,1));
+$('closePrepareNext').onclick=()=>{if(confirm('Préparer le mois suivant à partir des réglages actuels ?'))prepareNextMonthSafe()};
+if($('compactMonthDetails'))$('compactMonthDetails').addEventListener('toggle',()=>{
+ try{localStorage.setItem(UI_DETAILS_KEY,$('compactMonthDetails').open?'1':'0')}catch(e){}
+ updateCompactDetailsHint();
+});
+restoreCompactDetailsState();
+$('runUpdateCheck').onclick=()=>{runUpdateCheck();showToast('Contrôle terminé ✓')};
+$('beforeUpdateBackup').onclick=()=>{downloadSafetyFile('AVANT-MISE-A-JOUR-mon-budget');showToast('Sauvegarde avant mise à jour créée ✓')};
+$('safeRestore').onclick=()=>{
+ let p=getSafetyCopy();
+ if(!p){showToast('Aucune copie automatique disponible');return}
+ if(!confirm('Restaurer la copie automatique ? Les données actuelles seront remplacées.'))return;
+ try{
+  let current=JSON.stringify(s);
+  s=JSON.parse(JSON.stringify(p.data));
+  localStorage.setItem(KEY,JSON.stringify(s));
+  localStorage.setItem(SAFE_KEY,JSON.stringify({savedAt:new Date().toISOString(),data:JSON.parse(current)}));
+  render();updateSafeStatus();showToast('Copie restaurée ✓');
+ }catch(e){showToast('Restauration impossible')}
+};
+
+$('smartEntryApply').onclick=applySmartSuggestion;
+$('saveRoutineDay').onclick=()=>{
+ let d=parseInt($('routineDay').value,10);
+ if(!d||d<1||d>28){showToast('Choisissez un jour entre 1 et 28');return}
+ s.routineDay=d;localStorage.setItem(KEY,JSON.stringify(s));render();showToast('Routine enregistrée ✓');
+};
+$('clearRoutineDay').onclick=()=>{
+ s.routineDay=0;$('routineDay').value='';localStorage.setItem(KEY,JSON.stringify(s));render();showToast('Routine désactivée');
+};
+$('attentionAction').onclick=()=>{if(attentionTarget)openBySummary(attentionTarget)};
+$('routineGo').onclick=()=>{openBySummary('Gérer le mois');setTimeout(()=>document.querySelector('.monthGuide')?.scrollIntoView({behavior:'smooth',block:'start'}),200)};
+$('restoreSafety').onclick=()=>{if(restoreSafetyBackup())showToast('Sauvegarde restaurée ✓');else showToast('Aucune sauvegarde à restaurer')};
+$('repeatLastEntry').onclick=repeatLastEntry;
+$('collapseMonthDetails').onclick=()=>{let d=$('compactMonthDetails');if(d){d.open=false;d.scrollIntoView({behavior:'smooth',block:'center'})}};
+$('clearQuickEntry').onclick=clearQuickEntry;
+$('entryToday').onclick=setEntryDateToday;
+$('entryThisMonth').onclick=setEntryDateThisMonth;
+$('saveFavoriteEntry').onclick=addCurrentEntryFavorite;
+document.querySelectorAll('.historyFilter').forEach(b=>b.onclick=()=>setHistoryTypeFilter(b.dataset.historyFilter));
+$('historySearch').oninput=applyHistorySearch;
+$('historyClearSearch').onclick=clearHistorySearch;
+$('toggleEntryDetails').onclick=()=>setEntryMode(document.body.classList.contains('entrySimple')?'full':'simple');
+setEntryMode(localStorage.getItem('budget_entry_mode')||'simple');
+$('viewEssential').addEventListener('click',e=>{e.preventDefault();setViewMode('essential')});
+$('viewFull').addEventListener('click',e=>{e.preventDefault();setViewMode('full')});
+setViewMode(localStorage.getItem('budget_view_mode')||'essential');
+ document.querySelectorAll('details.menuGroup').forEach(d=>{if(d!==current)d.open=false});
+}
+
+
+function setViewMode(v){
+ let essential=v!=='full';
+ document.body.classList.toggle('essentialMode',essential);
+ let be=$('viewEssential'),bf=$('viewFull');
+ if(be){be.className=essential?'':'secondary';be.setAttribute('aria-pressed',essential?'true':'false')}
+ if(bf){bf.className=essential?'secondary':'';bf.setAttribute('aria-pressed',essential?'false':'true')}
+ try{localStorage.setItem('budget_view_mode',essential?'essential':'full')}catch(e){}
+}
+
+
+function setEntryMode(v){
+ let simple=v!=='full';
+ document.body.classList.toggle('entrySimple',simple);
+ if($('toggleEntryDetails'))$('toggleEntryDetails').textContent=simple?'Plus d’options':'Moins d’options';
+ localStorage.setItem('budget_entry_mode',simple?'simple':'full');
+}
+
+
+let undoSnapshot=null,undoSnapshotTimer=null;
+function rememberBeforeChange(message){
+ try{undoSnapshot=JSON.stringify(s)}catch(e){undoSnapshot=null}
+ if(!undoSnapshot)return;
+ $('globalUndoText').textContent=message||'Modification effectuée';
+ $('globalUndo').style.display='flex';
+ clearTimeout(undoSnapshotTimer);
+ undoSnapshotTimer=setTimeout(()=>{undoSnapshot=null;$('globalUndo').style.display='none'},7000);
+}
+function restoreLastChange(){
+ if(!undoSnapshot)return;
+ try{
+   s=JSON.parse(undoSnapshot);
+   localStorage.setItem(KEY,JSON.stringify(s));
+   undoSnapshot=null;clearTimeout(undoSnapshotTimer);
+   $('globalUndo').style.display='none';
+   render();showToast('Modification annulée ✓');
+ }catch(e){showToast('Impossible d’annuler cette modification')}
+}
+
+
+let smartSuggestion=null;
+function updateSmartSuggestion(){
+ let box=$('smartEntry');if(!box)return;
+ let q=($('label').value||'').trim().toLowerCase();
+ if(mode==='fixed'||q.length<2){box.style.display='none';smartSuggestion=null;return}
+ let matches=(s.entries||[]).filter(e=>(e.label||'').toLowerCase().includes(q) && e.type===mode);
+ if(!matches.length){box.style.display='none';smartSuggestion=null;return}
+ matches.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+ let e=matches[0];smartSuggestion=e;
+ $('smartEntryTitle').textContent='✨ '+e.label;
+ let pay=e.type==='expense'?(e.payment==='bank'?'Compte':e.payment==='cash'?'Espèces':'Carte'):'';
+ $('smartEntryText').textContent=eur(e.amount)+' · '+(e.category||'Autre')+(pay?' · '+pay:'');
+ box.style.display='flex';
+}
+function applySmartSuggestion(){
+ let e=smartSuggestion;if(!e)return;
+ $('label').value=e.label||'';
+ $('amount').value=e.amount||'';
+ $('category').value=e.category||'Autre';
+ if(e.type==='expense'&&$('paymentMethod'))$('paymentMethod').value=e.payment||'card';
+ try{
+  localStorage.setItem('budget_last_category',$('category').value);
+  if(e.type==='expense')localStorage.setItem('budget_last_payment',$('paymentMethod').value);
+ }catch(err){}
+ updateAddReady();updateEntryChoiceSummary();
+ $('smartEntry').style.display='none';
+ $('amount').focus();$('amount').select();
+}
+
+
+const SAFE_KEY='monBudgetSimpleV3_SAFE';
+
+function updateLastBackupInfo(){
+ let el=$('lastBackupInfo');if(!el)return;
+ try{
+  let raw=localStorage.getItem(SAFE_KEY);
+  if(!raw){el.textContent='Aucune copie de sécurité horodatée.';return}
+  let p=JSON.parse(raw),d=new Date(p.savedAt);
+  if(isNaN(d.getTime())){el.textContent='Copie de sécurité disponible.';return}
+  el.textContent='Dernière copie de sécurité : '+d.toLocaleDateString('fr-FR')+' à '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+ }catch(e){el.textContent='Copie de sécurité disponible.'}
+}
+
+function makeSafetyCopy(){
+ try{
+  if(typeof s==='undefined'||!s)return false;
+  localStorage.setItem(SAFE_KEY,JSON.stringify({savedAt:new Date().toISOString(),data:s}));
+  return true;
+ }catch(e){return false}
+}
+function getSafetyCopy(){
+ try{
+  let raw=localStorage.getItem(SAFE_KEY);
+  if(!raw)return null;
+  let p=JSON.parse(raw);
+  return p&&p.data?p:null;
+ }catch(e){return null}
+}
+function updateSafeStatus(){
+ let el=$('safeStatus');if(!el)return;
+ let p=getSafetyCopy();
+ if(!p){el.textContent='Sauvegarde automatique active. Une copie sera créée à la prochaine modification.';return}
+ let d=new Date(p.savedAt);
+ el.textContent='Copie automatique disponible · '+d.toLocaleDateString('fr-FR')+' '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+}
+
+
+function updateDataHealth(){
+ let el=$('dataHealth');if(!el||typeof s==='undefined')return;
+ let nEntries=(s.entries||[]).length,nFixed=(s.fixed||[]).length,nIncome=(s.fixedIncome||[]).length;
+ let issues=[];
+ if(!Array.isArray(s.entries))issues.push('opérations');
+ if(!Array.isArray(s.fixed))issues.push('prélèvements');
+ if(!Array.isArray(s.fixedIncome))issues.push('revenus fixes');
+ if(issues.length)el.textContent='⚠️ Vérification nécessaire : '+issues.join(', ')+'.';
+ else el.textContent='✓ Données lisibles · '+nEntries+' opération'+(nEntries!==1?'s':'')+' · '+nFixed+' prélèvement'+(nFixed!==1?'s':'')+' · '+nIncome+' revenu'+(nIncome!==1?'s':'')+' fixe'+(nIncome!==1?'s':'');
+}
+
+
+function runUpdateCheck(){
+ let el=$('updateCheck');if(!el)return;
+ let checks=[];
+ try{
+  checks.push(Array.isArray(s.entries));
+  checks.push(Array.isArray(s.fixed));
+  checks.push(Array.isArray(s.fixedIncome));
+  checks.push(!!s.balances && typeof s.balances==='object');
+  checks.push(!!s.budgets && typeof s.budgets==='object');
+  let raw=localStorage.getItem(KEY);
+  checks.push(!!raw && !!JSON.parse(raw));
+  let safe=getSafetyCopy();
+  checks.push(!!safe && !!safe.data);
+ }catch(e){checks.push(false)}
+ let ok=checks.every(Boolean);
+ el.textContent=ok
+   ?'✓ Données, stockage local et copie de sécurité lisibles.'
+   :'⚠️ Un contrôle a échoué. Ne remplacez pas cette version avant d’avoir fait une sauvegarde.';
+ return ok;
+}
+
+
+function previousMonthKey(m){
+ let [y,mo]=m.split('-').map(Number);mo--;
+ if(mo<1){mo=12;y--}
+ return y+'-'+String(mo).padStart(2,'0');
+}
+function monthEntryTotals(m){
+ let rows=(s.entries||[]).filter(e=>(e.date||'').slice(0,7)===m);
+ return {
+  expense:rows.filter(e=>e.type==='expense').reduce((a,e)=>a+(+e.amount||0),0),
+  income:rows.filter(e=>e.type==='income').reduce((a,e)=>a+(+e.amount||0),0)
+ };
+}
+
+
+function monthCategoryTotals(m){
+ let totals={};
+ (s.entries||[]).forEach(e=>{
+  if(e.type!=='expense'||(e.date||'').slice(0,7)!==m)return;
+  let c=e.category||'Autre';
+  totals[c]=(totals[c]||0)+(+e.amount||0);
+ });
+ return Object.entries(totals).sort((a,b)=>b[1]-a[1]);
+}
+
+
+const UI_DETAILS_KEY='budget_ui_month_details_open';
+function restoreCompactDetailsState(){
+ let d=$('compactMonthDetails');if(!d)return;
+ try{d.open=localStorage.getItem(UI_DETAILS_KEY)==='1'}catch(e){}
+ updateCompactDetailsHint();
+}
+function updateCompactDetailsHint(){
+ let d=$('compactMonthDetails'),h=$('compactHint');if(!d||!h)return;
+ h.textContent=d.open?'toucher pour refermer':'comparaison · catégories · projection';
+}
+
+
+function getLastEntryForMode(){
+ let rows=(s.entries||[]).filter(e=>e.type===mode);
+ if(!rows.length)return null;
+ return rows.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
+}
+function refreshRepeatLastEntry(){
+ let b=$('repeatLastEntry');if(!b)return;
+ let e=getLastEntryForMode();
+ if(!e||mode==='fixed'){b.style.display='none';return}
+ b.style.display='';
+ b.textContent='↻ '+((e.label||'Reprendre').length>15?(e.label||'').slice(0,14)+'…':(e.label||'Reprendre'));
+}
+function repeatLastEntry(){
+ let e=getLastEntryForMode();if(!e)return;
+ $('label').value=e.label||'';
+ $('amount').value=e.amount||'';
+ $('category').value=e.category||'Autre';
+ if(mode==='expense'&&$('paymentMethod'))$('paymentMethod').value=e.payment||'card';
+ updateAddReady();updateEntryChoiceSummary();
+ $('amount').focus();$('amount').select();
+}
+
+
+function clearQuickEntry(){
+ if($('label'))$('label').value='';
+ if($('amount'))$('amount').value='';
+ if($('smartEntry'))$('smartEntry').style.display='none';
+ smartSuggestion=null;
+ updateAddReady();updateEntryChoiceSummary();refreshRepeatLastEntry();
+ if($('label'))$('label').focus();
+}
+
+
+function recentEntriesForMode(limit=6){
+ let seen=new Set(),rows=(s.entries||[]).filter(e=>e.type===mode).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')),out=[];
+ for(let e of rows){let k=((e.label||'')+'|'+(e.category||'')+'|'+(e.payment||'')).toLowerCase();if(!e.label||seen.has(k))continue;seen.add(k);out.push(e);if(out.length>=limit)break}
+ return out;
+}
+function fillEntryFromExisting(e){
+ if(!e)return;$('label').value=e.label||'';$('amount').value=e.amount||'';$('category').value=e.category||'Autre';
+ if(mode==='expense'&&$('paymentMethod'))$('paymentMethod').value=e.payment||'card';
+ updateAddReady();updateEntryChoiceSummary();$('amount').focus();$('amount').select();
+}
+function renderRecentEntryChips(){
+ let w=$('recentEntryWrap'),b=$('recentEntryChips');if(!w||!b)return;let rows=recentEntriesForMode();b.innerHTML='';
+ if(mode==='fixed'||!rows.length){w.style.display='none';return}w.style.display='block';
+ rows.forEach(e=>{let x=document.createElement('button');x.type='button';x.className='secondary';x.textContent=(e.label||'Opération')+' · '+eur(e.amount||0);x.onclick=()=>fillEntryFromExisting(e);b.appendChild(x)});
+}
+function runMonthlyCheck(){openBySummary('Gérer le mois');setTimeout(()=>document.querySelector('.monthGuide')?.scrollIntoView({behavior:'smooth',block:'start'}),180)}
+
+
+function updateMonthCheckStatus(){
+ let el=$('monthCheckStatus');if(!el)return;
+ let p=(typeof dueItems!=='undefined'&&dueItems)?dueItems.length:0;
+ el.textContent=p?(p+' échéance'+(p>1?'s':'')+' à vérifier'):'✓ Rien d’urgent pour le mois';
+}
+function copyPreviousFixedToCurrent(){
+ let prev=previousMonthKey(m);
+ let prevRows=(s.entries||[]).filter(e=>e.type==='fixed'&&(e.date||'').slice(0,7)===prev);
+ if(!prevRows.length){showToast('Aucun prélèvement à reprendre');return}
+ let current=(s.entries||[]).filter(e=>e.type==='fixed'&&(e.date||'').slice(0,7)===m);
+ let existing=new Set(current.map(e=>((e.label||'')+'|'+(+e.amount||0)).toLowerCase()));
+ let add=prevRows.filter(e=>!existing.has(((e.label||'')+'|'+(+e.amount||0)).toLowerCase()));
+ if(!add.length){showToast('Prélèvements déjà présents ✓');return}
+ if(!confirm('Reprendre '+add.length+' prélèvement'+(add.length>1?'s':'')+' du mois précédent ?'))return;
+ add.forEach((e,i)=>{
+   let clone=JSON.parse(JSON.stringify(e));
+   clone.id=Date.now()+i;
+   clone.date=m+'-'+String(parseInt((e.date||'').slice(8,10),10)||1).padStart(2,'0');
+   s.entries.push(clone);
+ });
+ persist();showToast(add.length+' prélèvement'+(add.length>1?'s':'')+' repris ✓');updateNextMonthPreview();
+}
+
+
+function prepareNextMonthSafe(){
+ let next=nextMonthKey(m),changed=[];
+ // Budgets: copy only if destination has none.
+ if(Object.keys(s.budgets[next]||{}).length===0 && Object.keys(s.budgets[m]||{}).length){
+  s.budgets[next]=JSON.parse(JSON.stringify(s.budgets[m]));changed.push('budgets');
+ }
+ // Saving goal / margin: copy only when destination isn't already set.
+ if(!(next in s.savingGoals) && (s.savingGoals[m]||0)>0){
+  s.savingGoals[next]=s.savingGoals[m];changed.push('objectif épargne');
+ }
+ if(!(next in s.safetyMargins) && (s.safetyMargins[m]||0)>0){
+  s.safetyMargins[next]=s.safetyMargins[m];changed.push('marge');
+ }
+ // Monthly notes are intentionally NOT copied.
+ localStorage.setItem(KEY,JSON.stringify(s));
+ if(changed.length)showToast('Mois suivant préparé : '+changed.join(', ')+' ✓');
+ else showToast('Mois suivant déjà préparé ✓');
+ render();
+}
+function updateCloseAssistant(){
+ let el=$('closeAssistantText');if(!el)return;
+ let pending=(typeof dueItems!=='undefined'&&dueItems)?dueItems.length:0;
+ let hasBalance=!!(s.balances && Object.prototype.hasOwnProperty.call(s.balances,m));
+ if(pending>0){
+  el.textContent='Il reste '+pending+' échéance'+(pending>1?'s':'')+' à vérifier avant de clôturer le mois.';
+ }else if(!hasBalance){
+  el.textContent='Les échéances sont à jour. Vérifiez maintenant votre solde et votre carte.';
+ }else{
+  el.textContent='Le mois est prêt à être clôturé. Vous pouvez préparer le mois suivant.';
+ }
+}
+
+
+
+
+function compactDuplicateStatus(){
+ let el=$('rest');
+ if(!el)return;
+ let txt=(el.textContent||'').trim().toLowerCase();
+ if(txt.includes('rien d’urgent')||txt.includes("rien d'urgence"))el.style.display='none';
+ else el.style.display='';
+}
+
+
+function setEntryDateToday(){
+ if(!$('date'))return;
+ let d=new Date(),y=d.getFullYear(),mo=String(d.getMonth()+1).padStart(2,'0'),da=String(d.getDate()).padStart(2,'0');
+ $('date').value=y+'-'+mo+'-'+da;
+ updateEntryChoiceSummary();
+}
+function applyHistorySearch(){
+ let q=(($('historySearch')&&$('historySearch').value)||'').trim().toLowerCase();
+ let info=$('historySearchInfo');
+ let candidates=[...document.querySelectorAll('#historyList .row, #historyList .entry, .historyList .row, .historyList .entry')];
+ if(!candidates.length){
+   let box=$('historyList')||document.querySelector('.historyList');
+   if(box)candidates=[...box.children];
+ }
+ let shown=0,total=0;
+ candidates.forEach(el=>{
+   if(el.closest && el.closest('.historyQuickTools'))return;
+   total++;
+   let txt=(el.textContent||'').toLowerCase();
+   let textOk=!q||txt.includes(q);
+   let typeOk=true;
+   if(historyTypeFilter!=='all'){
+     let marker=(el.dataset.type||el.getAttribute('data-type')||'').toLowerCase();
+     if(marker) typeOk=marker===historyTypeFilter;
+     else{
+       if(historyTypeFilter==='expense') typeOk=txt.includes('dépense')||txt.includes('−')||txt.includes('-');
+       if(historyTypeFilter==='income') typeOk=txt.includes('revenu')||txt.includes('+');
+       if(historyTypeFilter==='fixed') typeOk=txt.includes('prélèvement')||txt.includes('fixe');
+     }
+   }
+   let ok=textOk&&typeOk;
+   el.style.display=ok?'':'none';
+   if(ok)shown++;
+ });
+ if(info)info.textContent=(q||historyTypeFilter!=='all')?(shown+' résultat'+(shown>1?'s':'')+' sur '+total):'';
+}
+function clearHistorySearch(){
+ if($('historySearch'))$('historySearch').value='';
+ historyTypeFilter='all';
+ document.querySelectorAll('.historyFilter').forEach(b=>b.classList.toggle('active',b.dataset.historyFilter==='all'));
+ applyHistorySearch();
+}
+
+
+let historyTypeFilter='all';
+function setHistoryTypeFilter(type){
+ historyTypeFilter=type||'all';
+ document.querySelectorAll('.historyFilter').forEach(b=>b.classList.toggle('active',b.dataset.historyFilter===historyTypeFilter));
+ applyHistorySearch();
+}
+function setEntryDateThisMonth(){
+ if(!$('date'))return;
+ let current=$('date').value||'';
+ let day=parseInt(current.slice(8,10),10)||new Date().getDate();
+ let [yy,mm]=m.split('-').map(Number);
+ let maxDay=new Date(yy,mm,0).getDate();
+ $('date').value=m+'-'+String(Math.min(day,maxDay)).padStart(2,'0');
+ updateEntryChoiceSummary();
+}
+
+
+function shiftMonthKey(base,delta){
+ let [y,mo]=base.split('-').map(Number);
+ mo+=delta;
+ while(mo<1){mo+=12;y--}
+ while(mo>12){mo-=12;y++}
+ return y+'-'+String(mo).padStart(2,'0');
+}
+function setSelectedMonthSafe(target){
+ if(!/^\d{4}-\d{2}$/.test(target))return;
+ m=target;
+ if($('month'))$('month').value=m;
+ render();
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+function currentMonthKey(){
+ let d=new Date();
+ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+}
+function updateNextMonthPreview(){
+ let el=$('nextMonthPreview');if(!el)return;
+ let next=shiftMonthKey(m,1);
+ let b=Object.keys((s.budgets&&s.budgets[next])||{}).length;
+ let goal=(s.savingGoals&&s.savingGoals[next])||0;
+ let margin=(s.safetyMargins&&s.safetyMargins[next])||0;
+ let ready=[];
+ if(b)ready.push('budgets');
+ if(goal>0)ready.push('épargne');
+ if(margin>0)ready.push('marge');
+ el.textContent=ready.length
+  ? 'Mois suivant déjà préparé : '+ready.join(' · ')+'.'
+  : 'Le mois suivant n’est pas encore préparé.';
+}
+
+
+const FAVORITES_KEY='budget_quick_favorites_v1';
+function getEntryFavorites(){
+ try{return JSON.parse(localStorage.getItem(FAVORITES_KEY)||'[]')}catch(e){return[]}
+}
+function saveEntryFavorites(rows){
+ try{localStorage.setItem(FAVORITES_KEY,JSON.stringify(rows.slice(0,8)))}catch(e){}
+}
+function addCurrentEntryFavorite(){
+ let label=($('label')?.value||'').trim(),amount=parseFloat($('amount')?.value)||0;
+ if(!label||amount<=0){showToast('Saisissez d’abord un libellé et un montant');return}
+ let row={label,amount,category:$('category')?.value||'Autre',payment:mode==='expense'?($('paymentMethod')?.value||'card'):'',type:mode};
+ let rows=getEntryFavorites();
+ let k=(row.type+'|'+row.label+'|'+row.amount).toLowerCase();
+ rows=rows.filter(x=>(x.type+'|'+x.label+'|'+x.amount).toLowerCase()!==k);
+ rows.unshift(row);saveEntryFavorites(rows);renderFavoriteEntryChips();showToast('Ajouté aux favoris ✓');
+}
+function renderFavoriteEntryChips(){
+ let wrap=$('favoriteEntryWrap'),box=$('favoriteEntryChips');if(!wrap||!box)return;
+ let rows=getEntryFavorites().filter(e=>e.type===mode);box.innerHTML='';
+ if(mode==='fixed'||!rows.length){wrap.style.display='none';return}
+ wrap.style.display='block';
+ rows.forEach(e=>{
+  let b=document.createElement('button');b.type='button';b.className='secondary';
+  b.textContent='★ '+e.label+' · '+eur(e.amount);
+  b.onclick=()=>fillEntryFromExisting(e);
+  b.oncontextmenu=ev=>{ev.preventDefault();if(confirm('Retirer ce favori ?')){let all=getEntryFavorites().filter(x=>x!==e);saveEntryFavorites(all);renderFavoriteEntryChips()}};
+  box.appendChild(b);
+ });
+}
+
+
+function rememberLastChange(label){
+ try{
+  localStorage.setItem('budget_last_change',JSON.stringify({label:label||'Modification',at:Date.now()}));
+ }catch(e){}
+}
+
+function updateIntegrityBadge(){
+ let el=$('integrityBadge');if(!el)return;
+ try{
+  let ok=Array.isArray(s.entries)&&Array.isArray(s.fixed)&&Array.isArray(s.fixedIncome)&&s.budgets&&s.balances;
+  el.textContent=ok?'✓ Données cohérentes':'⚠️ Vérification recommandée';
+  el.className='integrityBadge '+(ok?'ok':'warn');
+ }catch(e){el.textContent='⚠️ Vérification recommandée';el.className='integrityBadge warn'}
+}
+
+
+
+
+
+
+function refreshFixedIncomeVisibleList(){
+ const m=$('month') ? $('month').value : new Date().toISOString().slice(0,7);
+ const fil=$('fixedIncomeList');
+ if(!fil)return;
+ fil.innerHTML='';
+ const rows=Array.isArray(s.fixedIncome)?s.fixedIncome:[];
+ if(!rows.length){
+   fil.innerHTML='<div class="empty">Aucun revenu fixe enregistré dans cette version.</div>';
+   return;
+ }
+ rows.forEach(f=>{
+   const received=!!((s.incomeReceived&&s.incomeReceived[m])||{})[f.id];
+   const d=document.createElement('div');d.className='item fixedIncomeVisibleRow';
+   d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt green"></div><div class="fixedBtns"><button class="secondary pay"></button><button class="edit">✏️ Modifier</button><button class="del">🗑️ Supprimer</button></div>';
+   d.querySelector('.title').textContent=f.label||'Revenu';
+   d.querySelector('.meta').textContent='Prévu le '+(f.day||'?')+' de chaque mois';
+   d.querySelector('.amt').textContent=eur(+f.amount||0);
+   const pay=d.querySelector('.pay');
+   pay.textContent=received?'Reçu ✓':'À recevoir';
+   pay.className='secondary pay '+(received?'statusDone':'statusTodo');
+   pay.onclick=()=>{
+     rememberLastChange('Statut revenu');
+     s.incomeReceived=s.incomeReceived||{};
+     s.incomeReceived[m]=s.incomeReceived[m]||{};
+     s.incomeReceived[m][f.id]=!received;
+     persist();
+     render();
+   };
+   d.querySelector('.edit').onclick=()=>openEdit('income',f.id);
+   d.querySelector('.del').onclick=()=>{
+     if(confirm('Supprimer ce revenu fixe ?')){
+       rememberLastChange('Suppression revenu');
+       s.fixedIncome=s.fixedIncome.filter(x=>x.id!==f.id);
+       persist();render();
+     }
+   };
+   fil.appendChild(d);
+ });
+}
+
+
+let simpleAdvancedOpen=false;
+function applySimpleMode(){
+ document.querySelectorAll('[data-simple-advanced="1"]').forEach(el=>{
+   el.style.display=simpleAdvancedOpen?'':'none';
+   if(!simpleAdvancedOpen)el.open=false;
+ });
+ let b=$('toggleAdvancedSimple');
+ if(b)b.textContent=simpleAdvancedOpen?'Moins':'Plus';
+}
+function toggleSimpleAdvanced(){
+ simpleAdvancedOpen=!simpleAdvancedOpen;
+ applyUltraSimpleHome();
+}
+
+
+
+function markSimple3Parts(){
+ const els=[...document.querySelectorAll('body *')];
+ const qaTitle=els.find(e=>(e.textContent||'').trim().includes('Actions rapides')&&e.children.length<6);
+ if(qaTitle){
+   let p=qaTitle;
+   while(p&&p!==document.body&&!p.querySelector('button'))p=p.parentElement;
+   if(p&&p!==document.body)p.id='quickActions';
+ }
+ const bank=els.find(e=>(e.textContent||'').trim()==='Banque');
+ if(bank){
+   let p=bank.parentElement;
+   while(p&&p!==document.body){
+     const txt=p.textContent||'';
+     if(txt.includes('Banque')&&txt.includes('Carte')&&txt.includes('Revenus')&&txt.includes('Dépenses')){p.classList.add('statGrid');break}
+     p=p.parentElement;
+   }
+ }
+}
+
+function markSimpleHomeParts(){
+ const all=[...document.querySelectorAll('body *')];
+ const byText=(txt)=>all.find(el=>el.children.length===0&&(el.textContent||'').trim()===txt);
+ let urgent=all.find(el=>(el.textContent||'').includes('Rien d’urgent') && (el.classList.contains('card')||el.classList.contains('statusCard')));
+ if(urgent)urgent.id='urgentCard';
+ let status=all.find(el=>(el.textContent||'').trim()==='✓ Rien d’urgent à traiter pour ce mois.');
+ if(status)status.id='quickStatus';
+ let details=all.find(el=>(el.textContent||'').includes('Détails du mois')&&(el.tagName==='DETAILS'||el.classList.contains('card')||el.classList.contains('fold')));
+ if(details)details.id='monthDetailsCard';
+ let qa=all.find(el=>(el.textContent||'').includes('Actions rapides')&&(el.tagName==='DIV'||el.tagName==='SECTION'||el.tagName==='DETAILS'));
+ if(qa)qa.id='quickActions';
+}
+function applyUltraSimpleHome(){
+ markSimpleHomeParts();
+ markSimple3Parts();
+ document.body.classList.toggle('simpleEssential',!simpleAdvancedOpen);
+ applySimpleMode();
+}
+
+
+function simple4FindButton(text){
+ return [...document.querySelectorAll('button')].find(b=>(b.textContent||'').includes(text) && !b.id.startsWith('simple4'));
+}
+function simple4Refresh(){
+ const dash=$('simple4Dashboard'); if(!dash)return;
+ // Read values from the application's own rendered fields to preserve all calculations.
+ const all=[...document.querySelectorAll('body *')];
+ // SIMPLE-5.1: use the canonical calculated value from the original dashboard.
+ // Do not search the whole DOM here: that could pick simple4AvailableValue itself
+ // and leave the Essential amount stale after a new card expense.
+ const canonicalAvailable=$('rest');
+ if(canonicalAvailable)$('simple4AvailableValue').textContent=canonicalAvailable.textContent.trim();
+
+ const labelValue=(label)=>{
+   const lab=all.find(e=>(e.textContent||'').trim()===label);
+   if(!lab)return null;
+   let p=lab.parentElement;
+   for(let n=0;n<4&&p;n++,p=p.parentElement){
+     const val=[...p.querySelectorAll('*')].find(e=>(e.textContent||'').trim().match(/^-?[\d\s.,]+\s*€$/));
+     if(val)return val.textContent.trim();
+   }
+   return null;
+ };
+ let mm=($('month')&&$('month').value)||m;
+ let bb=(s.balances&&s.balances[mm])||null;
+ if(bb){
+   $('simple4Bank').textContent=eur(+bb.bank||0);
+   $('simple4Card').textContent=eur(+bb.card||0);
+ }else{
+   $('simple4Bank').textContent='—';
+   $('simple4Card').textContent='—';
+ }
+}
+
+
+let simple5LastAction=null;
+function simple5UpdateUndo(){
+ let b=$('simple5Undo');if(!b)return;
+ b.hidden=!simple5LastAction;
+ if(!simple5LastAction)return;
+ if(simple5LastAction.kind==='expense')b.textContent='↩️ Annuler la dernière dépense';
+ else if(simple5LastAction.kind==='due')b.textContent='↩️ Annuler la dernière échéance cochée';
+ else if(simple5LastAction.kind==='balance')b.textContent='↩️ Annuler la dernière mise à jour du solde';
+}
+function simple5UndoLast(){
+ let a=simple5LastAction;if(!a)return;
+ if(!confirm('Annuler la dernière action ?'))return;
+ if(a.kind==='expense'){
+   s.entries=(s.entries||[]).filter(e=>e.id!==a.entryId);
+   if(!s.balances)s.balances={};
+   s.balances[a.month]={bank:a.beforeBank,card:a.beforeCard};
+ }else if(a.kind==='due'){
+   if(a.dueKind==='income'){
+     if(s.incomeReceived[a.month]) {
+       if(a.wasMarked)s.incomeReceived[a.month][a.id]=true;
+       else delete s.incomeReceived[a.month][a.id];
+     }
+   }else{
+     if(s.paid[a.month]) {
+       if(a.wasMarked)s.paid[a.month][a.id]=true;
+       else delete s.paid[a.month][a.id];
+     }
+   }
+ }else if(a.kind==='balance'){
+   if(!s.balances)s.balances={};
+   if(a.hadBalance)s.balances[a.month]={bank:a.beforeBank,card:a.beforeCard};
+   else delete s.balances[a.month];
+ }
+ simple5LastAction=null;
+ localStorage.setItem(KEY,JSON.stringify(s));
+ try{render()}catch(e){}
+ simple5Close();setTimeout(()=>{simple4Refresh();simple5UpdateUndo()},60);
+}
+
+function simple5Close(){let p=$('simple5Panel');if(p){p.hidden=true;p.innerHTML='';}}
+function simple5Open(kind){
+ let p=$('simple5Panel'); if(!p)return;
+ p.hidden=false;
+ if(kind==='expense'){
+   p.innerHTML=`<div class="simple5Head"><b>＋ Ajouter une dépense</b><button class="simple5Close" type="button" onclick="simple5Close()">×</button></div>
+   <input id="s5label" placeholder="Ex. Courses, essence…">
+   <div class="simple5Row"><input id="s5amount" inputmode="decimal" placeholder="Montant €">
+   <select id="s5pay"><option value="card">💳 Carte</option><option value="bank">🏦 Banque</option></select></div>
+   <button class="primary" type="button" onclick="simple5SubmitExpense()">Enregistrer la dépense</button>`;
+ }else if(kind==='due'){
+   simple5RenderDue();
+ }else if(kind==='balance'){
+   p.innerHTML=`<div class="simple5Head"><b>🏦 Mettre à jour le solde</b><button class="simple5Close" type="button" onclick="simple5Close()">×</button></div>
+   <div class="simple5Row"><input id="s5bank" inputmode="decimal" placeholder="Banque €"><input id="s5card" inputmode="decimal" placeholder="Carte €"></div>
+   <button class="primary" type="button" onclick="simple5SubmitBalance()">Enregistrer</button>`;
+   let mm=($('month')&&$('month').value)||m, bb=(s.balances&&s.balances[mm])||{};
+   if($('s5bank'))$('s5bank').value=(+bb.bank||0).toFixed(2).replace('.',',');
+   if($('s5card'))$('s5card').value=(+bb.card||0).toFixed(2).replace('.',',');
+ }
+ try{p.scrollIntoView({behavior:'smooth',block:'nearest'})}catch(e){}
+}
+
+function simple5DueRows(){
+ let mm=($('month')&&$('month').value)||m;
+ let rows=[];
+ (s.fixedIncome||[]).forEach(x=>{
+   if(!((s.incomeReceived[mm]||{})[x.id])) rows.push({kind:'income',id:x.id,label:x.label||'Revenu',amount:+x.amount||0,day:+x.day||0});
+ });
+ (s.fixed||[]).forEach(x=>{
+   if(!((s.paid[mm]||{})[x.id])) rows.push({kind:'expense',id:x.id,label:x.label||'Prélèvement',amount:+x.amount||0,day:+x.day||0});
+ });
+ return rows.sort((a,b)=>(a.day||99)-(b.day||99));
+}
+function simple5RenderDue(){
+ let p=$('simple5Panel');if(!p)return;
+ let mm=($('month')&&$('month').value)||m, rows=simple5DueRows();
+ let incomes=rows.filter(x=>x.kind==='income').reduce((a,x)=>a+x.amount,0);
+ let charges=rows.filter(x=>x.kind==='expense').reduce((a,x)=>a+x.amount,0);
+ p.innerHTML=`<div class="simple5Head"><b>📌 Échéances du mois</b><button class="simple5Close" type="button" onclick="simple5Close()">×</button></div>
+ <div class="simple5DueSummary"><div><span>💰 À recevoir</span><b class="green">${eur(incomes)}</b></div><div><span>🧾 À payer</span><b class="orange">${eur(charges)}</b></div></div>
+ <div id="simple5DueList" class="simple5DueList"></div>`;
+ let list=$('simple5DueList');
+ if(!rows.length){
+   p.innerHTML=`<div class="simple5Head simple5CompactHead"><b>📌 Échéances</b><button class="simple5Close" type="button" onclick="simple5Close()">×</button></div>
+   <div class="simple5Empty simple5EmptyCompact">✓ Aucune échéance ce mois-ci.</div>`;
+   return;
+ }
+ rows.forEach(x=>{
+   let d=document.createElement('div');d.className='simple5DueItem';
+   d.innerHTML='<div class="simple5DueTop"><div><div class="simple5DueTitle"></div><div class="simple5DueMeta"></div></div><div class="simple5DueAmt"></div></div><button type="button"></button>';
+   d.querySelector('.simple5DueTitle').textContent=(x.kind==='income'?'💰 ':'🧾 ')+x.label;
+   d.querySelector('.simple5DueMeta').textContent=x.day?'Prévu le '+x.day:'Ce mois-ci';
+   d.querySelector('.simple5DueAmt').textContent=eur(x.amount);
+   let btn=d.querySelector('button');
+   btn.className=x.kind==='income'?'primary':'secondary';
+   btn.textContent=x.kind==='income'?'✓ Marquer reçu':'✓ Marquer payé';
+   btn.onclick=()=>simple5MarkDue(x.kind,x.id);
+   list.appendChild(d);
+ });
+}
+function simple5MarkDue(kind,id){
+ let mm=($('month')&&$('month').value)||m;
+ let wasMarked=kind==='income'?!!((s.incomeReceived[mm]||{})[id]):!!((s.paid[mm]||{})[id]);
+ simple5LastAction={kind:'due',month:mm,dueKind:kind,id:id,wasMarked:wasMarked};
+ // IMPORTANT : valider une échéance ne touche jamais au solde bancaire ni à la carte.
+ // Le prélèvement était déjà déduit du disponible prévisionnel ; on mémorise seulement
+ // son statut pour le mois sélectionné afin d'éviter une double déduction.
+ if(kind==='income'){
+   s.incomeReceived[mm]=s.incomeReceived[mm]||{};
+   s.incomeReceived[mm][id]=true;
+ }else{
+   s.paid[mm]=s.paid[mm]||{};
+   s.paid[mm][id]=true;
+ }
+ persist();
+ simple5RenderDue();
+ simple5UpdateUndo();
+ setTimeout(()=>{try{simple4Refresh()}catch(e){}},60);
+}
+
+function simple5Num(v){return Number(String(v||'').replace(/\s/g,'').replace(',','.'))||0}
+function simple5SubmitBalance(){
+ let mm=($('month')&&$('month').value)||m;
+ if(!s.balances)s.balances={};
+ let bank=simple5Num($('s5bank').value), card=simple5Num($('s5card').value);
+ let hadBalance=Object.prototype.hasOwnProperty.call(s.balances,mm);
+ let oldBalance=s.balances[mm]||{bank:0,card:0};
+ simple5LastAction={kind:'balance',month:mm,hadBalance:hadBalance,beforeBank:+oldBalance.bank||0,beforeCard:+oldBalance.card||0};
+ s.balances[mm]={bank:bank,card:card};
+
+ // Save directly in the same localStorage key used by the whole application.
+ try{
+   localStorage.setItem(KEY,JSON.stringify(s));
+ }catch(e){
+   alert("Impossible d’enregistrer le solde.");
+   return;
+ }
+
+ // Update every balance field immediately, without depending on a second render pass.
+ if($('bank'))$('bank').value=bank||'';
+ if($('card'))$('card').value=card||'';
+ if($('bankView'))$('bankView').textContent=eur(bank);
+ if($('cardView'))$('cardView').textContent=eur(card);
+ if($('simple4Bank'))$('simple4Bank').textContent=eur(bank);
+ if($('simple4Card'))$('simple4Card').textContent=eur(card);
+
+ // Recalculate the Essential "Disponible prévu fin de mois" directly.
+ let unpaid=(s.fixed||[]).filter(f=>!((s.paid[mm]||{})[f.id])).reduce((a,f)=>a+(+f.amount||0),0);
+ let expected=(s.fixedIncome||[]).filter(f=>!((s.incomeReceived[mm]||{})[f.id])).reduce((a,f)=>a+(+f.amount||0),0);
+ let exceptional=(s.exceptions&&s.exceptions[mm]||[]).reduce((a,x)=>a+(+x.amount||0),0);
+ let available=(+bank||0)-(+card||0);
+ let rest=available-unpaid+expected-exceptional;
+ if($('situationAvailable')){
+   $('situationAvailable').textContent=eur(available);
+   $('situationAvailable').className=available<0?'red':'green';
+ }
+ if($('rest')){
+   $('rest').textContent=eur(rest);
+   $('rest').className='big '+(rest<0?'red':'green');
+ }
+ if($('simple4AvailableValue'))$('simple4AvailableValue').textContent=eur(rest);
+
+ simple5Close();
+ simple5UpdateUndo();
+ // Full normal render afterwards, now that storage and state are already correct.
+ try{render()}catch(e){}
+ setTimeout(simple4Refresh,50);
+}
+function simple5SubmitExpense(){
+ let label=($('s5label').value||'Dépense').trim(), amount=simple5Num($('s5amount').value), pay=$('s5pay').value;
+ if(amount<=0){alert('Indiquez un montant.');return;}
+ // Reuse the proven original expense workflow invisibly: populate its fields if identifiable, then submit.
+ // If field discovery fails, reveal Complete rather than risking corrupt data.
+ let inputs=[...document.querySelectorAll('#simple4OriginalArea input')];
+ let amt=inputs.find(i=>/montant/i.test(i.placeholder||''));
+ let lab=inputs.find(i=>/(libell|description|nom|ex\.)/i.test(i.placeholder||'') && i!==amt);
+ if(amt){
+   if(lab)lab.value=label;
+   amt.value=String(amount).replace('.',',');
+   let selects=[...document.querySelectorAll('#simple4OriginalArea select')];
+   let ps=selects.find(x=>[...x.options].some(o=>/carte|banque/i.test(o.textContent||'')));
+   if(ps){
+     let opt=[...ps.options].find(o=>pay==='card'?/carte/i.test(o.textContent||''):/banque/i.test(o.textContent||''));
+     if(opt)ps.value=opt.value;
+   }
+   let buttons=[...document.querySelectorAll('#simple4OriginalArea button')];
+   let add=buttons.find(b=>/ajouter la dépense|enregistrer.*dépense/i.test(b.textContent||''));
+   if(add){
+     let mm=($('month')&&$('month').value)||m, beforeIds=new Set((s.entries||[]).map(e=>e.id));
+     let bb=(s.balances&&s.balances[mm])||{bank:0,card:0}, beforeBank=+bb.bank||0,beforeCard=+bb.card||0;
+     add.click();
+     let created=(s.entries||[]).find(e=>e.month===mm&&!beforeIds.has(e.id));
+     if(created) simple5LastAction={kind:'expense',month:mm,entryId:created.id,beforeBank:beforeBank,beforeCard:beforeCard};
+     simple5Close();simple5UpdateUndo();setTimeout(simple4Refresh,100);return;
+   }
+ }
+ alert("La saisie simple n’a pas pu être reliée automatiquement. Utilisez Complet pour cette dépense.");
+}
+
+function simple4Setup(){
+ const dash=$('simple4Dashboard'); if(!dash)return;
+
+ // Put dashboard immediately after the Essential/Complete selector.
+ const essentialBtn=simple4FindButton('Essentiel');
+ if(essentialBtn){
+   let selector=essentialBtn.parentElement;
+   if(selector && dash.previousElementSibling!==selector) selector.insertAdjacentElement('afterend',dash);
+ }
+ // Wrap everything after dashboard as original area once, so Essential can hide it deterministically.
+ if(!document.getElementById('simple4OriginalArea') && dash.parentElement){
+   const wrap=document.createElement('div');wrap.id='simple4OriginalArea';
+   let n=dash.nextSibling;
+   while(n){let next=n.nextSibling;wrap.appendChild(n);n=next}
+   dash.parentElement.appendChild(wrap);
+ }
+ // Directly delegate the 3 essential actions to the existing proven buttons.
+ $('simple4Add').onclick=()=>simple5Open('expense');
+ $('simple4Due').onclick=()=>simple5Open('due');
+ $('simple4Balance').onclick=()=>simple5Open('balance');
+ $('simple5Undo').onclick=simple5UndoLast;
+ simple5UpdateUndo();
+
+ if(essentialBtn)essentialBtn.addEventListener('click',()=>setTimeout(()=>{document.body.classList.add('simple4TrueEssential');simple4Refresh()},0));
+ const completeBtn=simple4FindButton('Complet');
+ if(completeBtn)completeBtn.addEventListener('click',()=>document.body.classList.remove('simple4TrueEssential'));
+
+ document.body.classList.add('simple4TrueEssential');
+ setTimeout(simple4Refresh,50);
+}
+
+const KEY='monBudgetSimpleV3';
+let s=JSON.parse(localStorage.getItem(KEY)||'{"entries":[],"fixed":[],"fixedIncome":[],"budgets":{},"balances":{},"paid":{},"incomeReceived":{}}');
+s.routineDay=s.routineDay||0;s.entries=s.entries||[];s.fixed=s.fixed||[];s.fixedIncome=s.fixedIncome||[];s.budgets=s.budgets||{};s.balances=s.balances||{};s.paid=s.paid||{};s.incomeReceived=s.incomeReceived||{};s.savingGoals=s.savingGoals||{};s.savingDone=s.savingDone||{};s.safetyMargins=s.safetyMargins||{};s.monthNotes=s.monthNotes||{};s.exceptions=s.exceptions||{};
+const $=x=>document.getElementById(x), eur=n=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(+n||0);
+function restoreLastEntryChoices(){
+ try{
+  let cat=localStorage.getItem('budget_last_category');
+  let pay=localStorage.getItem('budget_last_payment');
+  if(cat && $('category') && [...$('category').options].some(o=>o.value===cat))$('category').value=cat;
+  if(pay && $('paymentMethod') && [...$('paymentMethod').options].some(o=>o.value===pay))$('paymentMethod').value=pay;
+  updateEntryChoiceSummary();
+ }catch(e){}
+}
+
+let mode='expense'; const today=new Date(); $('month').value=today.toISOString().slice(0,7);
+try{
+ let savedMonth=localStorage.getItem('budget_last_month');
+ if(savedMonth && /^\d{4}-\d{2}$/.test(savedMonth)) $('month').value=savedMonth;
+}catch(e){}
+// SIMPLE-6.3.2: mois sélectionné partagé par les fonctions historiques
+let m=$('month').value;
+$('date').value=today.toISOString().slice(0,10);
+function persist(){
+ try{
+  let previous=localStorage.getItem(KEY);
+  if(previous){
+   let oldData=JSON.parse(previous);
+   localStorage.setItem(SAFE_KEY,JSON.stringify({savedAt:new Date().toISOString(),data:oldData}));
+  }else makeSafetyCopy();
+ }catch(e){}
+ localStorage.setItem(KEY,JSON.stringify(s));render();updateSafeStatus();updateDataHealth();
+}
+function updateEntryChoiceSummary(){
+ if(!$('entryChoiceSummary'))return;
+ let cat=$('category')?$('category').value:'';
+ let pay=$('paymentMethod')?$('paymentMethod').value:'';
+ let payTxt=pay==='bank'?'Compte':pay==='cash'?'Espèces':'Carte';
+ $('entryChoiceSummary').textContent=mode==='expense'?'· '+cat+' · '+payTxt:mode==='income'?'· '+cat:'';
+ if($('addBtn')){
+  let amt=parseFloat($('amount').value)||0,lab=($('label').value||'').trim();
+  $('addBtn').title=(lab&&amt>0)?(lab+' · '+eur(amt)+(mode==='expense'?' · '+cat+' · '+payTxt:'')):'';
+ }
+}
+function updateAddReady(){updateEntryChoiceSummary();
+ let btn=$('addBtn');if(!btn)return;
+ let nameOk=($('label').value||'').trim().length>0;
+ let amountOk=(parseFloat($('amount').value)||0)>0;
+ btn.style.opacity=(nameOk&&amountOk)?'1':'.65';
+ btn.title=(nameOk&&amountOk)?'Prêt à enregistrer':'Indiquez un nom et un montant';
+}
+function updateAddButton(){
+ let btn=$('addBtn');if(!btn)return;
+ let mv=$('month').value, d=mv?new Date(mv+'-01T12:00:00'):new Date();
+ let monthName=d.toLocaleDateString('fr-FR',{month:'long'});
+ if(mode==='expense')btn.textContent='Ajouter la dépense · '+monthName;
+ else if(mode==='income')btn.textContent='Ajouter le revenu · '+monthName;
+ else btn.textContent='Ajouter le prélèvement fixe';
+}
+function setMode(m){mode=m;['Expense','Income','Fixed'].forEach(x=>$('tab'+x).classList.remove('active'));$('tab'+m[0].toUpperCase()+m.slice(1)).classList.add('active');$('fixedNote').style.display=m==='fixed'?'block':'none';$('fixedDay').style.display=m==='fixed'?'block':'none';$('addBtn').textContent=m==='expense'?'Ajouter la dépense':m==='income'?'Ajouter le revenu':'Ajouter le prélèvement fixe';updateQuickHabits();if($('paymentMethod'))$('paymentMethod').style.display=m==='expense'?'block':'none';updateAddButton();updateSmartSuggestion();renderRecentEntryChips();renderFavoriteEntryChips();refreshRepeatLastEntry();if(m==='fixed'){setEntryMode('full')}else{setEntryMode(localStorage.getItem('budget_entry_mode')||'simple')}}
+$('tabExpense').onclick=()=>setMode('expense');try{
+ let savedCategory=localStorage.getItem('budget_last_category');
+ if(savedCategory && $('category') && [...$('category').options].some(o=>o.value===savedCategory)) $('category').value=savedCategory;
+ let savedPayment=localStorage.getItem('budget_last_payment');
+ if(savedPayment && ['card','bank','cash'].includes(savedPayment) && $('paymentMethod')) $('paymentMethod').value=savedPayment;
+}catch(e){}
+$('tabIncome').onclick=()=>setMode('income');$('tabFixed').onclick=()=>setMode('fixed');
+
+
+let editing=null;
+function openEdit(kind,id){
+ editing={kind,id}; let obj;
+ if(kind==='entry') obj=s.entries.find(x=>x.id===id);
+ if(kind==='fixed') obj=s.fixed.find(x=>x.id===id);
+ if(kind==='income') obj=s.fixedIncome.find(x=>x.id===id);
+ if(!obj)return;
+ $('editLabel').value=obj.label||'';$('editAmount').value=obj.amount||'';$('editCategory').value=obj.category||'Autre';
+ $('editDate').style.display=kind==='entry'?'block':'none';$('editDate').value=obj.date||'';
+ $('editDay').style.display=kind==='entry'?'none':'block';$('editDay').value=obj.day||1;
+ $('editModal').style.display='flex';
+}
+function closeEdit(){$('editModal').style.display='none';editing=null}
+function saveEdit(){
+ if(!editing)return;
+ let collection=editing.kind==='entry'?s.entries:editing.kind==='fixed'?s.fixed:s.fixedIncome;
+ let obj=collection.find(x=>x.id===editing.id);if(!obj)return;
+ let label=$('editLabel').value.trim(),amount=parseFloat($('editAmount').value)||0;if(!label||amount<=0)return;
+ if(editing.kind==='entry'){
+  const oldAmount=+obj.amount||0, oldMonth=obj.month, oldType=obj.type;
+  const newAmount=amount;
+  obj.label=label;obj.amount=newAmount;obj.category=$('editCategory').value;
+  obj.date=$('editDate').value;obj.month=obj.date.slice(0,7);
+  if(oldType==='expense'){
+    let oldBal=s.balances[oldMonth]||{bank:0,card:0};
+    s.balances[oldMonth]={bank:+oldBal.bank||0,card:Math.max(0,(+oldBal.card||0)-oldAmount)};
+    let newBal=s.balances[obj.month]||{bank:0,card:0};
+    s.balances[obj.month]={bank:+newBal.bank||0,card:(+newBal.card||0)+newAmount};
+  }
+ } else {
+  const rawDay=parseInt($('editDay').value,10);
+  if(!Number.isInteger(rawDay)||rawDay<1||rawDay>28){alert('Indiquez un jour entre 1 et 28.');$('editDay').focus();return}
+  rememberLastChange(editing.kind==='fixed'?'Modification prélèvement fixe':'Modification revenu fixe');
+  obj.label=label;obj.amount=amount;obj.category=$('editCategory').value;
+  obj.day=rawDay;
+ }
+ const editedKind=editing.kind;
+ closeEdit();persist();
+ if(editedKind==='fixed')showToast('Prélèvement modifié ✓');
+}
+
+async function copyMonthlyReport(){
+ let m=$('month').value,rows=s.entries.filter(e=>e.month===m),inc=rows.filter(e=>e.type==='income').reduce((a,e)=>a+e.amount,0),exp=rows.filter(e=>e.type==='expense').reduce((a,e)=>a+e.amount,0);
+ let b=s.balances[m]||{bank:0,card:0},unpaid=s.fixed.filter(f=>!(s.paid[m]||{})[f.id]).reduce((a,f)=>a+f.amount,0),expected=s.fixedIncome.filter(f=>!(s.incomeReceived[m]||{})[f.id]).reduce((a,f)=>a+f.amount,0);
+ let forecast=(+b.bank||0)-(+b.card||0)-unpaid+expected;
+ let report='Bilan Mon Budget — '+m+'\nRevenus : '+eur(inc)+'\nDépenses : '+eur(exp)+'\nSolde revenus - dépenses : '+eur(inc-exp)+'\nDisponible prévu fin de mois : '+eur(forecast);
+ try{await navigator.clipboard.writeText(report);$('copyReportMsg').style.display='block'}catch{alert(report)}
+}
+
+function previousMonth(m){
+ let [y,mo]=m.split('-').map(Number);mo--;if(mo===0){mo=12;y--}
+ return y+'-'+String(mo).padStart(2,'0')
+}
+function copyPreviousBudgets(){
+ let m=$('month').value,prev=previousMonth(m),source=s.budgets[prev]||{};
+ if(!Object.keys(source).length){
+   $('copyBudgetMsg').style.display='block';
+   $('copyBudgetMsg').textContent='Aucun budget enregistré le mois précédent.';
+   return;
+ }
+ s.budgets[m]={...source};
+ $('copyBudgetMsg').style.display='block';
+ $('copyBudgetMsg').textContent='Budgets du mois précédent repris ✓';
+ persist();
+}
+function render(){updateAddButton();updateAddReady();if($('undoDueAction'))$('undoDueAction').style.display=lastDueAction?'block':'none';updateQuickHabits();
+ let m=$('month').value,b=s.balances[m]||{bank:0,card:0};
+ let paymentExpenses=s.entries.filter(e=>e.month===m&&e.type==='expense');
+ let payCard=paymentExpenses.filter(e=>!e.payment||e.payment==='card').reduce((a,e)=>a+(+e.amount||0),0);
+ let payBank=paymentExpenses.filter(e=>e.payment==='bank').reduce((a,e)=>a+(+e.amount||0),0);
+ let payCash=paymentExpenses.filter(e=>e.payment==='cash').reduce((a,e)=>a+(+e.amount||0),0);
+ $('payCardTotal').textContent=eur(payCard);$('payBankTotal').textContent=eur(payBank);
+ $('payCashTotal').textContent=eur(payCash);$('payAllTotal').textContent=eur(payCard+payBank+payCash);$('monthNotes').value=s.monthNotes[m]||'';$('monthNotesSaved').style.display='none';
+ let exRows=s.exceptions[m]||[],exList=$('exceptionList');exList.innerHTML='';
+ let exTotal=exRows.reduce((a,x)=>a+(+x.amount||0),0);
+ $('exceptionTotal').textContent=eur(exTotal);
+ if(!exRows.length)exList.innerHTML='<div class="empty">Aucune dépense exceptionnelle prévue.</div>';
+ exRows.forEach((x,i)=>{
+ let d=document.createElement('div');d.className='item';
+ d.innerHTML='<div class="main"><div class="title"></div><div class="meta">Prévue</div></div><div class="amt orange"></div><button class="secondary payException" type="button">Payé ✓</button><button class="del" type="button">✕</button>';
+ d.querySelector('.title').textContent=x.label;d.querySelector('.amt').textContent=eur(x.amount);
+ d.querySelector('.payException').onclick=()=>{
+   let choice=prompt('Mode de paiement pour « '+x.label+' » :\n1 = Carte bancaire\n2 = Compte / prélèvement\n3 = Espèces','1');
+   if(choice===null)return;
+   choice=choice.trim();
+   if(!['1','2','3'].includes(choice)){alert('Choisissez 1, 2 ou 3.');return}
+   let payment=choice==='1'?'card':choice==='2'?'bank':'cash';
+   let paymentLabel=choice==='1'?'Carte bancaire':choice==='2'?'Compte / prélèvement':'Espèces';
+   if(!confirm('Enregistrer « '+x.label+' » comme dépense payée de '+eur(x.amount)+' via '+paymentLabel+' ?'))return;
+   let today=new Date(),date=(today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0'));
+   if(!date.startsWith(m))date=m+'-01';
+   s.entries.push({id:crypto.randomUUID(),label:x.label,amount:+x.amount||0,category:'Autre',type:'expense',date,month:m,payment});
+   if(payment==='card'){
+     let bb=s.balances[m]||{bank:0,card:0};
+     s.balances[m]={bank:+bb.bank||0,card:(+bb.card||0)+(+x.amount||0)};
+   }
+   s.exceptions[m].splice(i,1);
+   persist();
+ };
+ d.querySelector('.del').onclick=()=>{s.exceptions[m].splice(i,1);persist()};
+ exList.appendChild(d)
+});
+$('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=eur(b.bank);$('cardView').textContent=eur(b.card);
+ let rows=s.entries.filter(e=>e.month===m),inc=rows.filter(e=>e.type==='income').reduce((a,e)=>a+e.amount,0),exp=rows.filter(e=>e.type==='expense').reduce((a,e)=>a+e.amount,0);
+ $('incomeView').textContent=eur(inc);$('expenseView').textContent=eur(exp);
+ $('reportIncome').textContent=eur(inc);$('reportExpense').textContent=eur(exp);
+ let net=inc-exp;$('reportNet').textContent=eur(net);$('reportNet').className=net<0?'red':'green';
+ let expenseRows=rows.filter(e=>e.type==='expense'),largest=expenseRows.length?expenseRows.reduce((a,e)=>e.amount>a.amount?e:a,expenseRows[0]):null;
+ $('reportLargest').textContent=eur(largest?largest.amount:0);$('reportLargestLabel').textContent=largest?'Plus grosse dépense : '+largest.label+' · '+largest.category:'Aucune dépense enregistrée.';
+ let todayISO=new Date().toISOString().slice(0,10),weekStart=new Date();weekStart.setDate(weekStart.getDate()-6);weekStart.setHours(0,0,0,0);
+ let spentToday=rows.filter(e=>e.type==='expense'&&e.date===todayISO).reduce((a,e)=>a+e.amount,0);
+ let spentWeek=rows.filter(e=>e.type==='expense'&&new Date(e.date+'T12:00:00')>=weekStart&&new Date(e.date+'T12:00:00')<=new Date()).reduce((a,e)=>a+e.amount,0);
+ $('spentToday').textContent=eur(spentToday);$('spentWeek').textContent=eur(spentWeek);
+ $('movementSummary').textContent=rows.length?rows.length+' mouvement'+(rows.length>1?'s':'')+' enregistré'+(rows.length>1?'s':'')+' ce mois-ci.':'Aucun mouvement enregistré ce mois-ci.';
+ let unpaid=s.fixed.filter(f=>!(s.paid[m]||{})[f.id]).reduce((a,f)=>a+f.amount,0);
+ let [yy,mm]=m.split('-').map(Number);
+ if($('routineDay'))$('routineDay').value=s.routineDay||'';
+ if($('routineStatus'))$('routineStatus').textContent=s.routineDay?'Point budget prévu chaque mois le '+s.routineDay+'.':'Aucune routine activée.';
+ if($('routineReminder')){
+   let now=new Date(),currentKey=now.toISOString().slice(0,7),box=$('routineReminder'),txt=$('routineReminderText');
+   if(s.routineDay && m===currentKey){
+     let diff=s.routineDay-now.getDate();
+     box.style.display='block';
+     if(diff>1)txt.textContent='Prochain point le '+s.routineDay+' · dans '+diff+' jours.';
+     else if(diff===1)txt.textContent='Votre point budget est prévu demain.';
+     else if(diff===0)txt.textContent='C’est le jour de votre point budget.';
+     else txt.textContent='Votre point budget du '+s.routineDay+' est à faire.';
+   }else box.style.display='none';
+ }
+ let expected=s.fixedIncome.filter(f=>!(s.incomeReceived[m]||{})[f.id]).reduce((a,f)=>a+f.amount,0);
+ $('expectedIncome').textContent=eur(expected);$('unpaidFixed').textContent=eur(unpaid);
+ $('dashExpected').textContent=eur(expected);$('dashUnpaid').textContent=eur(unpaid);
+  let receivedFixed=s.fixedIncome.filter(f=>(s.incomeReceived[m]||{})[f.id]).reduce((a,f)=>a+f.amount,0);
+  let paidFixed=s.fixed.filter(f=>(s.paid[m]||{})[f.id]).reduce((a,f)=>a+f.amount,0);
+  $('receivedFixed').textContent=eur(receivedFixed);$('paidFixed').textContent=eur(paidFixed);
+ let nextD=new Date(yy,mm,1),nextKey=nextD.getFullYear()+'-'+String(nextD.getMonth()+1).padStart(2,'0');
+ let nextIncomeTotal=s.fixedIncome.reduce((a,f)=>a+(+f.amount||0),0);
+ let nextFixedTotal=s.fixed.reduce((a,f)=>a+(+f.amount||0),0);
+ $('nextIncomeTotal').textContent=eur(nextIncomeTotal);
+ $('nextFixedTotal').textContent=eur(nextFixedTotal);
+ $('nextMonthName').textContent='Prévision des éléments fixes pour '+nextD.toLocaleDateString('fr-FR',{month:'long',year:'numeric'})+'.';
+ let closeList=$('monthCloseList');closeList.innerHTML='';
+ let closeChecks=[
+  {ok:unpaid===0,label:'Prélèvements fixes',detail:unpaid===0?'Tous les prélèvements sont marqués payés.':eur(unpaid)+' restent à marquer payés.'},
+  {ok:expected===0,label:'Revenus fixes',detail:expected===0?'Tous les revenus sont marqués reçus.':eur(expected)+' restent à marquer reçus.'},
+  {ok:(+b.card||0)===0,label:'Carte bancaire',detail:(+b.card||0)===0?'Carte en cours à 0 €.':eur(b.card)+' sont encore indiqués sur la carte.'},
+  {ok:true,label:'Sauvegarde',detail:'Pensez à exporter une sauvegarde avant de changer de mois.'}
+ ];
+ closeChecks.forEach(x=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div>';d.querySelector('.title').textContent=x.label;d.querySelector('.meta').textContent=x.detail;d.querySelector('.amt').textContent=x.ok?'✓':'À vérifier';d.querySelector('.amt').className='amt '+(x.ok?'green':'orange');closeList.appendChild(d)});
+
+ let dueItems=[];
+ s.fixed.forEach(f=>{if(!(s.paid[m]||{})[f.id])dueItems.push({kind:'fixed',id:f.id,day:+f.day||1,label:f.label,amount:f.amount,type:'À payer'})});
+ s.fixedIncome.forEach(f=>{if(!(s.incomeReceived[m]||{})[f.id])dueItems.push({kind:'income',id:f.id,day:+f.day||1,label:f.label,amount:f.amount,type:'À recevoir'})});
+ let todayNum=(new Date().getFullYear()===yy && new Date().getMonth()+1===mm)?new Date().getDate():1;
+ let todayBox=$('todayDueList'),todayNote=$('todayDueNote');todayBox.innerHTML='';
+ let isCurrentMonth=(new Date().getFullYear()===yy && new Date().getMonth()+1===mm);
+ let todayItems=[];
+ if(isCurrentMonth){
+   s.fixed.forEach(f=>{if(!(s.paid[m]||{})[f.id] && (+f.day||1)<=todayNum)todayItems.push({kind:'fixed',id:f.id,day:+f.day||1,label:f.label,amount:f.amount,over:(+f.day||1)<todayNum})});
+   s.fixedIncome.forEach(f=>{if(!(s.incomeReceived[m]||{})[f.id] && (+f.day||1)<=todayNum)todayItems.push({kind:'income',id:f.id,day:+f.day||1,label:f.label,amount:f.amount,over:(+f.day||1)<todayNum})});
+ }
+ if(!isCurrentMonth){$('todaySection').classList.add('todayHidden');todayBox.innerHTML='';todayNote.textContent='';}
+ else if(!todayItems.length){$('todaySection').classList.add('todayHidden');todayBox.innerHTML='';todayNote.textContent='';}
+ else {$('todaySection').classList.remove('todayHidden');
+   todayItems.sort((a,b)=>a.day-b.day).forEach(x=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="secondary pay statusTodo"></button>';d.querySelector('.title').textContent=(x.over?'⚠️ ':'')+x.label;d.querySelector('.meta').textContent=(x.over?'En retard depuis le ':'Prévu aujourd’hui · le ')+x.day;d.querySelector('.amt').textContent=eur(x.amount);let bt=d.querySelector('.pay');bt.textContent=x.kind==='income'?'Reçu ✓':'Payé ✓';bt.onclick=()=>{if(x.kind==='income'){s.incomeReceived[m]=s.incomeReceived[m]||{};s.incomeReceived[m][x.id]=true}else{s.paid[m]=s.paid[m]||{};s.paid[m][x.id]=true}persist()};todayBox.appendChild(d)});
+   let overdue=todayItems.filter(x=>x.over).length;todayNote.textContent=overdue?overdue+' échéance'+(overdue>1?'s':'')+' en retard à vérifier.':'Échéance'+(todayItems.length>1?'s':'')+' prévue'+(todayItems.length>1?'s':'')+' aujourd’hui.';
+ }
+ let futureDue=dueItems.filter(x=>x.day>=todayNum).sort((a,b)=>a.day-b.day);
+ let next=futureDue[0]||dueItems.sort((a,b)=>a.day-b.day)[0]||null;
+ $('nextDue').textContent=next?('Le '+next.day+' · '+next.label):'Aucune échéance';
+ $('nextDueDetail').textContent=next?(next.type+' · '+eur(next.amount)):'Tout est à jour pour ce mois.';
+ let upcomingBox=$('upcomingMonthList');
+ if(upcomingBox){
+   upcomingBox.innerHTML='';
+   let rows=dueItems.slice().sort((a,b)=>a.day-b.day || (a.kind==='income'?-1:1));
+   let pendingTitle=document.createElement('div');pendingTitle.className='smalllabel';pendingTitle.style.margin='8px 0';pendingTitle.textContent='⏳ Reste à venir';upcomingBox.appendChild(pendingTitle);
+   if(!rows.length){let e=document.createElement('div');e.className='empty';e.textContent='✓ Rien en attente pour ce mois.';upcomingBox.appendChild(e)}
+   rows.forEach(x=>{
+     let d=document.createElement('div');d.className='item';
+     d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="secondary pay" type="button"></button>';
+     d.querySelector('.title').textContent=(x.kind==='income'?'💰 ':'🧾 ')+x.label;
+     let state=(isCurrentMonth && x.day<todayNum)?'⚠️ En retard · ':((isCurrentMonth && x.day===todayNum)?'Aujourd’hui · ':'Prévu · ');
+     d.querySelector('.meta').textContent=state+'le '+x.day+' · '+x.type;
+     let a=d.querySelector('.amt');a.textContent=eur(x.amount);a.className='amt '+(x.kind==='income'?'green':'orange');
+     let bt=d.querySelector('.pay');bt.textContent=x.kind==='income'?'Reçu ✓':'Payé ✓';
+     bt.onclick=()=>{if(x.kind==='income'){s.incomeReceived[m]=s.incomeReceived[m]||{};s.incomeReceived[m][x.id]=true}else{s.paid[m]=s.paid[m]||{};s.paid[m][x.id]=true}persist()};
+     upcomingBox.appendChild(d);
+   });
+   let treated=[];
+   s.fixedIncome.forEach(f=>{if((s.incomeReceived[m]||{})[f.id])treated.push({kind:'income',id:f.id,day:+f.day||1,label:f.label,amount:f.amount,type:'Reçu'})});
+   s.fixed.forEach(f=>{if((s.paid[m]||{})[f.id])treated.push({kind:'fixed',id:f.id,day:+f.day||1,label:f.label,amount:f.amount,type:'Payé'})});
+   treated.sort((a,b)=>a.day-b.day || (a.kind==='income'?-1:1));
+   let treatedTitle=document.createElement('div');treatedTitle.className='smalllabel';treatedTitle.style.margin='16px 0 8px';treatedTitle.textContent='✅ Déjà traité ce mois-ci';upcomingBox.appendChild(treatedTitle);
+   if(!treated.length){let e=document.createElement('div');e.className='empty';e.textContent='Aucun élément traité pour ce mois.';upcomingBox.appendChild(e)}
+   treated.forEach(x=>{
+     let d=document.createElement('div');d.className='item treated-item';
+     d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="secondary treated-cancel" type="button">Annuler</button>';
+     d.querySelector('.title').textContent=(x.kind==='income'?'💰 ':'🧾 ')+x.label;
+     d.querySelector('.meta').textContent='Le '+x.day+' · ✓ '+x.type;
+     let a=d.querySelector('.amt');a.textContent=eur(x.amount);a.className='amt '+(x.kind==='income'?'green':'orange');
+     d.querySelector('button').onclick=()=>{
+       if(x.kind==='income'){
+         if(s.incomeReceived[m])delete s.incomeReceived[m][x.id];
+       }else{
+         if(s.paid[m])delete s.paid[m][x.id];
+       }
+       persist();
+       if(typeof showToast==='function')showToast((x.kind==='income'?'Revenu remis à recevoir':'Prélèvement remis à payer')+' ✓');
+     };
+     upcomingBox.appendChild(d);
+   });
+ }
+
+ if($('homeTodo')){
+  let todo=$('homeTodo');todo.innerHTML='';
+  let todoRows=dueItems.slice().sort((a,b)=>a.day-b.day);
+  let currentSelected=m===new Date().toISOString().slice(0,7);
+  let dayNow=new Date().getDate();
+  let relevant=(currentSelected?todoRows.filter(x=>x.day>=dayNow):todoRows).slice(0,3);
+  if(!relevant.length)relevant=todoRows.slice(0,3);
+  if(!relevant.length)todo.innerHTML='<div class="empty">Rien à faire pour ce mois.</div>';
+  relevant.forEach(x=>{
+   let d=document.createElement('div');d.className='item';
+   d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="homeDone" type="button"></button>';
+   d.querySelector('.title').textContent=(x.kind==='income'?'💰 ':'🧾 ')+x.label;
+   d.querySelector('.meta').textContent='Le '+x.day+' du mois';
+   let a=d.querySelector('.amt');a.textContent=eur(x.amount);a.className='amt '+(x.kind==='income'?'green':'orange');
+   let done=d.querySelector('.homeDone');done.textContent=x.kind==='income'?'Reçu ✓':'Payé ✓';
+   done.onclick=()=>{
+     lastDueAction={month:m,kind:x.kind,id:x.id,label:x.label};
+     if(x.kind==='income'){s.incomeReceived[m]=s.incomeReceived[m]||{};s.incomeReceived[m][x.id]=true}
+     else{s.paid[m]=s.paid[m]||{};s.paid[m][x.id]=true}
+     persist();
+     if($('undoDueAction'))$('undoDueAction').style.display='block';
+     showToast(x.kind==='income'?'Revenu marqué reçu ✓':'Prélèvement marqué payé ✓');
+   };
+   todo.appendChild(d);
+  });
+ }
+ if($('monthGuideStatus')){
+   let hasBalance=Object.prototype.hasOwnProperty.call(s.balances,m);
+   let pendingCount=dueItems.length;
+   let hasBudgets=Object.keys(s.budgets[m]||{}).length>0;
+   $('stepBalanceState').textContent=hasBalance?'✓':'•';
+   $('stepDueState').textContent=pendingCount===0?'✓':pendingCount;
+   $('stepBudgetState').textContent=hasBudgets?'✓':'•';
+   $('stepCloseState').textContent=(pendingCount===0&&hasBalance)?'✓':'•';
+   let doneCount=(hasBalance?1:0)+(pendingCount===0?1:0)+(hasBudgets?1:0)+((pendingCount===0&&hasBalance)?1:0);
+   $('monthGuideStatus').textContent=doneCount===4
+     ?'Tout est bien renseigné pour ce mois ✓'
+     :doneCount+' étape'+(doneCount>1?'s':'')+' sur 4 prête'+(doneCount>1?'s':'')+'. Touchez une étape pour aller directement au bon endroit.';
+ }
+ if($('homeGuidance')){
+   let hasBal=Object.prototype.hasOwnProperty.call(s.balances,m);
+   let pending=dueItems.length;
+   if(!hasBal)$('homeGuidance').textContent='💡 Commencez par renseigner votre solde et votre carte.';
+   else if(pending>0)$('homeGuidance').textContent='📌 '+pending+' échéance'+(pending>1?'s':'')+' reste'+(pending>1?'nt':'')+' à suivre ce mois-ci.';
+   else $('homeGuidance').textContent='✓ Rien d’urgent à traiter pour ce mois.';
+ }
+ let availableNow=(+b.bank||0)-(+b.card||0);
+ $('situationAvailable').textContent=eur(availableNow);$('situationAvailable').className=availableNow<0?'red':'green';
+ let exceptionalPlanned=(s.exceptions[m]||[]).reduce((a,x)=>a+(+x.amount||0),0);
+ let rest=availableNow-unpaid+expected-exceptionalPlanned;
+ $('rest').textContent=eur(rest);$('rest').className='big '+(rest<0?'red':'green');let savingGoal=+(s.savingGoals[m]||0),afterSaving=rest-savingGoal;
+ $('savingGoal').value=savingGoal||'';
+ $('savingGoalView').textContent=eur(savingGoal);
+ let savingDone=+(s.savingDone[m]||0);
+ $('savingDone').value=savingDone||'';
+ let savingPct=savingGoal>0?Math.min(100,(savingDone/savingGoal)*100):0;
+ $('savingProgressText').textContent=savingGoal>0?Math.round(savingPct)+' % · '+eur(savingDone)+' sur '+eur(savingGoal):'Aucun objectif défini';
+ $('savingProgressBar').style.width=savingPct+'%';
+ let sh=$('savingHistory');sh.innerHTML='';
+ let hist=[];
+ let [hy,hm]=m.split('-').map(Number);
+ for(let i=5;i>=0;i--){
+   let d=new Date(hy,hm-1-i,1);
+   let k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+   hist.push({k,label:d.toLocaleDateString('fr-FR',{month:'short'}),value:+(s.savingDone[k]||0)});
+ }
+ let maxSave=Math.max(1,...hist.map(x=>x.value));
+ hist.forEach(x=>{
+   let row=document.createElement('div');
+   row.style.cssText='display:grid;grid-template-columns:42px 1fr auto;gap:8px;align-items:center;margin:7px 0';
+   row.innerHTML='<span class="smalllabel"></span><div class="progress" style="margin:0"><div class="bar"></div></div><b style="font-size:13px"></b>';
+   row.children[0].textContent=x.label;
+   row.querySelector('.bar').style.width=(x.value/maxSave*100)+'%';
+   row.querySelector('b').textContent=eur(x.value);
+   sh.appendChild(row);
+ });
+
+ $('afterSavingView').textContent=eur(afterSaving);
+ $('afterSavingView').className=afterSaving<0?'red':'green';
+ let safety=+(s.safetyMargins[m]||0),safeSpend=afterSaving-safety;
+ $('safetyMargin').value=safety||'';
+ $('safetyMarginView').textContent=eur(safeSpend);
+ $('safetyMarginView').className=safeSpend<0?'red':'green';
+ $('safetyMarginText').textContent=safety>0?'Après avoir réservé '+eur(savingGoal)+' d’épargne et '+eur(safety)+' de sécurité.':'Aucune marge de sécurité supplémentaire définie.';
+
+ $('restText').textContent='Après la carte, les prélèvements restant à payer et les revenus fixes encore attendus.';
+ let lastDay=new Date(yy,mm,0).getDate(),nowD=new Date(),daysLeft;
+ if(nowD.getFullYear()===yy && nowD.getMonth()+1===mm) daysLeft=Math.max(1,lastDay-nowD.getDate()+1);
+ else if(new Date(yy,mm-1,1)>new Date(nowD.getFullYear(),nowD.getMonth(),nowD.getDate())) daysLeft=lastDay;
+ else daysLeft=0;
+ $('daysLeft').textContent=daysLeft;
+ let spendable=afterSaving-safety;
+ $('endForecast').textContent=eur(rest);
+ $('endReserved').textContent=eur(savingGoal+safety);
+ if($('endMonthMessage')) $('endMonthMessage').dataset.exceptional=exceptionalPlanned;
+ $('endFree').textContent=eur(spendable);
+ $('endFree').className=spendable<0?'red':'green';
+ $('endMonthMessage').textContent=spendable>=0
+   ?'Si les prévisions se réalisent, il resterait '+eur(spendable)+' réellement libres en fin de mois après vos réserves'+(exceptionalPlanned>0?' et '+eur(exceptionalPlanned)+' de dépenses exceptionnelles prévues':'')+'.'
+   :'Avec vos réserves actuelles, il manquerait '+eur(Math.abs(spendable))+' en fin de mois.';
+ let pd=daysLeft>0?spendable/daysLeft:0;$('perDay').textContent=eur(pd);$('perDay').className=pd<0?'red':'green';
+ if($('homePerDay')){
+  $('homePerDay').textContent=eur(pd);$('homePerDay').className=pd<0?'red':'green';
+  $('homeTodaySpent').textContent=eur(spentToday);
+  let todayMonth=new Date().toISOString().slice(0,7);
+  if($('month').value!==todayMonth){
+   $('homeTodayMsg').textContent='Vous consultez un autre mois. Touchez « Aujourd’hui » pour revenir au mois en cours.';
+  }else if(pd<0){
+   $('homeTodayMsg').textContent='Le disponible du mois est actuellement négatif.';
+  }else{
+   let left=pd-spentToday;
+   $('homeTodayMsg').textContent=left>=0?'Il reste environ '+eur(left)+' sur votre repère d’aujourd’hui.':'Votre repère du jour est dépassé d’environ '+eur(Math.abs(left))+'.';
+  }
+ }
+ if($('attentionCard')){
+   let title=$('attentionTitle'),txt=$('attentionText'),badge=$('attentionBadge'),btn=$('attentionAction');
+   let hasBal=Object.prototype.hasOwnProperty.call(s.balances,m);
+   let overdueCount=todayItems.filter(x=>x.over).length;
+   attentionTarget=null;btn.style.display='none';
+   if(!hasBal){
+     title.textContent='🏦 Solde à renseigner';badge.textContent='Priorité';
+     txt.textContent='Mettez à jour le solde du compte et la carte pour fiabiliser le mois.';
+     attentionTarget='Modifier solde et carte';btn.textContent='Mettre à jour';btn.style.display='block';
+   }else if(overdueCount>0){
+     title.textContent='⚠️ Échéance à vérifier';badge.textContent=overdueCount+' en retard';
+     txt.textContent='Une ou plusieurs échéances prévues sont encore non validées.';
+     attentionTarget='À venir ce mois-ci';btn.textContent='Voir les échéances';btn.style.display='block';
+   }else if(spendable<0){
+     title.textContent='⚠️ Budget à surveiller';badge.textContent='Attention';
+     txt.textContent='Les prévisions dépassent actuellement votre marge disponible de '+eur(Math.abs(spendable))+'.';
+     attentionTarget='Prévision du mois';btn.textContent='Voir la prévision';btn.style.display='block';
+   }else if(dueItems.length>0){
+     title.textContent='📌 Prochaine étape';badge.textContent=dueItems.length+' à suivre';
+     txt.textContent='Des revenus ou prélèvements restent à valider ce mois-ci.';
+     attentionTarget='À venir ce mois-ci';btn.textContent='Voir les échéances';btn.style.display='block';
+   }else if(s.routineDay && m===new Date().toISOString().slice(0,7) && new Date().getDate()>=s.routineDay){
+     title.textContent='🔔 Point budget';badge.textContent='À faire';
+     txt.textContent='Votre jour de routine est arrivé. Un contrôle rapide du mois suffit.';
+     attentionTarget='Gérer le mois';btn.textContent='Faire le point';btn.style.display='block';
+   }else{
+     title.textContent='✓ Rien d’urgent';badge.textContent='OK';
+     txt.textContent='Tout est à jour pour le mois sélectionné.';
+   }
+ }
+ if($('dailyActionHint')){
+ let p=dueItems.length;
+ $('dailyActionHint').textContent=p?p+' échéance'+(p>1?'s':'')+' à suivre ce mois-ci.':'Aucune échéance en attente.';
+}
+updateMonthCheckStatus();
+updateCloseAssistant();
+updateNextMonthPreview();
+compactDuplicateStatus();
+setTimeout(applyHistorySearch,0);
+if($('categorySnapshotText')){
+ let cats=monthCategoryTotals(m),box=$('categorySnapshotBars');
+ box.innerHTML='';
+ if(!cats.length){
+  $('categorySnapshotText').textContent='Aucune dépense saisie pour ce mois.';
+ }else{
+  let total=cats.reduce((a,x)=>a+x[1],0),top=cats.slice(0,3),max=top[0][1]||1;
+  $('categorySnapshotText').textContent='Les 3 catégories les plus importantes parmi les dépenses saisies.';
+  top.forEach(([name,amount])=>{
+   let row=document.createElement('div');row.className='categoryRow';
+   let label=document.createElement('span');label.textContent=name;
+   let track=document.createElement('div');track.className='categoryTrack';
+   let fill=document.createElement('div');fill.className='categoryFill';fill.style.width=Math.max(4,amount/max*100)+'%';
+   let val=document.createElement('span');val.className='categoryAmount';val.textContent=eur(amount);
+   track.appendChild(fill);row.append(label,track,val);box.appendChild(row);
+  });
+ }
+}
+if($('compareMonthText')){
+ let prev=previousMonthKey(m),curT=monthEntryTotals(m),prevT=monthEntryTotals(prev);
+ if(prevT.expense===0 && prevT.income===0){
+  $('compareMonthText').textContent='Pas assez de données sur '+prev+' pour comparer.';
+ }else{
+  let diff=curT.expense-prevT.expense;
+  let expenseText=diff===0?'Dépenses identiques au mois précédent.':
+    diff<0?'Dépenses saisies en baisse de '+eur(Math.abs(diff))+'.':
+           'Dépenses saisies en hausse de '+eur(diff)+'.';
+  $('compareMonthText').textContent=expenseText+' · '+prev+' : '+eur(prevT.expense)+' · '+m+' : '+eur(curT.expense);
+ }
+}
+if($('monthProjectionText')){
+ $('projectionDays').textContent=String(Math.max(0,daysLeft));
+ let _projectionPd=spendable/Math.max(1,daysLeft||1);
+ $('projectionDaily').textContent=eur(_projectionPd);
+ $('projectionDaily').className=_projectionPd<0?'red':'green';
+ if(daysLeft<=0){
+  $('monthProjectionText').textContent='Le mois sélectionné est terminé.';
+ }else if(spendable<0){
+  $('monthProjectionText').textContent='Les montants prévus dépassent actuellement ce qui reste réellement disponible.';
+ }else if(_projectionPd<10){
+  $('monthProjectionText').textContent='Marge quotidienne serrée : gardez un œil sur les dépenses variables.';
+ }else{
+  $('monthProjectionText').textContent='Repère simple pour répartir ce qui reste réellement dépensable jusqu’à la fin du mois.';
+ }
+}
+
+ if($('monthPace')){
+   if(daysLeft>0 && spendable>=0) $('monthPace').textContent='💡 Repère réellement dépensable : '+eur(pd)+' par jour jusqu’à la fin du mois';
+   else if(spendable<0) $('monthPace').textContent='⚠️ Marge dépassée de '+eur(Math.abs(spendable));
+   else $('monthPace').textContent='';
+ }
+ let fil=$('fixedIncomeList');fil.innerHTML='';if(!s.fixedIncome.length)fil.innerHTML='<div class="empty"><b>Aucun revenu fixe enregistré.</b><br><span class="note">Ajoutez ici seulement les revenus qui reviennent chaque mois.</span></div>';
+ s.fixedIncome.slice().sort((a,b)=>(a.day||99)-(b.day||99)).forEach(f=>{
+   let received=!!(s.incomeReceived[m]||{})[f.id],d=document.createElement('div');d.className='item fixedManage fixedIncomeVisibleRow';
+   d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt green"></div><div class="fixedBtns"><button class="secondary pay"></button><button class="edit">✏️ Modifier</button><button class="del">🗑️ Supprimer</button></div>';
+   d.querySelector('.title').textContent=f.label;
+   d.querySelector('.meta').textContent='Prévu le '+(f.day||'?')+' de chaque mois';
+   d.querySelector('.amt').textContent=eur(f.amount);
+   d.querySelector('.pay').textContent=received?'✓ Reçu · annuler':'Marquer reçu ✓';
+   d.querySelector('.pay').className='secondary pay '+(received?'statusDone':'statusTodo');
+   d.querySelector('.pay').onclick=()=>{
+     rememberLastChange('Statut revenu fixe');
+     s.incomeReceived[m]=s.incomeReceived[m]||{};
+     if(received) delete s.incomeReceived[m][f.id]; else s.incomeReceived[m][f.id]=true;
+     persist();render();showToast(received?'Revenu remis à recevoir':'Revenu marqué reçu ✓');
+   };
+   d.querySelector('.edit').onclick=()=>openEdit('income',f.id);
+   d.querySelector('.del').onclick=()=>{if(confirm('Supprimer définitivement « '+f.label+' » ?')){
+     rememberLastChange('Suppression revenu fixe');
+     s.fixedIncome=s.fixedIncome.filter(x=>x.id!==f.id);
+     Object.keys(s.incomeReceived||{}).forEach(mm=>{if(s.incomeReceived[mm])delete s.incomeReceived[mm][f.id]});
+     persist();render();showToast('Revenu fixe supprimé');
+   }};
+   fil.appendChild(d);
+ });
+ let fl=$('fixedList');fl.innerHTML='';
+ if(!s.fixed.length)fl.innerHTML='<div class="empty"><b>Aucun prélèvement fixe enregistré.</b><br><span class="note">Ajoutez ici les prélèvements qui reviennent chaque mois.</span></div>';
+ s.fixed.slice().sort((a,b)=>(a.day||99)-(b.day||99)).forEach(f=>{
+   let paid=!!(s.paid[m]||{})[f.id],d=document.createElement('div');d.className='item fixedManage';
+   d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><div class="fixedBtns"><button class="secondary pay"></button><button class="edit">✏️ Modifier</button><button class="del">Supprimer</button></div>';
+   d.querySelector('.title').textContent=f.label;
+   d.querySelector('.meta').textContent='Le '+(f.day||'?')+' de chaque mois';
+   d.querySelector('.amt').textContent=eur(f.amount);
+   d.querySelector('.pay').textContent=paid?'✓ Payé · annuler':'Marquer payé ✓';
+   d.querySelector('.pay').className='secondary pay '+(paid?'statusDone':'statusTodo');
+   d.querySelector('.pay').onclick=()=>{
+     rememberLastChange('Statut prélèvement fixe');
+     s.paid[m]=s.paid[m]||{};
+     if(paid) delete s.paid[m][f.id]; else s.paid[m][f.id]=true;
+     persist();
+     render();
+     showToast(paid?'Prélèvement remis à payer':'Prélèvement marqué payé ✓');
+   };
+   d.querySelector('.edit').onclick=()=>openEdit('fixed',f.id);
+   d.querySelector('.del').onclick=()=>{if(confirm('Supprimer définitivement « '+f.label+' » ?')){
+     rememberLastChange('Suppression prélèvement fixe');
+     s.fixed=s.fixed.filter(x=>x.id!==f.id);
+     Object.keys(s.paid||{}).forEach(mm=>{if(s.paid[mm])delete s.paid[mm][f.id]});
+     persist();showToast('Prélèvement supprimé ✓');
+   }};
+   fl.appendChild(d)
+ }); let paceExpenses=rows.filter(e=>e.type==='expense').reduce((a,e)=>a+(+e.amount||0),0);
+ let nowPace=new Date(), selectedNow=(nowPace.getFullYear()===yy&&nowPace.getMonth()===mm);
+ let daysInMonth=new Date(yy,mm+1,0).getDate();
+ let elapsedDays=selectedNow?Math.max(1,nowPace.getDate()):daysInMonth;
+ let avgSpent=paceExpenses/elapsedDays, projectedSpent=avgSpent*daysInMonth;
+ if($('paceActual')){
+   $('paceActual').textContent=eur(avgSpent);$('paceAllowed').textContent=eur(Math.max(0,pd));
+   let paceDiff=avgSpent-Math.max(0,pd);
+   if(pd<0){$('paceVerdictTitle').textContent='🔴 Budget déjà dépassé';$('paceVerdictText').textContent='Le disponible réellement dépensable est négatif.';}
+   else if(paceDiff<=0){$('paceVerdictTitle').textContent='🟢 Bon rythme';$('paceVerdictText').textContent='Vous dépensez environ '+eur(Math.abs(paceDiff))+' de moins par jour que votre repère actuel.';}
+   else{$('paceVerdictTitle').textContent='🟠 Rythme à ralentir';$('paceVerdictText').textContent='Vous dépensez environ '+eur(paceDiff)+' de plus par jour que votre repère actuel.';}
+ }
+ $('avgSpentDay').textContent=eur(avgSpent);
+ $('spentSoFar').textContent=eur(paceExpenses);
+ $('spendingProjection').textContent=eur(projectedSpent);
+ $('spendingPaceMessage').textContent=selectedNow
+   ?'Au rythme actuel, vos dépenses enregistrées atteindraient environ '+eur(projectedSpent)+' sur l’ensemble du mois.'
+   :'Pour un mois terminé, la projection correspond aux dépenses réellement enregistrées.';
+ let ws=$('weeklySpending');ws.innerHTML='';
+ let weekDefs=[[1,7],[8,14],[15,21],[22,28],[29,31]];
+ let weekVals=weekDefs.map(([a,z])=>rows.filter(e=>e.type==='expense'&&parseInt((e.date||'').slice(8,10))>=a&&parseInt((e.date||'').slice(8,10))<=z).reduce((s,e)=>s+(+e.amount||0),0));
+ let weekMax=Math.max(1,...weekVals);
+ weekDefs.forEach(([a,z],i)=>{
+   let d=document.createElement('div');d.className='item';
+   let label=i<4?'Du '+a+' au '+z:'Du 29 à la fin du mois';
+   d.innerHTML='<div class="main"><div class="title"></div><div class="progress"><div class="bar"></div></div></div><div class="amt red"></div>';
+   d.querySelector('.title').textContent=label;
+   d.querySelector('.bar').style.width=(weekVals[i]/weekMax*100)+'%';
+   d.querySelector('.amt').textContent=eur(weekVals[i]);
+   ws.appendChild(d);
+ });
+ let cb=$('categoryBreakdown');cb.innerHTML='';
+ let catTotals={};
+ rows.filter(e=>e.type==='expense').forEach(e=>{let c=e.category||'Autre';catTotals[c]=(catTotals[c]||0)+(+e.amount||0)});
+ let catRows=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]),totalCat=catRows.reduce((a,x)=>a+x[1],0);
+ let top3=$('topThreeCategories');top3.innerHTML='';
+ let medals=['🥇','🥈','🥉'];
+ catRows.slice(0,3).forEach(([cat,val],i)=>{
+   let pct=totalCat>0?val/totalCat*100:0,d=document.createElement('div');d.className='item';
+   d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div><div class="progress"><div class="bar"></div></div></div><div class="amt red"></div>';
+   d.querySelector('.title').textContent=medals[i]+' '+cat;
+   d.querySelector('.meta').textContent=Math.round(pct)+' % des dépenses';
+   d.querySelector('.bar').style.width=pct+'%';
+   d.querySelector('.amt').textContent=eur(val);
+   top3.appendChild(d);
+ });
+ if(!catRows.length)top3.innerHTML='<div class="empty">Aucune dépense enregistrée ce mois-ci.</div>';
+ if(catRows.length){
+  let topCat=catRows[0],topPct=totalCat>0?topCat[1]/totalCat*100:0;
+  $('topCategoryName').textContent=topCat[0];$('topCategoryAmount').textContent=eur(topCat[1]);
+  $('topCategoryInfo').textContent=topCat[0]+' représente environ '+Math.round(topPct)+' % de vos dépenses enregistrées ce mois-ci.';
+ }else{
+  $('topCategoryName').textContent='—';$('topCategoryAmount').textContent=eur(0);
+  $('topCategoryInfo').textContent='Pas encore de dépenses enregistrées pour identifier un poste principal.';
+ }
+ if(!catRows.length)cb.innerHTML='<div class="empty">Aucune dépense enregistrée ce mois-ci.</div>';
+ catRows.forEach(([cat,val])=>{let pct=totalCat>0?(val/totalCat)*100:0,d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div><div class="progress"><div class="bar"></div></div></div><div class="amt red"></div>';d.querySelector('.title').textContent=cat;d.querySelector('.meta').textContent=pct.toLocaleString('fr-FR',{maximumFractionDigits:0})+' % des dépenses';d.querySelector('.bar').style.width=pct+'%';d.querySelector('.amt').textContent=eur(val);cb.appendChild(d)});
+ let bs=$('budgetStatus');bs.innerHTML='';
+ let status=document.createElement('div');status.className='item';
+ let statusTitle='',statusText='';
+ if(rest<0){statusTitle='🔴 Budget à surveiller';statusText='La prévision de fin de mois est négative de '+eur(Math.abs(rest))+'.';}
+ else if(rest===0){statusTitle='🟠 Budget à l’équilibre';statusText='Il ne reste pas de marge prévue pour la fin du mois.';}
+ else if(daysLeft>0 && pd<20){statusTitle='🟠 Marge limitée';statusText='Il reste '+eur(rest)+' prévus, soit environ '+eur(pd)+' par jour.';}
+ else {statusTitle='🟢 Budget confortable';statusText='Il reste '+eur(rest)+' prévus pour la fin du mois'+(daysLeft>0?', soit environ '+eur(pd)+' par jour.':'.');}
+ status.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div>';
+ status.querySelector('.title').textContent=statusTitle;status.querySelector('.meta').textContent=statusText;bs.appendChild(status);
+ let mc=$('monthCompare');mc.innerHTML='';
+ let curKey=currentMonth, curDate=new Date(curKey+'-01T12:00:00');
+ let prevDate=new Date(curDate.getFullYear(),curDate.getMonth()-1,1);
+ let prevKey=prevDate.getFullYear()+'-'+String(prevDate.getMonth()+1).padStart(2,'0');
+ let curExp=s.entries.filter(e=>e.month===curKey&&e.type==='expense').reduce((a,e)=>a+(+e.amount||0),0);
+ let prevExp=s.entries.filter(e=>e.month===prevKey&&e.type==='expense').reduce((a,e)=>a+(+e.amount||0),0);
+ let curInc=s.entries.filter(e=>e.month===curKey&&e.type==='income').reduce((a,e)=>a+(+e.amount||0),0);
+ let prevInc=s.entries.filter(e=>e.month===prevKey&&e.type==='income').reduce((a,e)=>a+(+e.amount||0),0);
+ function compRow(label,cur,prev,expense){
+   let d=document.createElement('div');d.className='item';
+   let diff=cur-prev,pct=prev?Math.abs(diff/prev*100):null;
+   let msg=prev===0?(cur===0?'Aucune donnée sur les deux mois':'Pas de donnée le mois précédent'):(diff===0?'Identique au mois précédent':(diff>0?'+ ':'- ')+eur(Math.abs(diff))+(pct!==null?' · '+pct.toLocaleString('fr-FR',{maximumFractionDigits:0})+' %':''));
+   d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div>';
+   d.querySelector('.title').textContent=label;d.querySelector('.meta').textContent=msg;
+   let a=d.querySelector('.amt');a.textContent=eur(cur);
+   if(expense&&diff>0)a.className='amt red';else if(expense&&diff<0)a.className='amt green';else a.className='amt';
+   mc.appendChild(d);
+ }
+ compRow('Dépenses saisies',curExp,prevExp,true);
+ compRow('Revenus saisis',curInc,prevInc,false);
+ let bl=$('budgetList');bl.innerHTML='';let bm=s.budgets[m]||{}, cats=Object.keys(bm);
+ if(!cats.length) bl.innerHTML='<div class="empty">Aucun budget par catégorie. Vous pouvez utiliser l’application sans cette option.</div>';
+ cats.forEach(cat=>{let limit=+bm[cat]||0,spent=rows.filter(e=>e.type==='expense'&&e.category===cat).reduce((a,e)=>a+e.amount,0),left=limit-spent,d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div><div class="progress"><div class="bar"></div></div></div><div class="amt"></div><button class="del">✕</button>';d.querySelector('.title').textContent=cat;d.querySelector('.meta').textContent=eur(spent)+' dépensés sur '+eur(limit);let pct=limit>0?Math.min(100,(spent/limit)*100):0;d.querySelector('.bar').style.width=pct+'%';let a=d.querySelector('.amt');a.textContent=eur(left);a.className='amt '+(left<0?'red':'green');d.querySelector('.del').onclick=()=>{delete s.budgets[m][cat];persist()};bl.appendChild(d)});
+ let recent=$('recentEntries');recent.innerHTML='';
+ let recentRows=[...rows].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,3);
+ if(!recentRows.length) recent.innerHTML='<div class="empty">Aucune opération ce mois-ci.</div>';
+ recentRows.forEach(e=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="reuseHome" type="button">↻</button>';d.querySelector('.title').textContent=e.label;let payLabel=e.type==='expense'?(e.payment==='bank'?'🏦 Compte':e.payment==='cash'?'💶 Espèces':'💳 Carte'):'💰 Revenu';d.querySelector('.meta').textContent=new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR')+' · '+e.category+' · '+payLabel;let a=d.querySelector('.amt');a.textContent=(e.type==='income'?'+ ':'- ')+eur(e.amount);a.className='amt '+(e.type==='income'?'green':'red');
+ d.querySelector('.reuseHome').onclick=()=>{
+   setMode(e.type);
+   $('label').value=e.label||'';
+   $('amount').value=e.amount||'';
+   $('category').value=e.category||'Autre';
+   if(e.type==='expense'&&$('paymentMethod'))$('paymentMethod').value=e.payment||'card';
+   let todayISO=new Date().toISOString().slice(0,10),selected=$('month').value;
+   $('date').value=selected===todayISO.slice(0,7)?todayISO:selected+'-01';
+   updateAddReady();
+   document.getElementById('form').scrollIntoView({behavior:'smooth',block:'center'});
+   setTimeout(()=>{$('amount').focus();$('amount').select()},300);
+ };
+ recent.appendChild(d)});
+ let el=$('entryList');el.innerHTML='';
+ let searchTerm=($('movementSearch').value||'').trim().toLocaleLowerCase('fr');
+ let visibleRows=rows.filter(e=>($('movementFilter').value==='all'||e.type===$('movementFilter').value)&&($('movementCategory').value==='all'||e.category===$('movementCategory').value)&&($('movementPayment').value==='all'||(e.type==='expense'&&(e.payment||'card')===$('movementPayment').value))&&(!searchTerm||(e.label||'').toLocaleLowerCase('fr').includes(searchTerm)));
+ let filteredExpenses=visibleRows.filter(e=>e.type==='expense').reduce((a,e)=>a+(+e.amount||0),0);
+ let filteredIncome=visibleRows.filter(e=>e.type==='income').reduce((a,e)=>a+(+e.amount||0),0);
+ let filteredNet=filteredIncome-filteredExpenses;
+ $('filteredTotal').textContent=(filteredNet>=0?'+ ':'- ')+eur(Math.abs(filteredNet));
+ $('filteredTotal').className=filteredNet<0?'red':'green';
+ $('filteredCount').textContent=visibleRows.length+' opération'+(visibleRows.length>1?'s':'')+' · Dépenses '+eur(filteredExpenses)+' · Revenus '+eur(filteredIncome);
+ if(!visibleRows.length)el.innerHTML='<div class="empty">Aucun mouvement correspondant.</div>';
+ let sortMode=$('movementSort').value;
+ visibleRows.sort((a,b)=>{
+   if(sortMode==='dateAsc')return a.date.localeCompare(b.date);
+   if(sortMode==='amountDesc')return (+b.amount||0)-(+a.amount||0);
+   if(sortMode==='amountAsc')return (+a.amount||0)-(+b.amount||0);
+   if(sortMode==='labelAsc')return (a.label||'').localeCompare(b.label||'','fr',{sensitivity:'base'});
+   return b.date.localeCompare(a.date);
+ }).forEach(e=>{let d=document.createElement('div');d.className='item';d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="reuse" title="Réutiliser">↻</button><button class="edit">✎</button><button class="del">✕</button>';d.querySelector('.title').textContent=e.label;let payLabel2=e.type==='expense'?(e.payment==='bank'?'🏦 Compte':e.payment==='cash'?'💶 Espèces':'💳 Carte'):'💰 Revenu';d.querySelector('.meta').textContent=new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR')+' · '+e.category+' · '+payLabel2;let a=d.querySelector('.amt');a.textContent=(e.type==='income'?'+ ':'- ')+eur(e.amount);a.className='amt '+(e.type==='income'?'green':'red');d.querySelector('.reuse').onclick=()=>{
+ setMode(e.type);
+ $('label').value=e.label||'';
+ $('amount').value=e.amount||'';
+ $('category').value=e.category||'Autre';
+ if(e.type==='expense'&&$('paymentMethod'))$('paymentMethod').value=e.payment||'card';
+ $('date').value=new Date().toISOString().slice(0,10);
+ $('amount').focus();
+ window.scrollTo({top:0,behavior:'smooth'});
+};
+d.querySelector('.edit').onclick=()=>openEdit('entry',e.id);d.querySelector('.del').onclick=()=>{if(confirm('Supprimer ce mouvement ?')){
+ if(e.type==='expense'){
+   let bb=s.balances[e.month]||{bank:0,card:0};
+   s.balances[e.month]={bank:+bb.bank||0,card:Math.max(0,(+bb.card||0)-(+e.amount||0))};
+ }
+ s.entries=s.entries.filter(x=>x.id!==e.id);persist()
+}};el.appendChild(d)});
+
+ try{refreshFixedIncomeVisibleList()}catch(e){console.error('fixed income render',e)}
+
+ setTimeout(()=>{try{applyUltraSimpleHome()}catch(e){}},0);
+
+ setTimeout(()=>{try{simple4Refresh()}catch(e){}},0);
+}
+function updateQuickHabits(){
+ let dl=$('recentLabels'), row=$('habitRow');
+ if(!dl||!row)return;
+ let pool=(s.entries||[]).filter(e=>e.type===mode && e.label).slice().reverse();
+ let seen=new Set(), labels=[];
+ pool.forEach(e=>{let k=e.label.trim().toLowerCase();if(k&&!seen.has(k)){seen.add(k);labels.push(e)}});
+ dl.innerHTML='';labels.slice(0,12).forEach(e=>{let o=document.createElement('option');o.value=e.label;dl.appendChild(o)});
+ row.innerHTML='';
+ if(mode==='fixed'){row.style.display='none';if($('habitHint'))$('habitHint').style.display='none';return}
+ labels.slice(0,4).forEach(e=>{
+ let b=document.createElement('button');b.type='button';b.className='secondary habitBtn';
+ b.textContent='🕘 '+e.label;
+ b.onclick=()=>{
+   setMode(e.type||mode);
+   $('label').value=e.label||'';
+   $('amount').value=e.amount||'';
+   $('category').value=e.category||'Autre';
+   if(e.type==='expense'&&$('paymentMethod'))$('paymentMethod').value=e.payment||'card';
+   updateAddReady();
+   $('amount').focus();$('amount').select();
+ };
+ row.appendChild(b)
+});
+ row.style.display=labels.length?'flex':'none';if($('habitHint'))$('habitHint').style.display=labels.length?'block':'none';
+}
+document.querySelectorAll('.quickcat').forEach(btn=>btn.onclick=()=>{
+ setMode('expense');
+ $('category').value=btn.dataset.cat;
+ localStorage.setItem('budget_last_category',$('category').value);
+ $('label').value=btn.dataset.label||btn.dataset.cat;
+ $('amount').value='';
+ $('amount').focus();
+});
+$('copyReport').onclick=copyMonthlyReport;
+document.addEventListener('DOMContentLoaded',()=>{$('saveEdit').onclick=saveEdit;$('cancelEdit').onclick=closeEdit});
+$('copyPreviousBudgets').onclick=copyPreviousBudgets;
+$('saveBudget').onclick=()=>{let m=$('month').value,cat=$('budgetCat').value,amount=parseFloat($('budgetAmount').value)||0;if(amount<=0)return;s.budgets[m]=s.budgets[m]||{};s.budgets[m][cat]=amount;$('budgetAmount').value='';persist();showToast('Budget '+cat+' enregistré ✓')};
+$('addFixedIncome').onclick=()=>{let label=$('fiLabel').value.trim(),amount=parseFloat($('fiAmount').value)||0,day=Math.max(1,Math.min(28,parseInt($('fiDay').value)||1));if(!label||amount<=0)return;s.fixedIncome.push({id:crypto.randomUUID(),label,amount,day});$('fiLabel').value='';$('fiAmount').value='';$('fiDay').value='';persist()};
+$('addSimpleFixed').onclick=()=>{
+ const label=($('sfLabel').value||'').trim();
+ const rawAmount=String($('sfAmount').value||'').replace(',','.');
+ const amount=Number(rawAmount);
+ const rawDay=parseInt($('sfDay').value,10);
+ if(!label){alert('Indiquez le nom du prélèvement.');$('sfLabel').focus();return}
+ if(!Number.isFinite(amount)||amount<=0){alert('Indiquez un montant supérieur à 0 €.');$('sfAmount').focus();return}
+ if(!Number.isInteger(rawDay)||rawDay<1||rawDay>28){alert('Indiquez un jour entre 1 et 28.');$('sfDay').focus();return}
+ if(!Array.isArray(s.fixed))s.fixed=[];
+ rememberLastChange('Ajout prélèvement fixe');
+ const id=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():('fixe_'+Date.now()+'_'+Math.random().toString(36).slice(2));
+ s.fixed.push({id,label,amount,day:rawDay,category:'Fixe'});
+ $('sfLabel').value='';$('sfAmount').value='';$('sfDay').value='';
+ persist();
+ showToast('Prélèvement '+label+' enregistré ✓');
+ render();
+};
+$('saveSavingGoal').onclick=()=>{let m=$('month').value,v=Math.max(0,parseFloat($('savingGoal').value)||0),d=Math.max(0,parseFloat($('savingDone').value)||0),sm=Math.max(0,parseFloat($('safetyMargin').value)||0);s.savingGoals[m]=v;s.savingDone[m]=d;s.safetyMargins[m]=sm;persist()};
+$('saveBalance').onclick=()=>{s.balances[$('month').value]={bank:parseFloat($('bank').value)||0,card:parseFloat($('card').value)||0};persist();showToast('Solde et carte mis à jour ✓')};
+$('form').onsubmit=e=>{e.preventDefault();let btn=$('addBtn');if(btn.dataset.busy==='1')return;
+ let enteredLabel=$('label').value.trim();
+ if(!enteredLabel){alert('Indiquez un nom pour l’opération.');$('label').focus();return}
+ if(mode!=='fixed'){
+   let enteredDate=$('date').value,selectedMonth=$('month').value;
+   if(!enteredDate||enteredDate.slice(0,7)!==selectedMonth){
+     alert('La date de l’opération doit être dans le mois sélectionné ('+selectedMonth+').');
+     $('date').focus();return
+   }
+ }
+ let enteredAmount=parseFloat($('amount').value)||0;
+ if(enteredAmount<=0){alert('Indiquez un montant supérieur à 0 €.');$('amount').focus();return}
+ btn.dataset.busy='1';btn.disabled=true;
+ let obj={id:crypto.randomUUID(),label:enteredLabel,amount:enteredAmount,category:$('category').value};if(mode==='fixed'){obj.day=Math.max(1,Math.min(28,parseInt($('fixedDay').value)||1));s.fixed.push(obj);$('fixedDay').value=''}else{
+ let payment=mode==='expense'?($('paymentMethod').value||'card'):'bank';
+ let entry={...obj,type:mode,date:$('date').value,month:$('month').value,payment};
+ s.entries.push(entry);
+ if(mode==='expense'&&payment==='card'){
+   let mm=$('month').value;
+   let bb=s.balances[mm]||{bank:0,card:0};
+   s.balances[mm]={bank:+bb.bank||0,card:(+bb.card||0)+obj.amount};
+ }
+}$('label').value='';$('amount').value='';
+ let resetToday=new Date().toISOString().slice(0,10),resetMonth=$('month').value;
+ $('date').value=(resetMonth===resetToday.slice(0,7))?resetToday:resetMonth+'-01';
+ persist();showToast(mode==='expense'?'Dépense enregistrée ✓':mode==='income'?'Revenu enregistré ✓':'Prélèvement enregistré ✓');$('label').focus();updateAddReady();if($('smartEntry'))$('smartEntry').style.display='none';smartSuggestion=null;renderRecentEntryChips();setTimeout(()=>{btn.dataset.busy='0';btn.disabled=false},450)};
+function nextMonthKey(m){
+ let [y,mo]=m.split('-').map(Number);mo++;
+ if(mo>12){mo=1;y++}
+ return y+'-'+String(mo).padStart(2,'0');
+}
+function move(n){let[y,m]=$('month').value.split('-').map(Number);m+=n;if(m<1){m=12;y--}if(m>12){m=1;y++}$('month').value=y+'-'+String(m).padStart(2,'0');localStorage.setItem('budget_last_month',$('month').value);let today=new Date().toISOString().slice(0,10),selected=$('month').value;$('date').value=(selected===today.slice(0,7))?today:selected+'-01';render()}$('prev').onclick=()=>move(-1);$('next').onclick=()=>move(1);$('resetFilters').onclick=()=>{$('movementFilter').value='all';$('movementCategory').value='all';$('movementPayment').value='all';$('movementSearch').value='';$('movementSort').value='dateDesc';render()};
+document.querySelectorAll('details.menuGroup').forEach(d=>d.addEventListener('toggle',()=>{if(d.open)closeOtherMainMenus(d)}));
+if($('label'))$('label').oninput=()=>{updateAddReady();updateSmartSuggestion()};
+if($('label'))$('label').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();$('amount').focus()}};
+if($('amount'))$('amount').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();$('date').focus()}};
+
+if($('amount'))$('amount').oninput=()=>{updateAddReady();updateEntryChoiceSummary()};
+
+$('qaAdd').onclick=()=>{document.getElementById('form').scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>$('label').focus(),250)};
+$('qaBalance').onclick=()=>{openBySummary('Modifier solde et carte');setTimeout(()=>$('bank').focus(),300)};
+$('qaHistory').onclick=()=>openBySummary('Mouvements du mois');
+$('qaBackup').onclick=()=>{$('export').click()};
+$('qaTodo').onclick=()=>openBySummary('À venir ce mois-ci');
+$('stepBalance').onclick=()=>openBySummary('Modifier solde et carte');
+$('stepDue').onclick=()=>openBySummary('Suivi des échéances');
+$('stepBudget').onclick=()=>openBySummary('Budgets du mois');
+$('stepClose').onclick=()=>openBySummary('Clôture du mois');
+$('undoDueAction').onclick=()=>{
+ if(!lastDueAction)return;
+ let a=lastDueAction;
+ if(a.kind==='income'){
+   if(s.incomeReceived[a.month])delete s.incomeReceived[a.month][a.id];
+ }else{
+   if(s.paid[a.month])delete s.paid[a.month][a.id];
+ }
+ lastDueAction=null;
+ $('undoDueAction').style.display='none';
+ persist();showToast('Validation annulée ✓');
+};
+$('qaToday').onclick=()=>{
+ let today=new Date().toISOString().slice(0,10);
+ $('month').value=today.slice(0,7);$('date').value=today;
+ localStorage.setItem('budget_last_month',$('month').value);
+ render();showToast('Retour à aujourd’hui ✓');
+ window.scrollTo({top:0,behavior:'smooth'});
+};
+if($('paymentMethod'))$('paymentMethod').onchange=()=>{localStorage.setItem('budget_last_payment',$('paymentMethod').value);updateEntryChoiceSummary()};
+if($('category'))$('category').onchange=()=>{localStorage.setItem('budget_last_category',$('category').value);updateEntryChoiceSummary()};
+$('movementFilter').onchange=render;$('movementCategory').onchange=render;$('movementPayment').onchange=render;$('movementSearch').oninput=render;$('movementSort').onchange=render;
+$('addException').onclick=()=>{let m=$('month').value,label=$('exceptionLabel').value.trim(),amount=parseFloat($('exceptionAmount').value)||0;if(!label||amount<=0)return;s.exceptions[m]=s.exceptions[m]||[];s.exceptions[m].push({id:crypto.randomUUID(),label,amount});$('exceptionLabel').value='';$('exceptionAmount').value='';persist()};
+$('saveMonthNotes').onclick=()=>{let m=$('month').value;s.monthNotes[m]=$('monthNotes').value.trim();localStorage.setItem(KEY,JSON.stringify(s));$('monthNotesSaved').style.display='block'};
+$('prepareNextMonth').onclick=()=>{
+ let from=$('month').value,to=nextMonthKey(from),changed=[];
+ if(Object.keys(s.budgets[to]||{}).length===0 && Object.keys(s.budgets[from]||{}).length){
+   s.budgets[to]=JSON.parse(JSON.stringify(s.budgets[from]));changed.push('budgets');
+ }
+ if(!(to in s.savingGoals) && (s.savingGoals[from]||0)>0){
+   s.savingGoals[to]=s.savingGoals[from];changed.push('objectif épargne');
+ }
+ if(!(to in s.safetyMargins) && (s.safetyMargins[from]||0)>0){
+   s.safetyMargins[to]=s.safetyMargins[from];changed.push('marge de sécurité');
+ }
+ localStorage.setItem(KEY,JSON.stringify(s));
+ let msg=$('prepareNextMsg');msg.style.display='block';
+ msg.textContent=changed.length?'Préparé pour '+to+' : '+changed.join(', ')+' ✓':'Le mois prochain est déjà préparé.';
+ showToast(changed.length?'Mois prochain préparé ✓':'Déjà préparé ✓');
+};
+$('goNextMonth').onclick=()=>{move(1)};
+$('month').onchange=()=>{
+ m=$('month').value;
+ localStorage.setItem('budget_last_month',$('month').value);
+ let today=new Date().toISOString().slice(0,10), selected=$('month').value;
+ $('date').value=(selected===today.slice(0,7))?today:selected+'-01';
+ render()
+};
+$('export').onclick=()=>{let blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mon-budget-sauvegarde.json';a.click();showToast('Sauvegarde exportée ✓')};$('import').onclick=()=>$('file').click();function saveSafetyBackup(){
+ try{
+  localStorage.setItem('budget_safety_backup',JSON.stringify({date:new Date().toISOString(),data:s}));
+  return true;
+ }catch(e){return false}
+}
+function restoreSafetyBackup(){
+ try{
+  let raw=localStorage.getItem('budget_safety_backup');if(!raw)return false;
+  let pack=JSON.parse(raw);if(!pack||!pack.data)return false;
+  rememberBeforeChange('Sauvegarde de sécurité restaurée');
+  s=pack.data;localStorage.setItem(KEY,JSON.stringify(s));render();return true;
+ }catch(e){return false}
+}
+$('file').onchange=async e=>{try{s=JSON.parse(await e.target.files[0].text());persist();alert('Sauvegarde importée')}catch{alert('Fichier non reconnu')}};
+try{
+ let todayISO=new Date().toISOString().slice(0,10);
+ if($('month').value===todayISO.slice(0,7)) $('date').value=todayISO;
+}catch(e){}
+render();
+</script>
+<div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:50;padding:20px;align-items:center;justify-content:center">
+ <div class="section" style="width:min(100%,520px);margin:0;max-height:85vh;overflow:auto">
+  <h2>Modifier</h2>
+  <div class="grid">
+   <input id="editLabel" class="wide" placeholder="Nom">
+   <input id="editAmount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Montant €">
+   <input id="editDate" type="date">
+   <input id="editDay" type="number" min="1" max="28" inputmode="numeric" placeholder="Jour du mois">
+   <select id="editCategory" class="wide"><option>Courses</option><option>Carburant</option><option>Factures</option><option>Logement</option><option>Voiture</option><option>Santé</option><option>Enfants</option><option>Loisirs</option><option>Animaux</option><option>Autre</option></select>
+   <button id="saveEdit">Enregistrer les modifications</button>
+   <button id="cancelEdit" class="secondary">Annuler</button>
+  </div>
+ </div>
+</div>
+
+
+<script>
+(function(){
+  const b=document.getElementById('undoLastBtn');
+  if(!b) return;
+  b.addEventListener('click', function(){
+    try{
+      const m=document.getElementById('month').value;
+      const candidates=[];
+      (s.entries||[]).forEach((x,i)=>{ if(x.month===m) candidates.push({kind:'entry',i,x}); });
+      (s.fixed||[]).forEach((x,i)=>{ candidates.push({kind:'fixed',i,x}); });
+      if(!candidates.length){ alert('Aucune saisie à annuler.'); return; }
+      const last=candidates[candidates.length-1];
+      const nom=last.x.label||'Dernière saisie';
+      const montant=Number(last.x.amount||0).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});
+      if(!confirm('Annuler : '+nom+' — '+montant+' € ?')) return;
+      if(last.kind==='entry'){
+        const removed=s.entries[last.i];
+        s.entries.splice(last.i,1);
+        if(removed && removed.type==='expense'){
+          const mm=removed.month;
+          const bb=s.balances[mm]||{bank:0,card:0};
+          s.balances[mm]={bank:+bb.bank||0,card:Math.max(0,(+bb.card||0)-(+removed.amount||0))};
+        }
+      } else s.fixed.splice(last.i,1);
+      persist();
+    }catch(e){
+      alert('Impossible d’annuler cette saisie.');
+    }
+  });
+})();
+
+try{if(!getSafetyCopy())makeSafetyCopy();updateSafeStatus();updateDataHealth();updateLastBackupInfo();runUpdateCheck()}catch(e){}
+try{refreshRepeatLastEntry()}catch(e){}
+try{restoreLastEntryChoices()}catch(e){}
+try{renderRecentEntryChips()}catch(e){}
+try{renderFavoriteEntryChips()}catch(e){}
+
+document.addEventListener('DOMContentLoaded',()=>{
+ setTimeout(()=>{try{refreshFixedIncomeVisibleList()}catch(e){}},50);
+});
+
+document.addEventListener('DOMContentLoaded',()=>{
+ const b=$('toggleAdvancedSimple');
+ if(b)b.onclick=toggleSimpleAdvanced;
+ setTimeout(applyUltraSimpleHome,80);
+});
+
+document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
+</script>
+
+<div id="globalUndo" class="globalUndo" style="display:none">
+ <span id="globalUndoText">Modification effectuée</span>
+ <button id="globalUndoBtn" type="button">Annuler</button>
+</div>
+<div id="toast" class="toast"></div>
+
+<script>
+/* SIMPLE-6.1-SAFE — ajout prélèvement robuste */
+(function(){
+ function normFixed(v){
+  return String(v||'').trim().toLocaleLowerCase('fr-FR').replace(/\\s+/g,' ');
+ }
+ function sameFixed(a,b){
+  return normFixed(a.label)===normFixed(b.label)
+    && Math.abs((Number(a.amount)||0)-(Number(b.amount)||0))<0.005
+    && (Number(a.day)||0)===(Number(b.day)||0);
+ }
+ function cleanFixedDuplicates(){
+  if(!s || !Array.isArray(s.fixed)) return 0;
+  var kept=[], removed=0;
+  s.fixed.forEach(function(item){
+   var existing=kept.find(function(k){ return sameFixed(k,item); });
+   if(!existing){ kept.push(item); return; }
+   removed++;
+   if(s.paid && typeof s.paid==='object'){
+    Object.keys(s.paid).forEach(function(month){
+     var statuses=s.paid[month];
+     if(statuses && statuses[item.id]){
+      statuses[existing.id]=true;
+     }
+     if(statuses) delete statuses[item.id];
+    });
+   }
+  });
+  if(removed){
+   s.fixed=kept;
+   if(typeof persist==='function') persist();
+  }
+  return removed;
+ }
+ function install(){
+  var removed=0;
+  try{ removed=cleanFixedDuplicates(); }catch(e){ console.error(e); }
+  if(removed && typeof render==='function') render();
+  if(removed && typeof showToast==='function')
+   showToast(removed+' doublon'+(removed>1?'s':'')+' supprimé'+(removed>1?'s':'')+' ✓');
+  var btn=document.getElementById('addSimpleFixed');
+  if(!btn)return;
+  btn.type='button';
+  btn.onclick=function(e){
+   e.preventDefault();e.stopPropagation();
+   var le=document.getElementById('sfLabel'),
+       ae=document.getElementById('sfAmount'),
+       de=document.getElementById('sfDay');
+   var label=(le.value||'').trim(),
+       amount=Number(String(ae.value||'').replace(',','.')),
+       day=parseInt(de.value,10);
+   if(!label){alert('Indiquez le nom du prélèvement.');return false}
+   if(!isFinite(amount)||amount<=0){alert('Indiquez un montant supérieur à 0 €.');return false}
+   if(!Number.isInteger(day)||day<1||day>28){alert('Indiquez un jour entre 1 et 28.');return false}
+   try{
+    if(!s || typeof s!=='object') throw new Error('Données budget indisponibles');
+    if(!Array.isArray(s.fixed))s.fixed=[];
+    var candidate={label:label,amount:amount,day:day};
+    if(s.fixed.some(function(x){return sameFixed(x,candidate)})){
+     alert('Ce prélèvement existe déjà : '+label+' — '+amount.toFixed(2).replace('.',',')+' € — jour '+day+'.');
+     return false;
+    }
+    var id=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():'fixe_'+Date.now();
+    s.fixed.push({id:id,label:label,amount:amount,day:day,category:'Fixe'});
+    /* Use the application's own persistence path; it knows its private storage key. */
+    if(typeof persist!=='function')throw new Error('Sauvegarde indisponible');
+    persist();
+    le.value='';ae.value='';de.value='';
+    if(typeof render==='function')render();
+    if(typeof showToast==='function')showToast('Prélèvement '+label+' enregistré ✓');
+    return false;
+   }catch(err){
+    console.error(err);
+    alert("Erreur technique : "+(err&&err.message?err.message:String(err)));
+    return false;
+   }
+  };
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);
+ else install();
+})();
+</script>
+
+
+<script>
+/* SIMPLE-8.4 — prélèvements/revenus fixes mensuels robustes */
+(function(){
+ function monthKey(){ var e=document.getElementById('month'); return e&&e.value ? e.value : new Date().toISOString().slice(0,7); }
+ function ensure(){
+   if(!window.s||typeof s!=='object') return false;
+   if(!Array.isArray(s.fixed)) s.fixed=[];
+   if(!Array.isArray(s.fixedIncome)) s.fixedIncome=[];
+   if(!s.fixedPaid||typeof s.fixedPaid!=='object') s.fixedPaid={};
+   if(!s.fixedIncomeReceived||typeof s.fixedIncomeReceived!=='object') s.fixedIncomeReceived={};
+   return true;
+ }
+ function idOf(x,p){ if(!x.id) x.id=p+'_'+Date.now()+'_'+Math.random().toString(36).slice(2,8); return x.id; }
+ function paidMap(){ ensure(); var k=monthKey(); if(!s.fixedPaid[k])s.fixedPaid[k]={}; return s.fixedPaid[k]; }
+ function receivedMap(){ ensure(); var k=monthKey(); if(!s.fixedIncomeReceived[k])s.fixedIncomeReceived[k]={}; return s.fixedIncomeReceived[k]; }
+ function refresh(){ try{if(typeof persist==='function')persist()}catch(e){} try{if(typeof render==='function')render()}catch(e){} try{if(typeof simple4Render==='function')simple4Render()}catch(e){} }
+ window.simple64ToggleFixed=function(id){ if(!ensure())return; var m=paidMap(); m[id]=!m[id]; refresh(); };
+ window.simple64ToggleIncome=function(id){ if(!ensure())return; var m=receivedMap(); m[id]=!m[id]; refresh(); };
+ window.simple64DeleteFixed=function(id){ if(!ensure())return; if(!confirm('Supprimer ce prélèvement fixe pour les mois futurs ?'))return; s.fixed=s.fixed.filter(function(x){return idOf(x,'fix')!==id}); Object.keys(s.fixedPaid).forEach(function(k){if(s.fixedPaid[k])delete s.fixedPaid[k][id]}); refresh(); };
+ window.simple64DeleteIncome=function(id){ if(!ensure())return; if(!confirm('Supprimer ce revenu fixe pour les mois futurs ?'))return; s.fixedIncome=s.fixedIncome.filter(function(x){return idOf(x,'inc')!==id}); Object.keys(s.fixedIncomeReceived).forEach(function(k){if(s.fixedIncomeReceived[k])delete s.fixedIncomeReceived[k][id]}); refresh(); };
+ window.simple64EditFixed=function(id){ if(!ensure())return; var x=s.fixed.find(function(v){return idOf(v,'fix')===id}); if(!x)return; var l=prompt('Nom du prélèvement',x.label||''); if(l===null)return; var a=prompt('Montant €',String(x.amount||'')); if(a===null)return; var d=prompt('Jour (1 à 28)',String(x.day||'')); if(d===null)return; var n=Number(String(a).replace(',','.')),j=parseInt(d,10); if(!l.trim()||!isFinite(n)||n<=0||j<1||j>28){alert('Valeurs incorrectes.');return} x.label=l.trim();x.amount=n;x.day=j;refresh(); };
+ window.simple64EditIncome=function(id){ if(!ensure())return; var x=s.fixedIncome.find(function(v){return idOf(v,'inc')===id}); if(!x)return; var l=prompt('Nom du revenu',x.label||''); if(l===null)return; var a=prompt('Montant €',String(x.amount||'')); if(a===null)return; var d=prompt('Jour (1 à 28)',String(x.day||'')); if(d===null)return; var n=Number(String(a).replace(',','.')),j=parseInt(d,10); if(!l.trim()||!isFinite(n)||n<=0||j<1||j>28){alert('Valeurs incorrectes.');return} x.label=l.trim();x.amount=n;x.day=j;refresh(); };
+ function enhance(){
+   if(!ensure())return;
+   s.fixed.forEach(function(x){idOf(x,'fix')}); s.fixedIncome.forEach(function(x){idOf(x,'inc')});
+   try{if(typeof persist==='function')persist()}catch(e){}
+ }
+ document.addEventListener('DOMContentLoaded',function(){enhance(); setTimeout(enhance,300)});
+})();
+</script>
+
+
+<button id="quickTop65" type="button" aria-label="Retour en haut"
+ style="display:none;position:fixed;right:16px;bottom:92px;z-index:9998;
+ width:52px;height:52px;border-radius:18px;padding:0;font-size:24px;
+ box-shadow:0 5px 18px rgba(0,0,0,.13)">↑</button>
+<script>
+(function(){
+  const topBtn=document.getElementById('quickTop65');
+  if(topBtn){
+    const refreshTop=()=>{topBtn.style.display=window.scrollY>700?'block':'none'};
+    window.addEventListener('scroll',refreshTop,{passive:true});
+    refreshTop();
+    topBtn.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+  }
+
+  /* À l'ouverture d'un grand menu, ferme les autres menus principaux :
+     écran plus court et navigation plus rapide, sans toucher aux données. */
+  const mainFolds=[...document.querySelectorAll('details.fold')];
+  mainFolds.forEach(d=>{
+    d.addEventListener('toggle',()=>{
+      if(!d.open)return;
+      const parentDetails=d.parentElement && d.parentElement.closest
+        ? d.parentElement.closest('details.fold') : null;
+      mainFolds.forEach(other=>{
+        if(other===d || !other.open)return;
+        /* ne ferme pas un parent nécessaire à l'affichage du sous-menu */
+        if(parentDetails && other===parentDetails)return;
+        const otherParent=other.parentElement && other.parentElement.closest
+          ? other.parentElement.closest('details.fold') : null;
+        if(otherParent===d)return;
+        /* seulement les menus de même niveau */
+        if(other.parentElement===d.parentElement) other.open=false;
+      });
+    });
+  });
+})();
+</script>
+
+
+<script>
+/* SIMPLE-8.4 — raccourcis sûrs vers les fonctions déjà existantes */
+(function(){
+ function clickExisting(id){
+   var b=document.getElementById(id);
+   if(b){ b.click(); return true; }
+   return false;
+ }
+ function openSummary(words){
+   var details=[].slice.call(document.querySelectorAll('details'));
+   var d=details.find(function(x){
+     var sm=x.querySelector(':scope > summary');
+     if(!sm)return false;
+     var t=(sm.textContent||'').toLowerCase();
+     return words.some(function(w){return t.indexOf(w)>=0});
+   });
+   if(!d)return false;
+   var p=d.parentElement;
+   while(p){if(p.tagName==='DETAILS')p.open=true;p=p.parentElement}
+   d.open=true;
+   setTimeout(function(){d.scrollIntoView({behavior:'smooth',block:'start'})},30);
+   return true;
+ }
+ function install66(){
+   var e=document.getElementById('daily66Expense');
+   var due=document.getElementById('daily66Due');
+   var hist=document.getElementById('daily66History');
+   if(e)e.onclick=function(){
+     if(!clickExisting('simple4Add')) openSummary(['mouvement','dépense']);
+   };
+   if(due)due.onclick=function(){
+     if(!clickExisting('simple4Due')) openSummary(['à venir ce mois','échéance']);
+   };
+   if(hist)hist.onclick=function(){
+     if(!openSummary(['historique','mouvements'])) openSummary(['mouvement']);
+   };
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install66);
+ else install66();
+})();
+</script>
+
+
+<script>
+/* SIMPLE-8.4 — aperçu des dernières opérations, sans modifier les calculs */
+(function(){
+ function money67(v){
+   try{return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(Number(v)||0)}
+   catch(e){return (Number(v)||0).toFixed(2).replace('.',',')+' €'}
+ }
+ function recentRows67(){
+   var box=document.getElementById('daily67RecentList');
+   if(!box)return;
+   box.innerHTML='';
+   var rows=[];
+   try{
+     var monthEl=document.getElementById('month');
+     var monthKey=monthEl&&monthEl.value?monthEl.value:'';
+     if(typeof s!=='undefined' && s){
+       if(s.months && monthKey && Array.isArray(s.months[monthKey])) rows=s.months[monthKey].slice();
+       else if(Array.isArray(s.entries)) rows=s.entries.slice();
+     }
+   }catch(e){}
+   rows=rows.filter(function(x){return x&&x.label})
+     .sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''))})
+     .slice(0,4);
+   if(!rows.length){
+     var empty=document.createElement('div');empty.className='daily67Empty';
+     empty.textContent='Aucune opération récente à afficher.';
+     box.appendChild(empty);return;
+   }
+   rows.forEach(function(x){
+     var d=document.createElement('div');d.className='daily67Row';
+     var isIncome=x.type==='income';
+     d.innerHTML='<div class="n"></div><div class="m"></div><div class="a"></div>';
+     d.querySelector('.n').textContent=(isIncome?'💰 ':'🛒 ')+(x.label||'Opération');
+     d.querySelector('.m').textContent=(x.date||'')+(x.category?' · '+x.category:'');
+     d.querySelector('.a').textContent=(isIncome?'+ ':'− ')+money67(x.amount);
+     box.appendChild(d);
+   });
+ }
+ function install67(){
+   var r=document.getElementById('daily67Refresh');
+   if(r)r.onclick=recentRows67;
+   recentRows67();
+   var month=document.getElementById('month');
+   if(month)month.addEventListener('change',function(){setTimeout(recentRows67,50)});
+   document.addEventListener('click',function(){setTimeout(recentRows67,120)});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install67);
+ else install67();
+})();
+</script>
+
+
+<script>
+/* SIMPLE-8.4 — résumé à recevoir / à payer depuis les données existantes */
+(function(){
+ function euro68(v){
+  try{return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(Number(v)||0)}
+  catch(e){return (Number(v)||0).toFixed(2).replace('.',',')+' €'}
+ }
+ function refresh68(){
+  var inc=document.getElementById('daily68Income'),fix=document.getElementById('daily68Fixed');
+  if(!inc||!fix)return;
+  try{
+   var me=document.getElementById('month'),mk=me&&me.value?me.value:'';
+   var incomes=(typeof s!=='undefined'&&s&&Array.isArray(s.fixedIncome))?s.fixedIncome:[];
+   var fixed=(typeof s!=='undefined'&&s&&Array.isArray(s.fixed))?s.fixed:[];
+   var received=(s&&s.incomeReceived&&s.incomeReceived[mk])||{};
+   var paid=(s&&s.paid&&s.paid[mk])||{};
+   var toReceive=incomes.reduce(function(t,x){return t+(received[x.id]?0:(Number(x.amount)||0))},0);
+   var toPay=fixed.reduce(function(t,x){return t+(paid[x.id]?0:(Number(x.amount)||0))},0);
+   inc.textContent=euro68(toReceive);fix.textContent=euro68(toPay);
+  }catch(e){inc.textContent='—';fix.textContent='—'}
+ }
+ function install68(){
+  refresh68();
+  var me=document.getElementById('month');
+  if(me)me.addEventListener('change',function(){setTimeout(refresh68,60)});
+  document.addEventListener('click',function(){setTimeout(refresh68,140)});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install68);
+ else install68();
+})();
+</script>
+
+
+<script>
+/* SIMPLE-8.4 — synthèse d'attention depuis les données existantes */
+(function(){
+ function eur69(v){try{return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(Number(v)||0)}catch(e){return (Number(v)||0).toFixed(2).replace('.',',')+' €'}}
+ function refresh69(){
+  var msg=document.getElementById('daily69Message'),next=document.getElementById('daily69Next');
+  if(!msg||!next)return;
+  try{
+   var me=document.getElementById('month'),mk=me&&me.value?me.value:'';
+   var parts=mk.split('-'),yy=+parts[0],mm=(+parts[1]||1)-1;
+   var now=new Date(),same=now.getFullYear()===yy&&now.getMonth()===mm,today=same?now.getDate():0;
+   var inc=Array.isArray(s.fixedIncome)?s.fixedIncome:[],fix=Array.isArray(s.fixed)?s.fixed:[];
+   var rec=(s.incomeReceived&&s.incomeReceived[mk])||{},paid=(s.paid&&s.paid[mk])||{};
+   var pending=[];
+   inc.forEach(function(x){if(!rec[x.id])pending.push({kind:'income',day:+x.day||1,label:x.label,amount:+x.amount||0})});
+   fix.forEach(function(x){if(!paid[x.id])pending.push({kind:'fixed',day:+x.day||1,label:x.label,amount:+x.amount||0})});
+   pending.sort(function(a,b){return a.day-b.day || (a.kind==='income'?-1:1)});
+   var late=pending.filter(function(x){return same&&x.day<today});
+   if(late.length){
+    msg.textContent='⚠️ '+late.length+' échéance'+(late.length>1?'s':'')+' à vérifier.';
+   }else if(pending.length){
+    msg.textContent='Tout est à jour pour le moment.';
+   }else{
+    msg.textContent='✅ Tout est traité pour ce mois.';
+   }
+   if(pending.length){
+    var p=pending.find(function(x){return !same||x.day>=today})||pending[0];
+    next.textContent=(late.length?'Prochaine / à vérifier : ':'Prochaine échéance : ')+(p.kind==='income'?'📥 ':'📤 ')+p.label+' · le '+p.day+' · '+eur69(p.amount);
+   }else next.textContent='Aucune échéance restante.';
+  }catch(e){msg.textContent='Pilotage indisponible';next.textContent=''}
+ }
+ function install69(){
+  refresh69();
+  var me=document.getElementById('month');if(me)me.addEventListener('change',function(){setTimeout(refresh69,60)});
+  document.addEventListener('click',function(){setTimeout(refresh69,150)});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install69);else install69();
+})();
+</script>
+
+
+<script>
+/* SIMPLE-8.4 — synchronise l'accueil avec les valeurs déjà calculées par l'application */
+(function(){
+ function refresh70(){
+  var av=document.getElementById('daily70Available'),mo=document.getElementById('daily70Month');
+  if(av){
+   var source=document.getElementById('simple4AvailableValue')||document.getElementById('rest');
+   av.textContent=source&&source.textContent?source.textContent:'—';
+  }
+  if(mo){
+   var me=document.getElementById('month');
+   if(me&&me.value){
+    var p=me.value.split('-'),d=new Date(+p[0],(+p[1]||1)-1,1);
+    try{mo.textContent=d.toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}
+    catch(e){mo.textContent=me.value}
+   }else mo.textContent='—';
+  }
+ }
+ function install70(){
+  refresh70();
+  var me=document.getElementById('month');
+  if(me)me.addEventListener('change',function(){setTimeout(refresh70,80)});
+  document.addEventListener('click',function(){setTimeout(refresh70,180)});
+  setInterval(refresh70,2500);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install70);else install70();
+})();
+</script>
+
+
+<script>
+(function(){
+ function install72(){
+  var bank=document.getElementById('simple4Bank'), balance=document.getElementById('simple4Balance');
+  if(bank&&balance){
+   var open=function(){balance.click()};
+   bank.setAttribute('role','button');bank.setAttribute('tabindex','0');bank.onclick=open;
+   bank.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();open()}};
+  }
+  var manage=document.getElementById('manage72');
+  if(manage)manage.onclick=function(){
+   var b=Array.from(document.querySelectorAll('button')).find(function(x){return (x.textContent||'').trim()==='Complet'});
+   if(b){b.click();setTimeout(function(){window.scrollTo({top:0,behavior:'smooth'})},50)}
+  };
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install72);else install72();
+})();
+</script>
+
+
+<script>
+/* SIMPLE-8.4 — masque uniquement la barre contenant les 5 raccourcis redondants */
+(function(){
+  function clean73(){
+    var labels=['Ajouter','Solde','Historique','Sauvegarder',"Aujourd’hui","Aujourd'hui"];
+    var candidates=Array.from(document.querySelectorAll('nav,div,section'));
+    candidates.forEach(function(el){
+      var direct=Array.from(el.children);
+      if(direct.length < 4 || direct.length > 7) return;
+      var txt=direct.map(function(x){return (x.textContent||'').trim()}).join(' | ');
+      var hits=0;
+      ['Ajouter','Solde','Historique','Sauvegarder'].forEach(function(k){if(txt.indexOf(k)>=0) hits++;});
+      if((txt.indexOf("Aujourd’hui")>=0 || txt.indexOf("Aujourd'hui")>=0) && hits>=4){
+        el.style.display='none';
+      }
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',clean73);
+  else clean73();
+})();
+</script>
+
+
+<script>
+(function(){
+ function norm(s){return (s||'').replace(/\s+/g,' ').trim()}
+ function findButton(label){
+   return Array.from(document.querySelectorAll('button')).find(function(b){return norm(b.textContent)===label});
+ }
+ function install74(){
+   var add=findButton('Ajouter la dépense · août') ||
+           Array.from(document.querySelectorAll('button')).find(function(b){return norm(b.textContent).indexOf('Ajouter la dépense')===0});
+   if(!add)return;
+
+   document.body.classList.add('expense74-on');
+
+   var form=add.parentElement;
+   if(!form)return;
+
+   // Header immediately before the actual fields.
+   var header=document.createElement('div');
+   header.id='expense74Header';
+   header.innerHTML='<h2>Ajouter une dépense</h2><p>Le nécessaire, rien de plus.</p>';
+   var firstField=Array.from(form.children).find(function(x){return x.querySelector&&x.querySelector('input')});
+   form.insertBefore(header,firstField||form.firstChild);
+
+   // Hide the top quick-choice clutter while keeping it in DOM.
+   var dep=findButton('Dépense'), rev=findButton('Revenu'), fixe=findButton('Fixe');
+   if(dep&&dep.parentElement){dep.parentElement.id='quickTypeRow'}
+   var courses=findButton('Courses'), carburant=findButton('Carburant'), loisirs=findButton('Loisirs');
+   if(courses&&courses.parentElement){courses.parentElement.id='quickCategoryRow'}
+
+   // Secondary shortcut column/row: Effacer, Aujourd'hui, Ce mois, Favori, Plus d'options.
+   var eff=findButton('× Effacer')||findButton('Effacer');
+   if(eff&&eff.parentElement){eff.parentElement.id='quickUtilityRow'}
+
+   // Date: default visually to "Aujourd'hui"; keep real date input accessible.
+   var dateInput=Array.from(form.querySelectorAll('input')).find(function(i){return i.type==='date'});
+   if(dateInput){
+     var wrap=dateInput.parentElement;
+     wrap.id='expense74DateWrap';
+     var today=document.createElement('button');
+     today.type='button'; today.id='expense74DateToday'; today.textContent="Aujourd’hui";
+     today.onclick=function(){
+       var d=new Date(), val=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+       dateInput.value=val; dateInput.dispatchEvent(new Event('change',{bubbles:true}));
+     };
+     wrap.insertBefore(today,dateInput);
+   }
+
+   // Rename field semantics using placeholders where available.
+   var inputs=Array.from(form.querySelectorAll('input'));
+   var name=inputs.find(function(i){return (i.placeholder||'').toLowerCase().indexOf('nom')>=0});
+   var amount=inputs.find(function(i){return (i.placeholder||'').toLowerCase().indexOf('montant')>=0});
+   if(name)name.placeholder='Nom de la dépense';
+   if(amount)amount.placeholder='Montant €';
+
+   // Secondary functions stay available but are no longer visually dominant.
+   var undo=Array.from(document.querySelectorAll('button')).find(function(b){return norm(b.textContent).indexOf('Annuler la dernière saisie')>=0});
+   if(undo){undo.style.fontSize='15px';undo.style.minHeight='46px'}
+
+   // Change primary wording so it doesn't repeat month unnecessarily.
+   add.textContent='Ajouter la dépense';
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install74);else install74();
+})();
+</script>
+
+
+<script>
+(function(){
+ function txt(el){return (el&&el.textContent||'').replace(/\s+/g,' ').trim()}
+ function hideNearestCard(el){
+   if(!el)return;
+   var p=el;
+   for(var i=0;i<6 && p;i++,p=p.parentElement){
+     var t=txt(p);
+     if(t.length<500 && (p.classList.contains('card') || p.tagName==='SECTION' || p.tagName==='DIV')){
+       p.style.display='none';
+       return;
+     }
+   }
+ }
+ function clean75(){
+   /* 1. Supprimer visuellement tout le bloc "Ajouter rapidement". */
+   Array.from(document.querySelectorAll('h1,h2,h3,h4,div,strong')).forEach(function(el){
+     if(txt(el)==='Ajouter rapidement') hideNearestCard(el);
+   });
+
+   /* 2. Supprimer le sélecteur "Mode simple / Plus". */
+   Array.from(document.querySelectorAll('div,section')).forEach(function(el){
+     var t=txt(el);
+     if(t.indexOf('Mode simple')>=0 && t.indexOf('Le nécessaire au quotidien')>=0 && t.indexOf('Plus')>=0 && t.length<180){
+       el.style.display='none';
+     }
+   });
+
+   /* 3. Annuler la tentative 7.4 qui déplaçait/ajoutait des éléments dans le formulaire. */
+   document.body.classList.remove('expense74-on');
+   var h=document.getElementById('expense74Header'); if(h)h.style.display='none';
+
+   /* 4. Garder le formulaire natif existant comme seule saisie. */
+   var add=Array.from(document.querySelectorAll('button')).find(function(b){
+     return txt(b).indexOf('Ajouter la dépense')===0;
+   });
+   if(add){
+     add.textContent='Ajouter la dépense';
+     var card=add.closest('.card') || add.parentElement;
+     if(card){
+       card.style.display='';
+       card.style.overflow='visible';
+     }
+   }
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',clean75);
+ else clean75();
+})();
+</script>
+
+
+<script>
+(function(){
+ function n(s){return (s||'').replace(/\s+/g,' ').trim()}
+ function removeQuick76(){
+   var all=Array.from(document.querySelectorAll('*'));
+   var title=all.find(function(e){return n(e.textContent)==='Ajouter rapidement'});
+   if(title){
+     var p=title;
+     while(p && p!==document.body){
+       var t=n(p.textContent);
+       if(t.indexOf('Ajouter rapidement')>=0 &&
+          t.indexOf('Dépense')>=0 &&
+          t.indexOf('Revenu')>=0 &&
+          t.indexOf('Fixe')>=0 &&
+          t.indexOf('Favori')>=0){
+         p.style.setProperty('display','none','important');
+         break;
+       }
+       p=p.parentElement;
+     }
+   }
+   /* "Mode simple / Plus" is also obsolete. */
+   all.forEach(function(e){
+     var t=n(e.textContent);
+     if(t==='Mode simple Le nécessaire au quotidien Plus'){
+       e.style.setProperty('display','none','important');
+     }
+   });
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',removeQuick76);
+ else removeQuick76();
+ setTimeout(removeQuick76,300);
+})();
+</script>
+
+
+<script>
+(function(){
+  function txt(e){return (e&&e.textContent||'').replace(/\s+/g,' ').trim();}
+  function hide(e){if(e)e.style.setProperty('display','none','important');}
+
+  function visualClean82(){
+    /* Ancien grand bloc "Ajouter rapidement" seulement s'il existe encore. */
+    var titles=Array.from(document.querySelectorAll('h1,h2,h3,h4,div,strong'));
+    var title=titles.find(function(e){return txt(e)==='Ajouter rapidement';});
+    if(title){
+      var p=title;
+      while(p && p!==document.body){
+        var t=txt(p);
+        if(t.indexOf('Ajouter rapidement')>=0 &&
+           t.indexOf('Dépense')>=0 &&
+           t.indexOf('Revenu')>=0 &&
+           t.indexOf('Fixe')>=0 &&
+           t.indexOf('Favori')>=0){
+          hide(p);
+          break;
+        }
+        p=p.parentElement;
+      }
+    }
+
+    /* Ancien bandeau "Mode simple / Plus" seulement. */
+    Array.from(document.querySelectorAll('div,section')).forEach(function(e){
+      var t=txt(e);
+      if(t.length<180 &&
+         t.indexOf('Mode simple')>=0 &&
+         t.indexOf('Le nécessaire au quotidien')>=0 &&
+         t.indexOf('Plus')>=0){
+        hide(e);
+      }
+    });
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', visualClean82);
+  } else {
+    visualClean82();
+  }
+  setTimeout(visualClean82,300);
+})();
+</script>
+
+
+<script>
+(function(){
+  function txt(e){return (e&&e.textContent||'').replace(/\s+/g,' ').trim();}
+  function hide(e){if(e)e.style.setProperty('display','none','important');}
+
+  function removeViewChoice83(){
+    /* Repérer le plus petit conteneur qui contient uniquement le choix
+       Essentiel / Complet et le masquer. */
+    var els=Array.from(document.querySelectorAll('div,section,nav'));
+    var candidates=els.filter(function(e){
+      var t=txt(e);
+      return t.indexOf('Essentiel')>=0 &&
+             t.indexOf('Complet')>=0 &&
+             t.length<80;
+    });
+    if(candidates.length){
+      candidates.sort(function(a,b){return txt(a).length-txt(b).length;});
+      hide(candidates[0]);
+    }
+
+    /* Forcer l'affichage de la vue utile par défaut si une classe de mode
+       avait été laissée par l'ancienne interface, sans modifier les données. */
+    try{
+      document.body.classList.remove('complete-mode','full-mode');
+      document.body.classList.add('essential-mode');
+    }catch(e){}
+  }
+
+  if(document.readyState==='loading')
+    document.addEventListener('DOMContentLoaded',removeViewChoice83);
+  else removeViewChoice83();
+
+  setTimeout(removeViewChoice83,300);
+})();
+</script>
+
+
+<script>
+(function(){
+  function t(e){return (e&&e.textContent||'').replace(/\s+/g,' ').trim();}
+  function install84(){
+    var btn = Array.from(document.querySelectorAll('button,a,[role="button"]')).find(function(e){
+      return t(e).indexOf('Échéances')>=0 && t(e).indexOf('Voir les échéances')<0;
+    });
+    if(!btn) return;
+
+    var dueDetails = Array.from(document.querySelectorAll('details')).find(function(d){
+      var s=d.querySelector(':scope > summary');
+      return s && t(s).indexOf('À venir ce mois-ci')>=0;
+    });
+
+    /* Si la version utilise un panneau dédié plutôt qu'un details,
+       on repère le bloc "Échéances du mois". */
+    var duePanel = Array.from(document.querySelectorAll('section,div')).find(function(e){
+      var x=t(e);
+      return x.indexOf('Échéances du mois')>=0 &&
+             x.indexOf('À recevoir')>=0 &&
+             x.indexOf('À payer')>=0 &&
+             x.length<5000;
+    });
+
+    var opened=false;
+    var original=btn.innerHTML;
+
+    function setState(v){
+      opened=v;
+      btn.innerHTML = opened ? '✕ Fermer les échéances' : original;
+    }
+
+    btn.onclick=function(e){
+      e.preventDefault();
+      if(opened){
+        if(dueDetails) dueDetails.open=false;
+        if(duePanel && !dueDetails) duePanel.style.setProperty('display','none','important');
+        setState(false);
+        window.scrollTo({top:0,behavior:'smooth'});
+        return;
+      }
+
+      if(dueDetails){
+        var p=dueDetails.parentElement;
+        while(p){if(p.tagName==='DETAILS')p.open=true;p=p.parentElement;}
+        dueDetails.open=true;
+        dueDetails.scrollIntoView({behavior:'smooth',block:'start'});
+        setState(true);
+        return;
+      }
+
+      if(duePanel){
+        duePanel.style.removeProperty('display');
+        duePanel.scrollIntoView({behavior:'smooth',block:'start'});
+        setState(true);
+      }
+    };
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',install84);
+  else install84();
+  setTimeout(install84,300);
+})();
+</script>
+
+</body></html>
