@@ -4284,34 +4284,54 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
    const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
  }
  function locateHistoryRows(){
-   const list=$('list');
-   if(list && list.children.length) return Array.from(list.children);
-   const candidates=Array.from(document.querySelectorAll('.list')).filter(e=>{
-     if(e.closest('#manage91Panel'))return false;
-     const s=txt(e).toLowerCase();
-     return e.children.length && !s.includes('prélèvements fixes') && !s.includes('revenus fixes');
+   /* Cherche uniquement les lignes du véritable historique existant.
+      On exclut explicitement les échéances à venir / "À payer". */
+   const roots = Array.from(document.querySelectorAll(
+     '#historyList,#history,#historyContent,.history-list,.historyList,[data-history]'
+   ));
+   let rows = [];
+   roots.forEach(root=>{
+     Array.from(root.children).forEach(el=>{
+       const s=txt(el).toLowerCase();
+       if(!s.includes('reste à venir') && !s.includes('à payer') && !s.includes('prévu ·'))
+         rows.push(el);
+     });
    });
-   return candidates.sort((a,b)=>b.children.length-a.children.length)[0]
-     ? Array.from(candidates.sort((a,b)=>b.children.length-a.children.length)[0].children)
-     : [];
+   if(rows.length) return rows;
+
+   /* Fallback : repère des opérations réellement payées/enregistrées,
+      mais jamais les cartes d'échéances futures. */
+   return Array.from(document.querySelectorAll('.item,.row,.history-item,.transaction')).filter(el=>{
+     if(el.closest('#manage91Panel,#manage102History')) return false;
+     const s=txt(el).toLowerCase();
+     if(s.includes('reste à venir') || s.includes('à payer') || s.includes('marquer payé')) return false;
+     return s.includes('payé') || s.includes('banque') || s.includes('carte');
+   });
  }
  function renderHistory(){
    const box=$('manage102HistoryList'); if(!box)return;
-   const rows=locateHistoryRows().slice(0,8);
+   const all=locateHistoryRows();
+   const rows=all.slice(0,8);
    box.innerHTML='';
    if(!rows.length){
-     box.innerHTML='<div class="manage102Empty">Aucune opération à afficher pour ce mois.</div>';
+     box.innerHTML='<div class="manage102Empty">Aucune opération enregistrée pour ce mois.</div>';
      $('manage102HistoryCount').textContent='';
      return;
    }
-   $('manage102HistoryCount').textContent=rows.length+(rows.length===8?' dernières':'');
+   $('manage102HistoryCount').textContent=all.length>8?'8 dernières':(all.length+' opération'+(all.length>1?'s':''));
    rows.forEach(r=>{
      const raw=txt(r);
      const amount=(raw.match(/[-+]?\s*\d[\d\s]*[,.]\d{2}\s*€/)||[''])[0].trim();
-     const name=(r.querySelector('.title')&&txt(r.querySelector('.title'))) ||
-                (r.querySelector('b')&&txt(r.querySelector('b'))) ||
-                raw.replace(amount,'').slice(0,80);
-     const meta=(r.querySelector('.meta')&&txt(r.querySelector('.meta'))) || '';
+     const name=(r.querySelector('.title,.name,.label')&&txt(r.querySelector('.title,.name,.label'))) ||
+                (r.querySelector('b,strong')&&txt(r.querySelector('b,strong'))) ||
+                raw.replace(amount,'').replace(/payé/ig,'').trim().slice(0,80);
+     let meta=(r.querySelector('.meta,.date,.sub')&&txt(r.querySelector('.meta,.date,.sub'))) || '';
+     const lower=raw.toLowerCase();
+     if(!meta){
+       const mode=lower.includes('carte')?'💳 Carte':(lower.includes('banque')?'🏦 Banque':'');
+       const date=(raw.match(/\b(?:le\s+)?\d{1,2}(?:\/\d{1,2}(?:\/\d{2,4})?)?\b/i)||[''])[0];
+       meta=[date,mode].filter(Boolean).join(' · ');
+     }
      const line=document.createElement('div');
      line.className='manage102HistoryRow';
      line.innerHTML='<div class="manage102HistoryName"></div><div class="manage102HistoryMeta"></div><div class="manage102HistoryAmt"></div>';
