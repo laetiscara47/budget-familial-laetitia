@@ -299,6 +299,62 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
  .fixedBtns{width:100%}
  .fixedBtns button{flex:1 1 auto}
 }
+
+/* SIMPLE-6.4.6 — liste « Déjà traité » plus compacte et noms lisibles */
+.treated-item{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) auto auto !important;
+  align-items:center !important;
+  gap:8px !important;
+  padding:10px 12px !important;
+  min-height:0 !important;
+}
+.treated-item .main{
+  min-width:0 !important;
+}
+.treated-item .title{
+  white-space:normal !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+  line-height:1.12 !important;
+  overflow-wrap:anywhere !important;
+}
+.treated-item .meta{
+  margin-top:2px !important;
+  line-height:1.15 !important;
+}
+.treated-item .amt{
+  white-space:nowrap !important;
+  margin:0 !important;
+}
+.treated-item .treated-cancel{
+  width:auto !important;
+  min-width:82px !important;
+  padding:10px 12px !important;
+  margin:0 !important;
+  white-space:nowrap !important;
+}
+@media (max-width:430px){
+  .treated-item{
+    grid-template-columns:minmax(0,1fr) auto !important;
+  }
+  .treated-item .main{
+    grid-column:1 / 2 !important;
+  }
+  .treated-item .amt{
+    grid-column:1 / 2 !important;
+    justify-self:start !important;
+    margin-top:4px !important;
+  }
+  .treated-item .treated-cancel{
+    grid-column:2 / 3 !important;
+    grid-row:1 / 3 !important;
+    align-self:center !important;
+    min-width:76px !important;
+    padding:9px 10px !important;
+  }
+}
+
 </style></head>
 <body>
 <div id="simple4Dashboard" class="simple4Dashboard">
@@ -323,7 +379,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
   <button id="simple5Undo" class="secondary simple5Undo" type="button" hidden>↩️ Annuler la dernière action</button>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-6.4.5</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-6.4.6</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -2054,8 +2110,8 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
    let treatedTitle=document.createElement('div');treatedTitle.className='smalllabel';treatedTitle.style.margin='16px 0 8px';treatedTitle.textContent='✅ Déjà traité ce mois-ci';upcomingBox.appendChild(treatedTitle);
    if(!treated.length){let e=document.createElement('div');e.className='empty';e.textContent='Aucun élément traité pour ce mois.';upcomingBox.appendChild(e)}
    treated.forEach(x=>{
-     let d=document.createElement('div');d.className='item';
-     d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="secondary" type="button">Annuler</button>';
+     let d=document.createElement('div');d.className='item treated-item';
+     d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="secondary treated-cancel" type="button">Annuler</button>';
      d.querySelector('.title').textContent=(x.kind==='income'?'💰 ':'🧾 ')+x.label;
      d.querySelector('.meta').textContent='Le '+x.day+' · ✓ '+x.type;
      let a=d.querySelector('.amt');a.textContent=eur(x.amount);a.className='amt '+(x.kind==='income'?'green':'orange');
@@ -2804,7 +2860,7 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
 
 
 <script>
-/* SIMPLE-6.4.5 — prélèvements/revenus fixes mensuels robustes */
+/* SIMPLE-6.4.6 — prélèvements/revenus fixes mensuels robustes */
 (function(){
  function monthKey(){ var e=document.getElementById('month'); return e&&e.value ? e.value : new Date().toISOString().slice(0,7); }
  function ensure(){
