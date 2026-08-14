@@ -300,7 +300,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
  .fixedBtns button{flex:1 1 auto}
 }
 
-/* SIMPLE-7.6 — liste « Déjà traité » plus compacte et noms lisibles */
+/* SIMPLE-8.2 — liste « Déjà traité » plus compacte et noms lisibles */
 .treated-item{
   display:grid !important;
   grid-template-columns:minmax(0,1fr) auto auto !important;
@@ -356,7 +356,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
 }
 
 
-/* SIMPLE-7.6 — lot confort iPhone, sans changement des calculs */
+/* SIMPLE-8.2 — lot confort iPhone, sans changement des calculs */
 :root{scroll-behavior:smooth}
 button, summary, select{touch-action:manipulation}
 button:active{transform:scale(.985)}
@@ -385,7 +385,7 @@ summary{cursor:pointer}
 button:not(:disabled), summary{ -webkit-tap-highlight-color:rgba(86,101,214,.12); }
 
 
-/* SIMPLE-7.6 — utilisation quotidienne */
+/* SIMPLE-8.2 — utilisation quotidienne */
 .daily66{
   margin:10px 0 12px;padding:12px;border:1px solid var(--line);
   border-radius:16px;background:var(--card);
@@ -402,7 +402,7 @@ button:not(:disabled), summary{ -webkit-tap-highlight-color:rgba(86,101,214,.12)
 }
 
 
-/* SIMPLE-7.6 — saisie quotidienne + dernières opérations */
+/* SIMPLE-8.2 — saisie quotidienne + dernières opérations */
 .daily67Recent{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
 .daily67RecentHead{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .daily67RecentHead button{min-height:34px!important;padding:6px 9px!important;font-size:12px!important}
@@ -415,21 +415,21 @@ button:not(:disabled), summary{ -webkit-tap-highlight-color:rgba(86,101,214,.12)
 .daily67Empty{font-size:13px;opacity:.7;padding:8px 0}
 
 
-/* SIMPLE-7.6 — résumé mensuel immédiat */
+/* SIMPLE-8.2 — résumé mensuel immédiat */
 .daily68Summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}
 .daily68Summary>div{border:1px solid var(--line);border-radius:13px;padding:9px 10px;display:flex;flex-direction:column;gap:3px}
 .daily68Summary span{font-size:12px;opacity:.72}
 .daily68Summary b{font-size:17px}
 
 
-/* SIMPLE-7.6 — pilotage du mois */
+/* SIMPLE-8.2 — pilotage du mois */
 .daily69Pilot{margin-top:11px;border:1px solid var(--line);border-radius:14px;padding:10px 11px}
 .daily69PilotTitle{font-weight:900;font-size:14px}
 .daily69Message{font-size:13px;font-weight:750;margin-top:5px;line-height:1.3}
 .daily69Next{font-size:12px;opacity:.76;margin-top:4px;line-height:1.3}
 
 
-/* SIMPLE-7.6 — accueil quotidien final */
+/* SIMPLE-8.2 — accueil quotidien final */
 .daily70Status{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
 .daily70Status>div{border:1px solid var(--line);border-radius:14px;padding:9px 10px;display:flex;flex-direction:column;gap:3px}
 .daily70Status span{font-size:12px;opacity:.7}
@@ -437,7 +437,7 @@ button:not(:disabled), summary{ -webkit-tap-highlight-color:rgba(86,101,214,.12)
 @media(max-width:430px){.daily70Status b{font-size:16px}}
 
 
-/* SIMPLE-7.6 — NETTOYAGE
+/* SIMPLE-8.2 — NETTOYAGE
    Retour à l'objectif initial : simple, clair, mensuel.
    Les couches de tableau de bord ajoutées en 6.6–7.0 sont masquées.
    Les données et calculs existants restent intacts. */
@@ -462,7 +462,7 @@ button, summary, input, select { min-height:46px; }
 }
 
 
-/* SIMPLE-7.6 — accueil minimaliste */
+/* SIMPLE-8.2 — accueil minimaliste */
 #simple4Balance{display:none !important;}
 #simple4Bank{cursor:pointer;touch-action:manipulation}
 #manage72{margin:14px auto 0;width:auto;min-width:150px;min-height:44px;padding:9px 18px;display:block;border-radius:14px;font-size:15px}
@@ -470,7 +470,7 @@ button, summary, input, select { min-height:46px; }
 .smalllabel{display:none !important;}
 
 
-/* SIMPLE-7.6 — suppression de la barre de raccourcis en double */
+/* SIMPLE-8.2 — suppression de la barre de raccourcis en double */
 .quickNav,
 #quickNav,
 .bottomQuickNav,
@@ -481,7 +481,7 @@ button, summary, input, select { min-height:46px; }
 }
 
 
-/* SIMPLE-7.6 — saisie Dépense claire */
+/* SIMPLE-8.2 — saisie Dépense claire */
 body.expense74-on #quickTypeRow,
 body.expense74-on #quickCategoryRow,
 body.expense74-on #quickUtilityRow {display:none !important;}
@@ -505,19 +505,31 @@ body.expense74-on input,
 body.expense74-on select{font-size:17px}
 
 
-/* SIMPLE-7.6 — suppression des couches de saisie devenues inutiles */
+/* SIMPLE-8.2 — suppression des couches de saisie devenues inutiles */
 #expense74Header{display:none !important;}
 body.expense74-on #expense74Header{display:none !important;}
 
 /* Les anciens raccourcis "Ajouter rapidement" et "Mode simple / Plus"
    sont repérés et masqués par le correctif JS ci-dessous. */
 
+
+/* =========================================================
+   SIMPLE-8.2 — nettoyage VISUEL uniquement, base fonctionnelle 7.6
+   Aucun changement du stockage ou des fonctions métier.
+   ========================================================= */
+
+/* Masquer uniquement les éléments visuels devenus redondants. */
+#expense74Header { display:none !important; }
+
+/* Les anciens blocs de saisie rapide expérimentaux restent invisibles. */
+.v81AddOperation, #v81AddOperation { display:none !important; }
+
 </style></head>
 <body>
-<!-- SIMPLE-7.6 : interface nettoyée; données 7.0.1 conservées -->
+<!-- SIMPLE-8.2 : interface nettoyée; données 7.0.1 conservées -->
 
 <script>
-/* SIMPLE-7.6 — compatibilité : mois actuellement sélectionné */
+/* SIMPLE-8.2 — compatibilité : mois actuellement sélectionné */
 var currentMonth = (function(){
   var el=document.getElementById('month');
   if(el && el.value) return el.value;
@@ -580,7 +592,7 @@ document.addEventListener('change',function(e){
   <button id="simple5Undo" class="secondary simple5Undo" type="button" hidden>↩️ Annuler la dernière action</button>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-7.6</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-8.2</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -3061,7 +3073,7 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
 
 
 <script>
-/* SIMPLE-7.6 — prélèvements/revenus fixes mensuels robustes */
+/* SIMPLE-8.2 — prélèvements/revenus fixes mensuels robustes */
 (function(){
  function monthKey(){ var e=document.getElementById('month'); return e&&e.value ? e.value : new Date().toISOString().slice(0,7); }
  function ensure(){
@@ -3131,7 +3143,7 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
 
 
 <script>
-/* SIMPLE-7.6 — raccourcis sûrs vers les fonctions déjà existantes */
+/* SIMPLE-8.2 — raccourcis sûrs vers les fonctions déjà existantes */
 (function(){
  function clickExisting(id){
    var b=document.getElementById(id);
@@ -3174,7 +3186,7 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
 
 
 <script>
-/* SIMPLE-7.6 — aperçu des dernières opérations, sans modifier les calculs */
+/* SIMPLE-8.2 — aperçu des dernières opérations, sans modifier les calculs */
 (function(){
  function money67(v){
    try{return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(Number(v)||0)}
@@ -3226,7 +3238,7 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
 
 
 <script>
-/* SIMPLE-7.6 — résumé à recevoir / à payer depuis les données existantes */
+/* SIMPLE-8.2 — résumé à recevoir / à payer depuis les données existantes */
 (function(){
  function euro68(v){
   try{return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(Number(v)||0)}
@@ -3259,7 +3271,7 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
 
 
 <script>
-/* SIMPLE-7.6 — synthèse d'attention depuis les données existantes */
+/* SIMPLE-8.2 — synthèse d'attention depuis les données existantes */
 (function(){
  function eur69(v){try{return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(Number(v)||0)}catch(e){return (Number(v)||0).toFixed(2).replace('.',',')+' €'}}
  function refresh69(){
@@ -3300,7 +3312,7 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
 
 
 <script>
-/* SIMPLE-7.6 — synchronise l'accueil avec les valeurs déjà calculées par l'application */
+/* SIMPLE-8.2 — synchronise l'accueil avec les valeurs déjà calculées par l'application */
 (function(){
  function refresh70(){
   var av=document.getElementById('daily70Available'),mo=document.getElementById('daily70Month');
@@ -3350,7 +3362,7 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
 
 
 <script>
-/* SIMPLE-7.6 — masque uniquement la barre contenant les 5 raccourcis redondants */
+/* SIMPLE-8.2 — masque uniquement la barre contenant les 5 raccourcis redondants */
 (function(){
   function clean73(){
     var labels=['Ajouter','Solde','Historique','Sauvegarder',"Aujourd’hui","Aujourd'hui"];
@@ -3521,6 +3533,53 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',removeQuick76);
  else removeQuick76();
  setTimeout(removeQuick76,300);
+})();
+</script>
+
+
+<script>
+(function(){
+  function txt(e){return (e&&e.textContent||'').replace(/\s+/g,' ').trim();}
+  function hide(e){if(e)e.style.setProperty('display','none','important');}
+
+  function visualClean82(){
+    /* Ancien grand bloc "Ajouter rapidement" seulement s'il existe encore. */
+    var titles=Array.from(document.querySelectorAll('h1,h2,h3,h4,div,strong'));
+    var title=titles.find(function(e){return txt(e)==='Ajouter rapidement';});
+    if(title){
+      var p=title;
+      while(p && p!==document.body){
+        var t=txt(p);
+        if(t.indexOf('Ajouter rapidement')>=0 &&
+           t.indexOf('Dépense')>=0 &&
+           t.indexOf('Revenu')>=0 &&
+           t.indexOf('Fixe')>=0 &&
+           t.indexOf('Favori')>=0){
+          hide(p);
+          break;
+        }
+        p=p.parentElement;
+      }
+    }
+
+    /* Ancien bandeau "Mode simple / Plus" seulement. */
+    Array.from(document.querySelectorAll('div,section')).forEach(function(e){
+      var t=txt(e);
+      if(t.length<180 &&
+         t.indexOf('Mode simple')>=0 &&
+         t.indexOf('Le nécessaire au quotidien')>=0 &&
+         t.indexOf('Plus')>=0){
+        hide(e);
+      }
+    });
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', visualClean82);
+  } else {
+    visualClean82();
+  }
+  setTimeout(visualClean82,300);
 })();
 </script>
 
