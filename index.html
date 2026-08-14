@@ -323,7 +323,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
   <button id="simple5Undo" class="secondary simple5Undo" type="button" hidden>↩️ Annuler la dernière action</button>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-6.4.2</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-6.4.3</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -520,6 +520,7 @@ body.simple4TrueEssential #simple4OriginalArea{display:none!important}
   <div class="card"><span class="smalllabel">🧾 Charges à payer</span><b id="dashUnpaid" class="orange">0,00 €</b></div>
  </div>
  <div style="margin-top:10px;padding:11px;border:1px solid var(--line);border-radius:12px;background:#f8f9fb"><span class="smalllabel">⏰ Prochaine échéance</span><div id="nextDue" style="font-weight:800;margin-top:4px">Aucune échéance</div><div id="nextDueDetail" class="note" style="margin-top:3px"></div></div>
+ <div id="upcomingMonthList" class="list" style="margin-top:10px"></div>
 </div></details>
   <details class="fold">
 <summary>💰 Revenus fixes mensuels</summary>
@@ -2029,6 +2030,24 @@ $('bank').value=b.bank||'';$('card').value=b.card||'';$('bankView').textContent=
  let next=futureDue[0]||dueItems.sort((a,b)=>a.day-b.day)[0]||null;
  $('nextDue').textContent=next?('Le '+next.day+' · '+next.label):'Aucune échéance';
  $('nextDueDetail').textContent=next?(next.type+' · '+eur(next.amount)):'Tout est à jour pour ce mois.';
+ let upcomingBox=$('upcomingMonthList');
+ if(upcomingBox){
+   upcomingBox.innerHTML='';
+   let rows=dueItems.slice().sort((a,b)=>a.day-b.day || (a.kind==='income'?-1:1));
+   if(!rows.length){upcomingBox.innerHTML='<div class="empty">✓ Rien en attente pour ce mois.</div>'}
+   rows.forEach(x=>{
+     let d=document.createElement('div');d.className='item';
+     d.innerHTML='<div class="main"><div class="title"></div><div class="meta"></div></div><div class="amt"></div><button class="secondary pay" type="button"></button>';
+     d.querySelector('.title').textContent=(x.kind==='income'?'💰 ':'🧾 ')+x.label;
+     let state=(isCurrentMonth && x.day<todayNum)?'⚠️ En retard · ':((isCurrentMonth && x.day===todayNum)?'Aujourd’hui · ':'Prévu · ');
+     d.querySelector('.meta').textContent=state+'le '+x.day+' · '+x.type;
+     let a=d.querySelector('.amt');a.textContent=eur(x.amount);a.className='amt '+(x.kind==='income'?'green':'orange');
+     let bt=d.querySelector('.pay');bt.textContent=x.kind==='income'?'Reçu ✓':'Payé ✓';
+     bt.onclick=()=>{if(x.kind==='income'){s.incomeReceived[m]=s.incomeReceived[m]||{};s.incomeReceived[m][x.id]=true}else{s.paid[m]=s.paid[m]||{};s.paid[m][x.id]=true}persist()};
+     upcomingBox.appendChild(d);
+   });
+ }
+
  if($('homeTodo')){
   let todo=$('homeTodo');todo.innerHTML='';
   let todoRows=dueItems.slice().sort((a,b)=>a.day-b.day);
@@ -2761,7 +2780,7 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
 
 
 <script>
-/* SIMPLE-6.4.2 — prélèvements/revenus fixes mensuels robustes */
+/* SIMPLE-6.4.3 — prélèvements/revenus fixes mensuels robustes */
 (function(){
  function monthKey(){ var e=document.getElementById('month'); return e&&e.value ? e.value : new Date().toISOString().slice(0,7); }
  function ensure(){
