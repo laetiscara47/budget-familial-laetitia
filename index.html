@@ -786,11 +786,11 @@ document.addEventListener('change',function(e){
 <button id="manage72" type="button" class="secondary">⚙️ Gérer</button>
 
   </div>
-  <button id="simple5Undo" class="secondary simple5Undo" type="button" hidden>↩️ Annuler la dernière action</button>
+  <button id="simple5Undo" class="secondary simple5Undo" type="button" hidden>↩️ Annuler la dernière dépense</button>
 <div id="simple109LastAction" hidden style="margin-top:8px;padding:10px 12px;border-radius:12px;background:#edf8f1;color:#16875d;font-size:13px;font-weight:800;text-align:center"></div>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-11.1</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-11.2</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -4534,6 +4534,29 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
      window.__simple109Timer=setTimeout(()=>{b.hidden=true},6000);
    },250);
  },true);
+})();
+</script>
+
+
+<script>
+/* SIMPLE-11.2 — rendre l'annulation de dépense plus claire, logique existante conservée */
+(function(){
+ function improveUndo(){
+   var b=document.getElementById('simple5Undo');
+   if(!b) return;
+   b.textContent='↩️ Annuler la dernière dépense';
+   b.title='Remet le solde comme avant la dernière dépense enregistrée';
+   if(!document.getElementById('simple112UndoHint')){
+     var h=document.createElement('div');
+     h.id='simple112UndoHint';
+     h.textContent='Disponible uniquement après l’enregistrement d’une dépense.';
+     h.style.cssText='font-size:12px;color:#7b8190;text-align:center;margin-top:7px;';
+     b.insertAdjacentElement('afterend',h);
+   }
+ }
+ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',improveUndo);
+ else improveUndo();
+ new MutationObserver(improveUndo).observe(document.body,{childList:true,subtree:true});
 })();
 </script>
 
