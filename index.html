@@ -720,22 +720,8 @@ body.manage90-open details.menuGroup {display:block !important;}
   }
 }
 
-
-/* SIMPLE-11.0 — Échéances plus simples au quotidien */
-.simple5DueItem{padding:10px!important}
-.simple5DueTop{align-items:center!important}
-.simple5DueTitle{font-size:15px!important;line-height:1.2}
-.simple5DueMeta{font-size:12px!important}
-.simple5DueAmt{font-size:16px!important}
-.simple5DueItem button{min-height:40px!important;margin-top:7px!important;padding:8px 10px!important}
-@media(max-width:430px){
-  .simple5DueSummary{gap:6px!important;margin-bottom:8px!important}
-  .simple5DueSummary>div{padding:8px 9px!important}
-  .simple5DueSummary b{font-size:17px!important}
-  .simple5DueList{gap:6px!important}
-}
-
-</style></head>
+</style><!-- SIMPLE-11.1 : retour base stable 10.9, correctif 11.0 retiré -->
+</head>
 <body>
 <!-- SIMPLE-10.3 : historique mensuel fiabilisé; calculs et données conservés -->
 
@@ -804,7 +790,7 @@ document.addEventListener('change',function(e){
 <div id="simple109LastAction" hidden style="margin-top:8px;padding:10px 12px;border-radius:12px;background:#edf8f1;color:#16875d;font-size:13px;font-weight:800;text-align:center"></div>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-11.0</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-11.1</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -4548,30 +4534,6 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
      window.__simple109Timer=setTimeout(()=>{b.hidden=true},6000);
    },250);
  },true);
-})();
-</script>
-
-
-<script>
-/* SIMPLE-11.0 — libellés d'échéances plus clairs, aucun changement des données */
-(function(){
- function clean(){
-   document.querySelectorAll('.simple5DueItem').forEach(function(item){
-     var meta=item.querySelector('.simple5DueMeta');
-     var btn=item.querySelector('button');
-     if(btn){
-       var s=(btn.textContent||'').trim().toLowerCase();
-       if(s.indexOf('marquer')>=0 && s.indexOf('pay')>=0) btn.textContent='✓ Marquer payé';
-     }
-     if(meta && !meta.dataset.s110){
-       meta.dataset.s110='1';
-       meta.textContent=(meta.textContent||'').replace(/prévu\s*·?\s*/ig,'');
-     }
-   });
- }
- document.addEventListener('click',function(){setTimeout(clean,80)},true);
- new MutationObserver(clean).observe(document.body,{childList:true,subtree:true});
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',clean);else clean();
 })();
 </script>
 
