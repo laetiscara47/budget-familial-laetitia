@@ -703,6 +703,23 @@ body.manage90-open details.menuGroup {display:block !important;}
   }
 }
 
+
+/* SIMPLE-10.5 — encore plus de place aux libellés longs sur iPhone */
+@media (max-width: 600px){
+  #manage102Panel .manage102FixedActions,
+  #manage102Panel .manage102IncomeActions{
+    gap:3px !important;
+  }
+  #manage102Panel .manage102FixedActions button,
+  #manage102Panel .manage102IncomeActions button{
+    width:39px !important;
+    min-width:39px !important;
+    height:46px !important;
+    padding:0 !important;
+    font-size:20px !important;
+  }
+}
+
 </style></head>
 <body>
 <!-- SIMPLE-10.3 : historique mensuel fiabilisé; calculs et données conservés -->
@@ -771,7 +788,7 @@ document.addEventListener('change',function(e){
   <button id="simple5Undo" class="secondary simple5Undo" type="button" hidden>↩️ Annuler la dernière action</button>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-10.4</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-10.5</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
