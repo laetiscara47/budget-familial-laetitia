@@ -788,7 +788,7 @@ document.addEventListener('change',function(e){
   <button id="simple5Undo" class="secondary simple5Undo" type="button" hidden>↩️ Annuler la dernière action</button>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-10.6</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-10.7</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -3020,7 +3020,7 @@ $('form').onsubmit=e=>{e.preventDefault();let btn=$('addBtn');if(btn.dataset.bus
 }$('label').value='';$('amount').value='';
  let resetToday=new Date().toISOString().slice(0,10),resetMonth=$('month').value;
  $('date').value=(resetMonth===resetToday.slice(0,7))?resetToday:resetMonth+'-01';
- persist();showToast(mode==='expense'?'Dépense enregistrée ✓':mode==='income'?'Revenu enregistré ✓':'Prélèvement enregistré ✓');$('label').focus();updateAddReady();if($('smartEntry'))$('smartEntry').style.display='none';smartSuggestion=null;renderRecentEntryChips();setTimeout(()=>{btn.dataset.busy='0';btn.disabled=false},450)};
+ persist();showToast(mode==='expense'?('✅ '+enteredLabel+' — '+enteredAmount.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' € enregistré'+(enteredAmount>1?'s':'')+' sur '+((typeof payment!=='undefined'&&payment==='card')?'Carte':(typeof payment!=='undefined'&&payment==='cash')?'Espèces':'Compte')):mode==='income'?'Revenu enregistré ✓':'Prélèvement enregistré ✓');$('label').focus();updateAddReady();if($('smartEntry'))$('smartEntry').style.display='none';smartSuggestion=null;renderRecentEntryChips();setTimeout(()=>{btn.dataset.busy='0';btn.disabled=false},450)};
 function nextMonthKey(m){
  let [y,mo]=m.split('-').map(Number);mo++;
  if(mo>12){mo=1;y++}
