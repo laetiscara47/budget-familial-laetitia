@@ -788,7 +788,7 @@ document.addEventListener('change',function(e){
   <button id="simple5Undo" class="secondary simple5Undo" type="button" hidden>↩️ Annuler la dernière action</button>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-10.5</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-10.6</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -2204,7 +2204,7 @@ function simple5SubmitExpense(){
  let lab=inputs.find(i=>/(libell|description|nom|ex\.)/i.test(i.placeholder||'') && i!==amt);
  if(amt){
    if(lab)lab.value=label;
-   amt.value=String(amount).replace('.',',');
+   amt.value=String(amount); // input type=number exige un point en valeur JS
    let selects=[...document.querySelectorAll('#simple4OriginalArea select')];
    let ps=selects.find(x=>[...x.options].some(o=>/carte|banque/i.test(o.textContent||'')));
    if(ps){
