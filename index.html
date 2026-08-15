@@ -720,10 +720,6 @@ body.manage90-open details.menuGroup {display:block !important;}
   }
 }
 
-
-/* SIMPLE-10.8 — confirmation visible après enregistrement d’une dépense */
-.simple108Confirm{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 18px);transform:translateX(-50%) translateY(-18px);z-index:9999;background:#e8f6ef;color:#16875d;border:1px solid #b9e3cf;box-shadow:0 8px 28px rgba(0,0,0,.14);border-radius:14px;padding:12px 16px;font-weight:800;font-size:15px;opacity:0;pointer-events:none;transition:.22s;max-width:90%;text-align:center}
-.simple108Confirm.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style></head>
 <body>
 <!-- SIMPLE-10.3 : historique mensuel fiabilisé; calculs et données conservés -->
@@ -790,9 +786,10 @@ document.addEventListener('change',function(e){
 
   </div>
   <button id="simple5Undo" class="secondary simple5Undo" type="button" hidden>↩️ Annuler la dernière action</button>
+<div id="simple109LastAction" hidden style="margin-top:8px;padding:10px 12px;border-radius:12px;background:#edf8f1;color:#16875d;font-size:13px;font-weight:800;text-align:center"></div>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-10.8</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-10.9</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -2198,16 +2195,6 @@ function simple5SubmitBalance(){
  try{render()}catch(e){}
  setTimeout(simple4Refresh,50);
 }
-function simple108ConfirmExpense(label,amount){
- let x=document.getElementById('simple108Confirm');
- if(!x){x=document.createElement('div');x.id='simple108Confirm';x.className='simple108Confirm';document.body.appendChild(x);}
- let n=Number(amount||0).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});
- x.textContent='✓ Dépense enregistrée : '+(label||'Dépense')+' · '+n+' €';
- x.classList.add('show');
- clearTimeout(window.simple108ConfirmTimer);
- window.simple108ConfirmTimer=setTimeout(()=>x.classList.remove('show'),3500);
-}
-
 function simple5SubmitExpense(){
  let label=($('s5label').value||'Dépense').trim(), amount=simple5Num($('s5amount').value), pay=$('s5pay').value;
  if(amount<=0){alert('Indiquez un montant.');return;}
@@ -2232,10 +2219,7 @@ function simple5SubmitExpense(){
      let bb=(s.balances&&s.balances[mm])||{bank:0,card:0}, beforeBank=+bb.bank||0,beforeCard=+bb.card||0;
      add.click();
      let created=(s.entries||[]).find(e=>e.month===mm&&!beforeIds.has(e.id));
-     if(created){
-       simple5LastAction={kind:'expense',month:mm,entryId:created.id,beforeBank:beforeBank,beforeCard:beforeCard};
-       simple108ConfirmExpense(label,amount);
-     }
+     if(created) simple5LastAction={kind:'expense',month:mm,entryId:created.id,beforeBank:beforeBank,beforeCard:beforeCard};
      simple5Close();simple5UpdateUndo();setTimeout(simple4Refresh,100);return;
    }
  }
@@ -4526,6 +4510,29 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);
  else install();
  setTimeout(install,500);
+})();
+</script>
+
+
+<script>
+/* SIMPLE-10.9 — confirmation durable de la dernière dépense, sans modifier les calculs */
+(function(){
+ let before=0;
+ function box(){return document.getElementById('simple109LastAction')}
+ function eur(n){return Number(n||0).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €'}
+ document.addEventListener('submit',function(e){
+   if(!e.target || e.target.id!=='form')return;
+   const label=(document.getElementById('label')||{}).value||'Dépense';
+   const amount=parseFloat((document.getElementById('amount')||{}).value)||0;
+   const pay=(document.getElementById('paymentMethod')||{}).value||'card';
+   setTimeout(function(){
+     const b=box(); if(!b||!amount)return;
+     b.textContent='✓ '+label+' · '+eur(amount)+' enregistré'+(pay==='card'?' sur Carte':pay==='bank'?' sur Compte':' en Espèces');
+     b.hidden=false;
+     clearTimeout(window.__simple109Timer);
+     window.__simple109Timer=setTimeout(()=>{b.hidden=true},6000);
+   },250);
+ },true);
 })();
 </script>
 
