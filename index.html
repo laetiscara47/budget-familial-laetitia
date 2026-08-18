@@ -790,7 +790,7 @@ document.addEventListener('change',function(e){
 <div id="simple109LastAction" hidden style="margin-top:8px;padding:10px 12px;border-radius:12px;background:#edf8f1;color:#16875d;font-size:13px;font-weight:800;text-align:center"></div>
 </div>
 <div class="app">
-<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-11.2</span></div>
+<h1>Mon Budget</h1><div class="subtitle">Simple • clair • mensuel <span style="font-size:13px;font-weight:700">SIMPLE-11.3</span></div>
 <div class="month"><button id="prev" class="secondary">‹</button><input id="month" type="month"><button id="next" class="secondary">›</button></div>
 <div class="viewMode">
  <button id="viewEssential" type="button" aria-pressed="true">Essentiel</button>
@@ -4557,6 +4557,66 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(simple4Setup,120));
  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',improveUndo);
  else improveUndo();
  new MutationObserver(improveUndo).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
+
+
+<script>
+/* SIMPLE-11.3 — annulation fiable de la dernière dépense du mois sélectionné */
+(function(){
+  function getState(){
+    try{return JSON.parse(localStorage.getItem('monBudgetSimpleV3')||'{}')}catch(e){return {}}
+  }
+  function monthKey(){
+    var el=document.getElementById('month');
+    if(el&&el.value)return el.value;
+    var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  }
+  function latestExpense(st,mm){
+    var rows=(st.entries||[]).filter(function(e){return e&&e.type==='expense'&&e.month===mm});
+    if(!rows.length)return null;
+    return rows[rows.length-1];
+  }
+  function refreshUndo(){
+    var b=document.getElementById('simple5Undo'); if(!b)return;
+    var st=getState(), e=latestExpense(st,monthKey());
+    b.hidden=!e;
+    b.textContent='↩️ Annuler la dernière dépense';
+    var h=document.getElementById('simple112UndoHint');
+    if(h)h.textContent=e ? 'Supprime la dernière dépense enregistrée de ce mois.' : 'Aucune dépense à annuler pour ce mois.';
+  }
+  function undoExpense(){
+    var st=getState(), mm=monthKey(), e=latestExpense(st,mm);
+    if(!e){refreshUndo();return;}
+    var amount=Number(e.amount)||0;
+    var label=e.label||'Dépense';
+    var txt=amount.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
+    if(!confirm('Annuler « '+label+' » · '+txt+' ?'))return;
+    var idx=(st.entries||[]).lastIndexOf(e);
+    if(idx>=0)st.entries.splice(idx,1);
+    /* Dans cette application, une dépense Carte augmente l'encours carte à la saisie. */
+    if((e.payment||'card')==='card' && st.balances && st.balances[mm]){
+      st.balances[mm].card=Math.max(0,(Number(st.balances[mm].card)||0)-amount);
+    }
+    localStorage.setItem('monBudgetSimpleV3',JSON.stringify(st));
+    try{ if(typeof s!=='undefined') s=st; }catch(err){}
+    try{ if(typeof render==='function') render(); }catch(err){}
+    try{ if(typeof simple4Refresh==='function') simple4Refresh(); }catch(err){}
+    refreshUndo();
+    var box=document.getElementById('simple109LastAction');
+    if(box){box.textContent='↩️ '+label+' · '+txt+' annulé';box.hidden=false;setTimeout(function(){box.hidden=true},5000)}
+  }
+  function install(){
+    var b=document.getElementById('simple5Undo'); if(!b)return;
+    b.onclick=undoExpense;
+    refreshUndo();
+    var m=document.getElementById('month');if(m)m.addEventListener('change',function(){setTimeout(refreshUndo,50)});
+    document.addEventListener('click',function(ev){
+      var t=ev.target;if(!t)return;
+      if((t.id==='simple4Add')||/Enregistrer la dépense|Ajouter la dépense/.test(t.textContent||''))setTimeout(refreshUndo,350);
+    },true);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
 })();
 </script>
 
